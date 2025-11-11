@@ -5,8 +5,8 @@ from datetime import date
 
 # 🎨 Colores de la marca Rutas Baja Express
 COLOR_FONDO = "#f2f2f2"
-COLOR_PRINCIPAL = "#0059b3"
-COLOR_BOTON = "#ff9900"
+COLOR_PRINCIPAL = "#1181c3"
+COLOR_BOTON = "#ed7237"
 COLOR_TEXTO = "#000000"
 
 # 🔌 Conexión a la base de datos
