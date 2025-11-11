@@ -7,7 +7,7 @@ from datetime import date
 COLOR_FONDO = "#f2f2f2"
 COLOR_PRINCIPAL = "#0059b3"
 COLOR_BOTON = "#ff9900"
-COLOR_TEXTO = "#1a1a1a"
+COLOR_TEXTO = "#000000"
 
 # 🔌 Conexión a la base de datos
 def conectar():
