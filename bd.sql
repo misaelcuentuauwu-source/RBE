@@ -84,3 +84,7 @@ CREATE Table autobus(
     placas VARCHAR(7),
     FOREIGN KEY (modelo)
 );
+
+CREATE Table detalle_viaje(
+    autobus
+);
