@@ -82,9 +82,71 @@ CREATE Table autobus(
     numero INT PRIMARY KEY AUTO_INCREMENT,
     modelo INT NOT NULL,
     placas VARCHAR(7),
-    FOREIGN KEY (modelo)
+    FOREIGN KEY (modelo) REFERENCES modelo(numero)
 );
 
-CREATE Table detalle_viaje(
-    autobus
+CREATE TABLE detalle_viaje(
+    viaje INT NOT NULL,
+    conductor INT NOT NULL,
+    autobus INT NOT NULL,
+    PRIMARY KEY (viaje, conductor, autobus),
+    FOREIGN KEY (viaje) REFERENCES viaje(numero),
+    FOREIGN KEY (conductor) REFERENCES conductor(registro),
+    FOREIGN KEY (autobus) REFERENCES autobus(numero)
+);
+
+CREATE TABLE asiento(
+    numero INT PRIMARY KEY AUTO_INCREMENT,
+    ocupado BOOLEAN NOT NULL,
+    tipo VARCHAR(5) NOT NULL,
+    autobus INT NOT NULL,
+    FOREIGN KEY (tipo) REFERENCES tipo_asiento(codigo),
+    FOREIGN KEY (autobus) REFERENCES autobus(numero)
+);
+
+CREATE TABLE pasajero(
+    num INT PRIMARY KEY AUTO_INCREMENT,
+    paNombre VARCHAR(30) NOT NULL,
+    paPrimerApell VARCHAR(30) NOT NULL,
+    paSegundoApell VARCHAR(30),
+    fechaNacimiento DATE NOT NULL,
+    edad INT
+);
+
+CREATE TABLE pago(
+    codigo VARCHAR(5) PRIMARY KEY,
+    fechaPago DATETIME NOT NULL,
+    monto DECIMAL(10,2) NOT NULL,
+    tipo INT NOT NULL,
+    FOREIGN KEY (tipo) REFERENCES tipo_pago(numero)
+);
+
+CREATE TABLE taquillero(
+    registro INT PRIMARY KEY,
+    taqNombre VARCHAR(30) NOT NULL,
+    taqPrimerApell VARCHAR(30) NOT NULL,
+    taqSegundoApell VARCHAR(30),
+    fechaContrato DATE NOT NULL,
+    usuario VARCHAR(20) NOT NULL,
+    contraseña VARCHAR(20) NOT NULL,
+    terminal INT NOT NULL,
+    FOREIGN KEY (terminal) REFERENCES terminal(numero)
+);
+
+CREATE TABLE ticket(
+    codigo VARCHAR(10) PRIMARY KEY,
+    precio DECIMAL(10,2) NOT NULL,
+    fechaEmision DATETIME NOT NULL,
+    asiento INT NOT NULL,
+    viaje INT NOT NULL,
+    pasajero INT NOT NULL,
+    tipoPasajero INT NOT NULL,
+    pago VARCHAR(5) NOT NULL,
+    vendedor INT NOT NULL,
+    FOREIGN KEY (asiento) REFERENCES asiento(numero),
+    FOREIGN KEY (viaje) REFERENCES viaje(numero),
+    FOREIGN KEY (pasajero) REFERENCES pasajero(num),
+    FOREIGN KEY (tipoPasajero) REFERENCES tipo_pasajero(num),
+    FOREIGN KEY (pago) REFERENCES pago(codigo),
+    FOREIGN KEY (vendedor) REFERENCES taquillero(registro)
 );
