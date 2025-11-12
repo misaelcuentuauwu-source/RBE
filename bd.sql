@@ -42,6 +42,12 @@ create table tipo_pago(
     descripcion varchar(50) not null UNIQUE
 );
 
+create table edo_viaje(
+    numero INT PRIMARY KEY, 
+    nombre VARCHAR(30) NOT NULL,
+    descripcion varchar(50) not null UNIQUE
+);
+
 CREATE Table terminal(
     numero INT PRIMARY KEY,
     nombre VARCHAR(30) NOT NULL,
@@ -58,9 +64,20 @@ CREATE Table ruta(
     origen INT NOT NULL,
     destino INT NOT NULL,
     Foreign Key (origen) REFERENCES terminal(numero),
-    Foreign Key (origen) REFERENCES terminal(numero)
+    Foreign Key (destino) REFERENCES terminal(numero)
 );
 
 CREATE Table viaje(
-    numero
+    numero INT PRIMARY KEY AUTO_INCREMENT,
+    fecha DATE NOT NULL,
+    horaSalida TIME NOT NULL,
+    horaEntrada TIME NOT NULL,
+    ruta VARCHAR(5) NOT NULL,
+    estado INT NOT NULL,
+    FOREIGN KEY (ruta) REFERENCES ruta(codigo),
+    FOREIGN KEY (estado) REFERENCES edo_viaje(numero)
 )
+
+CREATE Table autobus(
+    numero INT
+);
