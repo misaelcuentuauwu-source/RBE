@@ -32,10 +32,26 @@ create table tipo_asiento(
 
 create table tipo_pasajero(
     num INT PRIMARY KEY, 
+    descuento INT NOT NULL,
     descripcion varchar(30) not null unique
 );
 
 create table tipo_pago(
-    codigo varchar(5) PRIMARY KEY, 
-    descripcion varchar(30) not null unique
+    numero INT PRIMARY KEY, 
+    nombre VARCHAR(30) NOT NULL,
+    descripcion varchar(50) not null UNIQUE
+);
+
+CREATE Table terminal(
+    numero INT PRIMARY KEY,
+    nombre VARCHAR(30) NOT NULL,
+    dirCalle VARCHAR(30) NOT NULL,
+    dirNumero VARCHAR(30) NOT NULL,
+    dirColonia VARCHAR(30) NOT NULL,
+    ciudad varchar(5) NOT NULL,
+    Foreign Key (ciudad) REFERENCES ciudad(codigo)
+);
+
+CREATE Table ruta(
+    codigo VARCHAR(5) PRIMARY KEY
 );
