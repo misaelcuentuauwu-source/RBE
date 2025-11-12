@@ -53,5 +53,14 @@ CREATE Table terminal(
 );
 
 CREATE Table ruta(
-    codigo VARCHAR(5) PRIMARY KEY
+    codigo VARCHAR(5) PRIMARY KEY,
+    duracion INT NOT NULL,
+    origen INT NOT NULL,
+    destino INT NOT NULL,
+    Foreign Key (origen) REFERENCES terminal(numero),
+    Foreign Key (origen) REFERENCES terminal(numero)
 );
+
+CREATE Table viaje(
+    numero
+)
