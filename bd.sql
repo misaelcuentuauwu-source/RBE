@@ -1,3 +1,4 @@
+-- Active: 1762888131509@@127.0.0.1@3306@rbe
 CREATE DATABASE RBE;
 use RBE;
 
@@ -22,4 +23,68 @@ CREATE TABLE conductor(
 create table ciudad(
     codigo varchar(5) PRIMARY KEY,
     nombre varchar(15) not null unique
+);
+
+create table tipo_asiento(
+    codigo varchar(5) PRIMARY KEY, 
+    descripcion varchar(30) not null unique
+);
+
+create table tipo_pasajero(
+    num INT PRIMARY KEY, 
+    descuento INT NOT NULL,
+    descripcion varchar(30) not null unique
+);
+
+create table tipo_pago(
+    numero INT PRIMARY KEY, 
+    nombre VARCHAR(30) NOT NULL,
+    descripcion varchar(50) not null UNIQUE
+);
+
+create table edo_viaje(
+    numero INT PRIMARY KEY, 
+    nombre VARCHAR(30) NOT NULL,
+    descripcion varchar(50) not null UNIQUE
+);
+
+CREATE Table terminal(
+    numero INT PRIMARY KEY,
+    nombre VARCHAR(30) NOT NULL,
+    dirCalle VARCHAR(30) NOT NULL,
+    dirNumero VARCHAR(30) NOT NULL,
+    dirColonia VARCHAR(30) NOT NULL,
+    ciudad varchar(5) NOT NULL,
+    Foreign Key (ciudad) REFERENCES ciudad(codigo)
+);
+
+CREATE Table ruta(
+    codigo VARCHAR(5) PRIMARY KEY,
+    duracion INT NOT NULL,
+    origen INT NOT NULL,
+    destino INT NOT NULL,
+    Foreign Key (origen) REFERENCES terminal(numero),
+    Foreign Key (destino) REFERENCES terminal(numero)
+);
+
+CREATE Table viaje(
+    numero INT PRIMARY KEY AUTO_INCREMENT,
+    fecha DATE NOT NULL,
+    horaSalida TIME NOT NULL,
+    horaEntrada TIME NOT NULL,
+    ruta VARCHAR(5) NOT NULL,
+    estado INT NOT NULL,
+    FOREIGN KEY (ruta) REFERENCES ruta(codigo),
+    FOREIGN KEY (estado) REFERENCES edo_viaje(numero)
+)
+
+CREATE Table autobus(
+    numero INT PRIMARY KEY AUTO_INCREMENT,
+    modelo INT NOT NULL,
+    placas VARCHAR(7),
+    FOREIGN KEY (modelo)
+);
+
+CREATE Table detalle_viaje(
+    autobus
 );
