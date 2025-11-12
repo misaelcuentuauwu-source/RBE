@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>LoginWindow</class>
+ <widget class="QWidget" name="LoginWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>420</width>
+    <height>420</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Rutas Baja Express - Inicio de Sesión</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QLabel" name="tituloLabel">
+     <property name="styleSheet">
+      <string>background-color: #1181c3; color: white; font-size: 18pt; font-weight: bold; padding: 15px;</string>
+     </property>
+     <property name="text">
+      <string>Rutas Baja Express</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignmentFlag::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="usuarioLabel">
+     <property name="text">
+      <string>Usuario:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLineEdit" name="usuarioLineEdit"/>
+   </item>
+   <item>
+    <widget class="QLabel" name="contrasenaLabel">
+     <property name="text">
+      <string>Contraseña:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLineEdit" name="contrasenaLineEdit">
+     <property name="echoMode">
+      <enum>QLineEdit::EchoMode::Password</enum>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="loginButton">
+     <property name="styleSheet">
+      <string>background-color: #ed7237; color: white; font-weight: bold; height: 30px;</string>
+     </property>
+     <property name="text">
+      <string>Iniciar Sesión</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="registroLabel">
+     <property name="text">
+      <string>¿No tienes cuenta?</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QPushButton" name="registroButton">
+     <property name="styleSheet">
+      <string>background-color: #1181c3; color: white;</string>
+     </property>
+     <property name="text">
+      <string>Registrar nuevo taquillero</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

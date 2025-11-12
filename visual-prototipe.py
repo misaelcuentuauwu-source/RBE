@@ -1,129 +1,226 @@
-import tkinter as tk
-from tkinter import messagebox
-import mysql.connector
-from datetime import date
+#!/usr/bin/env python3
+# app_taquilleros_pyside6.py
+# Sistema de ejemplo: login y registro de taquilleros con PySide6
+# Autor: adaptado para Misael
 
-# 🎨 Colores de la marca Rutas Baja Express
+import sys
+from datetime import date
+import mysql.connector
+from PySide6.QtWidgets import (
+    QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton,
+    QMessageBox, QHBoxLayout
+)
+from PySide6.QtCore import Qt
+
+# ---------------------------
+# configuración de colores
+# ---------------------------
 COLOR_FONDO = "#f2f2f2"
 COLOR_PRINCIPAL = "#1181c3"
 COLOR_BOTON = "#ed7237"
 COLOR_TEXTO = "#000000"
 
-# 🔌 Conexión a la base de datos
+# ---------------------------
+# conexión a la base de datos
+# ---------------------------
 def conectar():
     return mysql.connector.connect(
         host="localhost",
-        user="root",      # cambia si usas otro usuario
-        password="",      # tu contraseña si tienes una
-        database="prototipo"
+        user="root",
+        password="",
+        database="prototipo",
+        auth_plugin="mysql_native_password"
     )
 
-# 🟦 Función de inicio de sesión
-def iniciar_sesion(usuario, contraseña):
-    conexion = conectar()
-    cursor = conexion.cursor(dictionary=True)
-    cursor.execute("SELECT * FROM TAQUILLERO WHERE usuario=%s AND contraseña=%s", (usuario, contraseña))
-    resultado = cursor.fetchone()
-
-    if resultado:
-        messagebox.showinfo("Bienvenido", f"Hola {resultado['taqNombre']} {resultado['taqPrimerApell']} 👋")
-    else:
-        messagebox.showerror("Error", "Usuario o contraseña incorrectos")
-
-    cursor.close()
-    conexion.close()
-
-# 🟧 Función para registrar nuevo taquillero
-def registrar_taquillero(nombre, ap1, ap2, usuario, contraseña):
-    conexion = conectar()
-    cursor = conexion.cursor()
-    fecha_contrato = date.today()
-    terminal = 1  # fija por ahora
-
+# ---------------------------
+# funciones de base de datos
+# ---------------------------
+def iniciar_sesion_bd(usuario, contrasena):
     try:
-        cursor.execute("""
-            INSERT INTO TAQUILLERO (taqNombre, taqPrimerApell, taqSegundoApell, fechaContrato, usuario, contraseña, terminal)
+        cn = conectar()
+        cur = cn.cursor(dictionary=True)
+        cur.execute("SELECT * FROM taquillero WHERE usuario=%s AND contrasena=%s", (usuario, contrasena))
+        row = cur.fetchone()
+        cur.close()
+        cn.close()
+        return row
+    except mysql.connector.Error as e:
+        QMessageBox.critical(None, "Error BD", f"Error al conectar: {e}")
+        return None
+
+def registrar_taquillero_bd(nombre, ap1, ap2, usuario, contrasena, terminal=1):
+    try:
+        cn = conectar()
+        cur = cn.cursor()
+        fecha_contrato = date.today()
+        cur.execute("""
+            INSERT INTO taquillero (taqnombre, taqprimerapell, taqsegundoapell, fechacontrato, usuario, contrasena, terminal)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """, (nombre, ap1, ap2, fecha_contrato, usuario, contraseña, terminal))
-        conexion.commit()
-        messagebox.showinfo("Éxito", "Taquillero registrado correctamente")
-    except mysql.connector.Error as err:
-        messagebox.showerror("Error", f"No se pudo registrar: {err}")
-    finally:
-        cursor.close()
-        conexion.close()
+        """, (nombre, ap1, ap2, fecha_contrato, usuario, contrasena, terminal))
+        cn.commit()
+        cur.close()
+        cn.close()
+        return True, None
+    except mysql.connector.Error as e:
+        return False, str(e)
 
-# 🪟 Interfaz de Login
-def ventana_login():
-    ventana = tk.Tk()
-    ventana.title("Rutas Baja Express - Inicio de Sesión")
-    ventana.geometry("400x400")
-    ventana.configure(bg=COLOR_FONDO)
+# ---------------------------
+# interfaz gráfica
+# ---------------------------
+class App:
+    def __init__(self):
+        self.usuario_actual = None
+        self.app = QApplication(sys.argv)
+        self.ventana_login()
+        sys.exit(self.app.exec())
 
-    # Logo / título
-    tk.Label(ventana, text="Rutas Baja Express", bg=COLOR_PRINCIPAL, fg="white",
-             font=("Arial", 18, "bold"), pady=15).pack(fill="x")
+    # --------- ventana login ----------
+    def ventana_login(self):
+        self.win_login = QWidget()
+        self.win_login.setWindowTitle("Rutas Baja Express - Inicio de Sesión")
+        self.win_login.setGeometry(100, 100, 420, 420)
+        self.win_login.setStyleSheet(f"background-color: {COLOR_FONDO};")
 
-    tk.Label(ventana, text="Usuario:", bg=COLOR_FONDO, fg=COLOR_TEXTO, font=("Arial", 12)).pack(pady=10)
-    usuario_entry = tk.Entry(ventana, width=30)
-    usuario_entry.pack()
+        layout = QVBoxLayout()
 
-    tk.Label(ventana, text="Contraseña:", bg=COLOR_FONDO, fg=COLOR_TEXTO, font=("Arial", 12)).pack(pady=10)
-    contraseña_entry = tk.Entry(ventana, width=30, show="*")
-    contraseña_entry.pack()
+        titulo = QLabel("Rutas Baja Express")
+        titulo.setAlignment(Qt.AlignCenter)
+        titulo.setStyleSheet(f"background-color: {COLOR_PRINCIPAL}; color: white; font-size: 18pt; font-weight: bold; padding: 15px;")
+        layout.addWidget(titulo)
 
-    def intentar_login():
-        usuario = usuario_entry.get()
-        contraseña = contraseña_entry.get()
-        if usuario and contraseña:
-            iniciar_sesion(usuario, contraseña)
+        layout.addSpacing(10)
+        layout.addWidget(QLabel("Usuario:"))
+        self.usuario_entry = QLineEdit()
+        layout.addWidget(self.usuario_entry)
+
+        layout.addWidget(QLabel("Contraseña:"))
+        self.contrasena_entry = QLineEdit()
+        self.contrasena_entry.setEchoMode(QLineEdit.Password)
+        layout.addWidget(self.contrasena_entry)
+
+        btn_login = QPushButton("Iniciar Sesión")
+        btn_login.setStyleSheet(f"background-color: {COLOR_BOTON}; color: white; font-weight: bold; height: 30px;")
+        btn_login.clicked.connect(self.intentar_login)
+        layout.addWidget(btn_login)
+
+        layout.addSpacing(10)
+        layout.addWidget(QLabel("¿No tienes cuenta?"))
+        btn_registro = QPushButton("Registrar nuevo taquillero")
+        btn_registro.setStyleSheet(f"background-color: {COLOR_PRINCIPAL}; color: white;")
+        btn_registro.clicked.connect(self.abrir_registro_taquillero)
+        layout.addWidget(btn_registro)
+
+        self.win_login.setLayout(layout)
+        self.win_login.show()
+
+    def intentar_login(self):
+        usuario = self.usuario_entry.text().strip()
+        contrasena = self.contrasena_entry.text().strip()
+        if not usuario or not contrasena:
+            QMessageBox.warning(self.win_login, "Atención", "Completa todos los campos")
+            return
+        fila = iniciar_sesion_bd(usuario, contrasena)
+        if fila:
+            self.usuario_actual = fila
+            QMessageBox.information(self.win_login, "Bienvenido", f"Hola {fila.get('taqnombre')} {fila.get('taqprimerapell')}")
+            self.win_login.close()
+            self.ventana_principal()
         else:
-            messagebox.showwarning("Atención", "Por favor, completa todos los campos")
+            QMessageBox.critical(self.win_login, "Error", "Usuario o contraseña incorrectos")
 
-    tk.Button(ventana, text="Iniciar Sesión", bg=COLOR_BOTON, fg="white", font=("Arial", 11, "bold"),
-              command=intentar_login).pack(pady=20)
+    # --------- registro taquillero ----------
+    def abrir_registro_taquillero(self):
+        self.win_login.close()
+        self.win_registro_taquillero()
 
-    # Enlace para ir a registro
-    tk.Label(ventana, text="¿No tienes cuenta?", bg=COLOR_FONDO, fg=COLOR_TEXTO).pack()
-    tk.Button(ventana, text="Registrar nuevo taquillero", bg=COLOR_PRINCIPAL, fg="white",
-              command=lambda: [ventana.destroy(), ventana_registro()]).pack(pady=10)
+    def win_registro_taquillero(self):
+        w = QWidget()
+        w.setWindowTitle("Registro de Taquillero")
+        w.setGeometry(100, 100, 460, 520)
+        w.setStyleSheet(f"background-color: {COLOR_FONDO};")
 
-    ventana.mainloop()
+        layout = QVBoxLayout()
+        titulo = QLabel("Registrar Taquillero")
+        titulo.setAlignment(Qt.AlignCenter)
+        titulo.setStyleSheet(f"background-color: {COLOR_PRINCIPAL}; color: white; font-size: 18pt; font-weight: bold; padding: 12px;")
+        layout.addWidget(titulo)
 
-# 🪟 Interfaz de Registro
-def ventana_registro():
-    ventana = tk.Tk()
-    ventana.title("Registro de Taquillero - Rutas Baja Express")
-    ventana.geometry("420x520")
-    ventana.configure(bg=COLOR_FONDO)
+        campos = [("Nombre", ""), ("Primer Apellido", ""), ("Segundo Apellido", ""),
+                  ("Usuario", ""), ("Contraseña", "")]
+        self.entradas = {}
+        for etiqueta, _ in campos:
+            layout.addWidget(QLabel(etiqueta + ":"))
+            e = QLineEdit()
+            if etiqueta == "Contraseña":
+                e.setEchoMode(QLineEdit.Password)
+            layout.addWidget(e)
+            self.entradas[etiqueta] = e
 
-    tk.Label(ventana, text="Registrar Taquillero", bg=COLOR_PRINCIPAL, fg="white",
-             font=("Arial", 18, "bold"), pady=15).pack(fill="x")
+        btn_registrar = QPushButton("Registrar")
+        btn_registrar.setStyleSheet(f"background-color: {COLOR_BOTON}; color: white; font-weight: bold; height: 30px;")
+        btn_registrar.clicked.connect(lambda: self.registrar(w))
+        layout.addWidget(btn_registrar)
 
-    campos = ["Nombre", "Primer Apellido", "Segundo Apellido", "Usuario", "Contraseña"]
-    entradas = {}
+        btn_volver = QPushButton("Volver")
+        btn_volver.setStyleSheet(f"background-color: {COLOR_PRINCIPAL}; color: white; height: 30px;")
+        btn_volver.clicked.connect(lambda: [w.close(), self.ventana_login()])
+        layout.addWidget(btn_volver)
 
-    for campo in campos:
-        tk.Label(ventana, text=campo + ":", bg=COLOR_FONDO, fg=COLOR_TEXTO, font=("Arial", 12)).pack(pady=5)
-        entrada = tk.Entry(ventana, width=30, show="*" if campo == "Contraseña" else "")
-        entrada.pack()
-        entradas[campo] = entrada
+        w.setLayout(layout)
+        w.show()
 
-    def registrar():
-        valores = [entradas[c].get() for c in campos]
-        if all(valores):
-            registrar_taquillero(*valores)
+    def registrar(self, ventana):
+        nombre = self.entradas["Nombre"].text().strip()
+        ap1 = self.entradas["Primer Apellido"].text().strip()
+        ap2 = self.entradas["Segundo Apellido"].text().strip()
+        usuario = self.entradas["Usuario"].text().strip()
+        contrasena = self.entradas["Contraseña"].text().strip()
+        if not (nombre and ap1 and usuario and contrasena):
+            QMessageBox.warning(None, "Atención", "Completa los campos obligatorios")
+            return
+        ok, err = registrar_taquillero_bd(nombre, ap1, ap2, usuario, contrasena)
+        if ok:
+            QMessageBox.information(None, "Éxito", "Taquillero registrado correctamente")
+            ventana.close()
+            self.ventana_login()
         else:
-            messagebox.showwarning("Atención", "Por favor completa todos los campos")
+            QMessageBox.critical(None, "Error", f"No se pudo registrar: {err}")
 
-    tk.Button(ventana, text="Registrar", bg=COLOR_BOTON, fg="white", font=("Arial", 11, "bold"),
-              command=registrar).pack(pady=20)
+    # --------- ventana principal tras login ----------
+    def ventana_principal(self):
+        self.main = QWidget()
+        self.main.setWindowTitle("Rutas Baja Express - Panel")
+        self.main.setGeometry(100, 100, 600, 400)
+        self.main.setStyleSheet(f"background-color: {COLOR_FONDO};")
 
-    tk.Button(ventana, text="Volver al inicio", bg=COLOR_PRINCIPAL, fg="white",
-              command=lambda: [ventana.destroy(), ventana_login()]).pack(pady=10)
+        layout = QVBoxLayout()
 
-    ventana.mainloop()
+        titulo = QLabel("Panel principal")
+        titulo.setAlignment(Qt.AlignCenter)
+        titulo.setStyleSheet(f"background-color: {COLOR_PRINCIPAL}; color: white; font-size: 18pt; font-weight: bold; padding: 12px;")
+        layout.addWidget(titulo)
 
-# 🚀 Ejecutar
+        bienvenida = QLabel(f"Bienvenido {self.usuario_actual['taqnombre']} {self.usuario_actual['taqprimerapell']}")
+        bienvenida.setAlignment(Qt.AlignCenter)
+        layout.addWidget(bienvenida)
+
+        btn_logout = QPushButton("Cerrar sesión")
+        btn_logout.setStyleSheet("background-color: #d9534f; color: white; height: 40px; font-weight: bold;")
+        btn_logout.clicked.connect(self.cerrar_sesion)
+        layout.addWidget(btn_logout, alignment=Qt.AlignCenter)
+
+        self.main.setLayout(layout)
+        self.main.show()
+
+    def cerrar_sesion(self):
+        confirm = QMessageBox.question(self.main, "Confirmar", "¿Cerrar sesión?", QMessageBox.Yes | QMessageBox.No)
+        if confirm == QMessageBox.Yes:
+            self.main.close()
+            self.usuario_actual = None
+            self.ventana_login()
+
+# ---------------------------
+# ejecutar app
+# ---------------------------
 if __name__ == "__main__":
-    ventana_login()
+    App()
