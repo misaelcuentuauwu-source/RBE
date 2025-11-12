@@ -79,5 +79,8 @@ CREATE Table viaje(
 )
 
 CREATE Table autobus(
-    numero INT
+    numero INT PRIMARY KEY AUTO_INCREMENT,
+    modelo INT NOT NULL,
+    placas VARCHAR(7),
+    FOREIGN KEY (modelo)
 );
