@@ -1,3 +1,4 @@
+-- Active: 1762888131509@@127.0.0.1@3306@rbe
 CREATE DATABASE RBE;
 use RBE;
 
@@ -22,4 +23,19 @@ CREATE TABLE conductor(
 create table ciudad(
     codigo varchar(5) PRIMARY KEY,
     nombre varchar(15) not null unique
+);
+
+create table tipo_asiento(
+    codigo varchar(5) PRIMARY KEY, 
+    descripcion varchar(30) not null unique
+);
+
+create table tipo_pasajero(
+    num INT PRIMARY KEY, 
+    descripcion varchar(30) not null unique
+);
+
+create table tipo_pago(
+    codigo varchar(5) PRIMARY KEY, 
+    descripcion varchar(30) not null unique
 );
