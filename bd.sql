@@ -19,3 +19,7 @@ CREATE TABLE conductor(
     licVencimiento DATE NOT NULL
 );
 
+create table ciudad(
+    codigo varchar(5) PRIMARY KEY,
+    nombre varchar(15) not null unique
+);
