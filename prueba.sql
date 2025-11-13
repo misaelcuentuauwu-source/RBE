@@ -27,14 +27,6 @@ insert into ciudad (clave, nombre) values
 
 
 use prototipo;
-insert into terminal (ternombre, ternumcalle, tercalle, tercolonia, ciudad) values
-('Terminal Tijuana', '123', 'Revolución', 'Centro', 'TJU'),
-('Terminal Ensenada', '456', 'Juárez', 'Valle Dorado', 'ENS'),
-('Terminal Rosarito', '78', 'Héroes', 'Playas', 'ROS'),
-('Terminal Tecate', '90', 'Independencia', 'Centro', 'TEC'),
-('Terminal Mexicali', '321', 'Lázaro Cárdenas', 'Zona Centro', 'MXL'),
-('Terminal San Felipe', '12', 'Marina', 'Pueblo Nuevo', 'SFE');
-
 
 create table modelo (
     numero int primary key auto_increment,
@@ -79,6 +71,16 @@ create table terminal (
     ciudad varchar(5) not null,
     foreign key (ciudad) references ciudad(clave)
 ) engine=innodb;
+
+insert into terminal (ternombre, ternumcalle, tercalle, tercolonia, ciudad) values
+('Terminal Tijuana', '123', 'Revolución', 'Centro', 'TJU'),
+('Terminal Ensenada', '456', 'Juárez', 'Valle Dorado', 'ENS'),
+('Terminal Rosarito', '78', 'Héroes', 'Playas', 'ROS'),
+('Terminal Tecate', '90', 'Independencia', 'Centro', 'TEC'),
+('Terminal Mexicali', '321', 'Lázaro Cárdenas', 'Zona Centro', 'MXL'),
+('Terminal San Felipe', '12', 'Marina', 'Pueblo Nuevo', 'SFE');
+
+
 
 
 insert into terminal (ternombre, ternumero, tercalle, tercolonia, ciudad) values
