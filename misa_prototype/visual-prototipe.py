@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
-# app_taquilleros_pyside6.py
-# Sistema: login y registro de taquilleros con PySide6 + diseño importado del .ui
+# visual-prototype.py
+# Sistema: login y registro de taquilleros con PySide6
 # Autor: adaptado para Misael
 
 import sys
 from datetime import date
 import mysql.connector
 from PySide6.QtWidgets import (
-    QApplication, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit,
+    QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit,
     QPushButton, QMessageBox, QFrame, QSpacerItem, QSizePolicy
 )
 from PySide6.QtCore import Qt
+from panel_principal import PanelPrincipal
+  # << importar ventana principal
 
 # ---------------------------
 # Conexión a la base de datos
@@ -54,7 +56,7 @@ def registrar_taquillero_bd(nombre, ap1, ap2, usuario, contrasena, terminal=1):
         return False, str(e)
 
 # ---------------------------
-# Interfaz principal
+# Interfaz de login y registro
 # ---------------------------
 class App:
     def __init__(self):
@@ -63,13 +65,11 @@ class App:
         self.ventana_login()
         sys.exit(self.app.exec())
 
-    # --------- ventana login ----------
     def ventana_login(self):
         self.win_login = QWidget()
         self.win_login.setWindowTitle("Rutas Baja Express - Inicio de Sesión")
         self.win_login.setGeometry(100, 100, 480, 500)
 
-        # Fondo degradado
         self.win_login.setStyleSheet("""
         QWidget {
             background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1,
@@ -100,14 +100,10 @@ class App:
         }
         """)
 
-        # Layout principal
         layout_main = QVBoxLayout(self.win_login)
         layout_main.setAlignment(Qt.AlignCenter)
-
-        # Espaciador superior
         layout_main.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
-        # --- marco central estilo tarjeta ---
         frame = QFrame()
         frame.setMaximumSize(400, 360)
         frame.setStyleSheet("""
@@ -129,10 +125,8 @@ class App:
         subtitulo.setAlignment(Qt.AlignCenter)
         subtitulo.setStyleSheet("color: #ed7237; font-size: 12pt; font-weight: bold;")
         layout_card.addWidget(subtitulo)
-
         layout_card.addSpacing(10)
 
-        # Campos
         lbl_user = QLabel("Usuario")
         layout_card.addWidget(lbl_user)
         self.usuario_entry = QLineEdit()
@@ -145,10 +139,8 @@ class App:
         self.contrasena_entry.setEchoMode(QLineEdit.Password)
         self.contrasena_entry.setPlaceholderText("•••••••••••")
         layout_card.addWidget(self.contrasena_entry)
-
         layout_card.addSpacing(10)
 
-        # Botones
         btn_login = QPushButton("Iniciar Sesión")
         btn_login.clicked.connect(self.intentar_login)
         layout_card.addWidget(btn_login)
@@ -169,11 +161,8 @@ class App:
         layout_card.addWidget(btn_registrar)
 
         layout_main.addWidget(frame)
-
-        # Espaciador inferior
         layout_main.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
-        # Footer
         footer = QLabel("© 2025 Rutas Baja Express")
         footer.setAlignment(Qt.AlignCenter)
         footer.setStyleSheet("color: white; font-size: 9pt;")
@@ -187,16 +176,20 @@ class App:
         if not usuario or not contrasena:
             QMessageBox.warning(self.win_login, "Atención", "Completa todos los campos")
             return
+
         fila = iniciar_sesion_bd(usuario, contrasena)
         if fila:
             self.usuario_actual = fila
             QMessageBox.information(self.win_login, "Bienvenido", f"Hola {fila.get('taqnombre')} {fila.get('taqprimerapell')}")
             self.win_login.close()
-            self.ventana_principal()
+            self.abrir_panel_principal()
         else:
             QMessageBox.critical(self.win_login, "Error", "Usuario o contraseña incorrectos")
 
-    # --------- registro taquillero ----------
+    def abrir_panel_principal(self):
+        self.panel = PanelPrincipal(self.usuario_actual, self.ventana_login)
+        self.panel.show()
+
     def abrir_registro_taquillero(self):
         self.win_login.close()
         self.win_registro_taquillero()
@@ -253,39 +246,6 @@ class App:
             self.ventana_login()
         else:
             QMessageBox.critical(None, "Error", f"No se pudo registrar: {err}")
-
-    # --------- ventana principal tras login ----------
-    def ventana_principal(self):
-        self.main = QWidget()
-        self.main.setWindowTitle("Rutas Baja Express - Panel")
-        self.main.setGeometry(100, 100, 600, 400)
-        self.main.setStyleSheet("background-color: #f2f2f2; font-family: 'Segoe UI';")
-
-        layout = QVBoxLayout()
-
-        titulo = QLabel("Panel principal")
-        titulo.setAlignment(Qt.AlignCenter)
-        titulo.setStyleSheet("color: #1181c3; font-size: 18pt; font-weight: bold; padding: 12px;")
-        layout.addWidget(titulo)
-
-        bienvenida = QLabel(f"Bienvenido {self.usuario_actual['taqnombre']} {self.usuario_actual['taqprimerapell']}")
-        bienvenida.setAlignment(Qt.AlignCenter)
-        layout.addWidget(bienvenida)
-
-        btn_logout = QPushButton("Cerrar sesión")
-        btn_logout.setStyleSheet("background-color: #d9534f; color: white; height: 40px; font-weight: bold;")
-        btn_logout.clicked.connect(self.cerrar_sesion)
-        layout.addWidget(btn_logout, alignment=Qt.AlignCenter)
-
-        self.main.setLayout(layout)
-        self.main.show()
-
-    def cerrar_sesion(self):
-        confirm = QMessageBox.question(self.main, "Confirmar", "¿Cerrar sesión?", QMessageBox.Yes | QMessageBox.No)
-        if confirm == QMessageBox.Yes:
-            self.main.close()
-            self.usuario_actual = None
-            self.ventana_login()
 
 # ---------------------------
 # Ejecutar app
