@@ -150,3 +150,10 @@ CREATE TABLE ticket(
     FOREIGN KEY (pago) REFERENCES pago(codigo),
     FOREIGN KEY (vendedor) REFERENCES taquillero(registro)
 );
+
+CREATE Table viaje_asiento(
+    viaje INT NOT NULL,
+    asiento INT NOT NULL,
+    FOREIGN KEY (viaje) REFERENCES viaje(numero),
+    FOREIGN KEY (asiento) REFERENCES asiento(numero)
+);
