@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>PanelPrincipal</class>
+ <widget class="QMainWindow" name="PanelPrincipal">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1000</width>
+    <height>640</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Rutas Baja Express - Panel</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">
+/* Global */
+QMainWindow, QWidget {
+    background-color: #f2f2f2;
+    font-family: "Segoe UI";
+}
+
+/* Sidebar */
+#sidebar {
+    background-color: #111217;
+    color: #ffffff;
+    border-right: 1px solid rgba(0,0,0,0.2);
+}
+#sidebar QLabel#brand_label {
+    color: white;
+    font-size: 16pt;
+    font-weight: bold;
+    padding-left: 12px;
+}
+QPushButton#btn_nav {
+    background: transparent;
+    color: #dcdcdc;
+    border: none;
+    text-align: left;
+    padding: 10px 18px;
+    font-size: 10.5pt;
+}
+QPushButton#btn_nav:hover {
+    background-color: rgba(255,255,255,0.03);
+    color: white;
+}
+QPushButton#btn_logout {
+    background-color: #d9534f;
+    color: white;
+    border-radius: 8px;
+    padding: 8px;
+}
+
+/* Topbar */
+#topbar {
+    background-color: transparent;
+}
+QLineEdit#search_edit {
+    background-color: white;
+    border: 1px solid #d0d0d0;
+    border-radius: 14px;
+    padding: 6px 10px;
+    min-width: 220px;
+}
+
+/* Content */
+#page_dashboard QLabel#title_big {
+    color: #2b2b2b;
+    font-size: 28pt;
+    font-weight: 600;
+}
+   </string>
+  </property>
+
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="horizontalLayout_main">
+    <item>
+     <widget class="QFrame" name="sidebar">
+      <property name="maximumSize">
+       <size>
+        <width>260</width>
+        <height>16777215</height>
+       </size>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>64</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_sidebar">
+       <item>
+        <widget class="QWidget" name="brand_wrapper">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>64</height>
+          </size>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_brand">
+          <item>
+           <widget class="QLabel" name="brand_label">
+            <property name="text">
+             <string>Rutas Baja</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+
+       <item>
+        <widget class="QFrame" name="nav_frame">
+         <layout class="QVBoxLayout" name="verticalLayout_nav">
+          <item>
+           <widget class="QPushButton" name="btn_dashboard">
+            <property name="text">
+             <string>  Dashboard</string>
+            </property>
+            <property name="objectName">
+             <string>btn_nav</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btn_rutas">
+            <property name="text">
+             <string>  Rutas</string>
+            </property>
+            <property name="objectName">
+             <string>btn_nav</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btn_choferes">
+            <property name="text">
+             <string>  Choferes</string>
+            </property>
+            <property name="objectName">
+             <string>btn_nav</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btn_finanzas">
+            <property name="text">
+             <string>  Finanzas</string>
+            </property>
+            <property name="objectName">
+             <string>btn_nav</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btn_config">
+            <property name="text">
+             <string>  Configuración</string>
+            </property>
+            <property name="objectName">
+             <string>btn_nav</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+
+       <item>
+        <spacer name="verticalSpacer_side" />
+       </item>
+
+       <item>
+        <widget class="QWidget" name="bottom_sidebar">
+         <layout class="QVBoxLayout" name="verticalLayout_bottom">
+          <item>
+           <widget class="QPushButton" name="btn_logout">
+            <property name="text">
+             <string>  Cerrar sesión</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+
+    <item>
+     <widget class="QFrame" name="main_content">
+      <property name="frameShape">
+       <enum>QFrame::StyledPanel</enum>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_maincontent">
+
+       <!-- Topbar -->
+       <item>
+        <widget class="QFrame" name="topbar">
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>70</height>
+          </size>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_topbar">
+          <item>
+           <widget class="QPushButton" name="btn_toggle">
+            <property name="text">
+             <string>☰</string>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>36</width>
+              <height>36</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_top" />
+          </item>
+          <item>
+           <widget class="QLabel" name="welcome_label">
+            <property name="text">
+             <string>Hello, Taquillero</string>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>180</width>
+              <height>0</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLineEdit" name="search_edit">
+            <property name="placeholderText">
+             <string>Search here...</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+
+       <!-- Stacked widget area -->
+       <item>
+        <widget class="QStackedWidget" name="stackedWidget">
+         <widget class="QWidget" name="page_dashboard">
+          <attribute name="title">
+           <string>page</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout_page1">
+           <item>
+            <spacer name="verticalSpacer_page_top" />
+           </item>
+           <item>
+            <widget class="QLabel" name="title_big">
+             <property name="text">
+              <string>Dashboard</string>
+             </property>
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_page_bottom" />
+           </item>
+          </layout>
+         </widget>
+
+         <widget class="QWidget" name="page_rutas">
+          <attribute name="title">
+           <string>page</string>
+          </attribute>
+          <layout class="QVBoxLayout" name="verticalLayout_page2">
+           <item>
+            <widget class="QLabel" name="label_rutas">
+             <property name="text">
+              <string>Rutas - contenido</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+
+         <widget class="QWidget" name="page_choferes">
+          <layout class="QVBoxLayout" name="verticalLayout_page3">
+           <item>
+            <widget class="QLabel" name="label_choferes">
+             <property name="text">
+              <string>Choferes - contenido</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+
+         <widget class="QWidget" name="page_finanzas">
+          <layout class="QVBoxLayout" name="verticalLayout_page4">
+           <item>
+            <widget class="QLabel" name="label_finanzas">
+             <property name="text">
+              <string>Finanzas - contenido</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+
+        </widget>
+       </item>
+
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+
+  <resources/>
+  <connections/>
+ </widget>
+</ui>
