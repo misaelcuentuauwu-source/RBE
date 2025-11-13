@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>LoginWindow</class>
+ <widget class="QWidget" name="LoginWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>480</width>
+    <height>500</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Rutas Baja Express - Inicio de Sesión</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">
+    QWidget {
+        background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                                          stop:0 #1181c3, stop:1 #ed7237);
+        font-family: "Segoe UI";
+        color: #000000;
+    }
+    QLineEdit {
+        background-color: #ffffff;
+        border: 2px solid #1181c3;
+        border-radius: 10px;
+        padding: 8px;
+        font-size: 11pt;
+    }
+    QPushButton {
+        background-color: #ed7237;
+        border-radius: 10px;
+        color: white;
+        font-weight: bold;
+        padding: 10px;
+    }
+    QPushButton:hover {
+        background-color: #f28c50;
+    }
+    QLabel {
+        color: #000000;
+        font-size: 10.5pt;
+    }
+   </string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_main">
+   <item>
+    <spacer name="verticalSpacerTop">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+
+   <item>
+    <widget class="QFrame" name="frame_login">
+     <property name="maximumSize">
+      <size>
+       <width>400</width>
+       <height>360</height>
+      </size>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">
+       QFrame {
+           background-color: #f2f2f2;
+           border-radius: 20px;
+           border: 3px solid #ffffff;
+           box-shadow: 0px 4px 8px rgba(0,0,0,0.2);
+       }
+      </string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_card">
+      <item>
+       <widget class="QLabel" name="label_title">
+        <property name="text">
+         <string>Rutas Baja Express</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">
+          QLabel {
+              color: #1181c3;
+              font-size: 20pt;
+              font-weight: bold;
+              margin-bottom: 10px;
+          }
+         </string>
+        </property>
+       </widget>
+      </item>
+
+      <item>
+       <widget class="QLabel" name="label_subtitle">
+        <property name="text">
+         <string>Inicio de Sesión</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">color: #ed7237; font-size: 12pt; font-weight: bold;</string>
+        </property>
+       </widget>
+      </item>
+
+      <item>
+       <layout class="QVBoxLayout" name="formLayout">
+        <item>
+         <widget class="QLabel" name="label_user">
+          <property name="text">
+           <string>Usuario</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="line_usuario">
+          <property name="placeholderText">
+           <string>Ingresa tu usuario...</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_pass">
+          <property name="text">
+           <string>Contraseña</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="line_contrasena">
+          <property name="echoMode">
+           <enum>QLineEdit::Password</enum>
+          </property>
+          <property name="placeholderText">
+           <string>•••••••••••</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+
+      <item>
+       <widget class="QPushButton" name="btn_iniciar">
+        <property name="text">
+         <string>Iniciar Sesión</string>
+        </property>
+       </widget>
+      </item>
+
+      <item>
+       <widget class="QPushButton" name="btn_registrar">
+        <property name="text">
+         <string>Registrar nuevo taquillero</string>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">
+          QPushButton {
+              background-color: #1181c3;
+              color: white;
+              border-radius: 10px;
+              font-weight: bold;
+          }
+          QPushButton:hover {
+              background-color: #0d6ca4;
+          }
+         </string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+
+   <item>
+    <spacer name="verticalSpacerBottom">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+
+   <item>
+    <widget class="QLabel" name="label_footer">
+     <property name="text">
+      <string>© 2025 Rutas Baja Express</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">color: white; font-size: 9pt;</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
