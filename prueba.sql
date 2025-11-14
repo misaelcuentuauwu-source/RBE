@@ -1,23 +1,24 @@
--- 🚫 1. borrar base de datos anterior si existe
-drop database if exists prototipo;
+-- Active: 1760978807635@@127.0.0.1@3306@prototipo
+-- 🚫 1. Borrar base de datos anterior si existe
+DROP DATABASE IF EXISTS prototipo;
 
--- 🆕 2. crear base de datos nueva
-create database prototipo;
-use prototipo;
+-- 🆕 2. Crear base de datos nueva
+CREATE DATABASE prototipo;
+USE prototipo;
 
 -- ==========================================
--- sistema de tickets - modelo relacional 2
--- autor: misael urquidez arredondo
+-- 🚌 SISTEMA DE TICKETS - MODELO RELACIONAL
+-- Autor: Misael Urquidez Arredondo
 -- ==========================================
 
--- 1️⃣ tablas base
+-- 1️⃣ TABLAS BASE
 
-create table ciudad (
-    clave varchar(5) primary key,
-    nombre varchar(30) not null
-) engine=innodb;
+CREATE TABLE ciudad (
+    clave VARCHAR(5) PRIMARY KEY,
+    nombre VARCHAR(30) NOT NULL
+) ENGINE=InnoDB;
 
-insert into ciudad (clave, nombre) values
+INSERT INTO ciudad (clave, nombre) VALUES
 ('TJU','Tijuana'),
 ('ENS','Ensenada'),
 ('ROS','Rosarito'),
@@ -25,174 +26,180 @@ insert into ciudad (clave, nombre) values
 ('MXL','Mexicali'),
 ('SFE','San Felipe');
 
+CREATE TABLE modelo (
+    numero INT PRIMARY KEY AUTO_INCREMENT,
+    nombre VARCHAR(30) NOT NULL,
+    numasientos INT NOT NULL,
+    anio INT NOT NULL,
+    cre INT NOT NULL,
+    marca VARCHAR(20) NOT NULL
+) ENGINE=InnoDB;
 
-use prototipo;
+CREATE TABLE edo_viaje (
+    numero INT PRIMARY KEY AUTO_INCREMENT,
+    nombre VARCHAR(30) NOT NULL,
+    descripcion VARCHAR(50) NOT NULL
+) ENGINE=InnoDB;
 
-create table modelo (
-    numero int primary key auto_increment,
-    nombre varchar(30) not null,
-    numasientos int not null,
-    anio int not null,
-    cre int not null,
-    marca varchar(20) not null
-) engine=innodb;
+CREATE TABLE tipo_asientos (
+    codigo VARCHAR(5) PRIMARY KEY,
+    descripcion VARCHAR(30) NOT NULL
+) ENGINE=InnoDB;
 
-create table edo_viaje (
-    numero int primary key auto_increment,
-    nombre varchar(30) not null,
-    descripcion varchar(50) not null
-) engine=innodb;
+CREATE TABLE tipo_pasajero (
+    num INT PRIMARY KEY AUTO_INCREMENT,
+    descuento DECIMAL(5,2),
+    descripcion VARCHAR(30) NOT NULL
+) ENGINE=InnoDB;
 
-create table tipo_asientos (
-    codigo varchar(5) primary key,
-    descripcion varchar(30) not null
-) engine=innodb;
+CREATE TABLE tipo_pago (
+    numero INT PRIMARY KEY AUTO_INCREMENT,
+    nombre VARCHAR(30) NOT NULL,
+    descripcion VARCHAR(50) NOT NULL
+) ENGINE=InnoDB;
 
-create table tipo_pasajero (
-    num int primary key auto_increment,
-    descuento decimal(5,2),
-    descripcion varchar(30) not null
-) engine=innodb;
+-- 2️⃣ TABLAS INTERMEDIAS
 
-create table tipo_pago (
-    numero int primary key auto_increment,
-    nombre varchar(30) not null,
-    descripcion varchar(50) not null
-) engine=innodb;
+CREATE TABLE terminal (
+    numero INT PRIMARY KEY AUTO_INCREMENT,
+    ternombre VARCHAR(30) NOT NULL,
+    telefono VARCHAR(15) NOT NULL,
+    ternumero VARCHAR(10) NOT NULL,
+    tercalle VARCHAR(30) NOT NULL,
+    tercolonia VARCHAR(30) NOT NULL,
+    ciudad VARCHAR(5) NOT NULL,
+    FOREIGN KEY (ciudad) REFERENCES ciudad(clave)
+) ENGINE=InnoDB;
 
--- 2️⃣ tablas intermedias
+INSERT INTO terminal (ternombre, telefono, ternumero, tercalle, tercolonia, ciudad) VALUES
+('Terminal Tijuana', '6641234567', '123', 'Revolución', 'Centro', 'TJU'),
+('Terminal Ensenada', '6469876543', '456', 'Juárez', 'Valle Dorado', 'ENS'),
+('Terminal Rosarito', '6611122334', '78', 'Héroes', 'Playas', 'ROS'),
+('Terminal Tecate', '6655566778', '90', 'Independencia', 'Centro', 'TEC'),
+('Terminal Mexicali', '6862233445', '321', 'Lázaro Cárdenas', 'Zona Centro', 'MXL'),
+('Terminal San Felipe', '6869988776', '12', 'Marina', 'Pueblo Nuevo', 'SFE');
 
-create table terminal (
-    numero int primary key auto_increment,
-    ternombre varchar(30) not null,
-    ternumero varchar(10) not null,
-    tercalle varchar(30) not null,
-    tercolonia varchar(30) not null,
-    ciudad varchar(5) not null,
-    foreign key (ciudad) references ciudad(clave)
-) engine=innodb;
+CREATE TABLE ruta (
+    codigo INT PRIMARY KEY AUTO_INCREMENT,
+    origen INT NOT NULL,
+    destino INT NOT NULL,
+    duracion VARCHAR(10) NOT NULL,
+    FOREIGN KEY (origen) REFERENCES terminal(numero),
+    FOREIGN KEY (destino) REFERENCES terminal(numero)
+) ENGINE=InnoDB;
 
-insert into terminal (ternombre, ternumcalle, tercalle, tercolonia, ciudad) values
-('Terminal Tijuana', '123', 'Revolución', 'Centro', 'TJU'),
-('Terminal Ensenada', '456', 'Juárez', 'Valle Dorado', 'ENS'),
-('Terminal Rosarito', '78', 'Héroes', 'Playas', 'ROS'),
-('Terminal Tecate', '90', 'Independencia', 'Centro', 'TEC'),
-('Terminal Mexicali', '321', 'Lázaro Cárdenas', 'Zona Centro', 'MXL'),
-('Terminal San Felipe', '12', 'Marina', 'Pueblo Nuevo', 'SFE');
+CREATE TABLE autobus (
+    numero INT PRIMARY KEY AUTO_INCREMENT,
+    modelo INT NOT NULL,
+    placas VARCHAR(10) NOT NULL UNIQUE,
+    FOREIGN KEY (modelo) REFERENCES modelo(numero)
+) ENGINE=InnoDB;
 
+CREATE TABLE conductor (
+    registro INT PRIMARY KEY AUTO_INCREMENT,
+    connombre VARCHAR(30) NOT NULL,
+    conprimerapell VARCHAR(30) NOT NULL,
+    consegundoapell VARCHAR(30),
+    licnumero VARCHAR(15) NOT NULL,
+    licvencimiento DATE NOT NULL,
+    fechacontrato DATE NOT NULL
+) ENGINE=InnoDB;
 
+CREATE TABLE pasajero (
+    num INT PRIMARY KEY AUTO_INCREMENT,
+    panombre VARCHAR(30) NOT NULL,
+    paprimerapell VARCHAR(30) NOT NULL,
+    pasegundoapell VARCHAR(30),
+    fechanacimiento DATE NOT NULL,
+    edad INT
+) ENGINE=InnoDB;
 
+CREATE TABLE taquillero (
+    registro INT PRIMARY KEY AUTO_INCREMENT,
+    taqnombre VARCHAR(30) NOT NULL,
+    taqprimerapell VARCHAR(30) NOT NULL,
+    taqsegundoapell VARCHAR(30),
+    fechacontrato DATE NOT NULL,
+    usuario VARCHAR(20) NOT NULL,
+    contrasena VARCHAR(20) NOT NULL,
+    terminal INT NOT NULL,
+    FOREIGN KEY (terminal) REFERENCES terminal(numero)
+) ENGINE=InnoDB;
 
-insert into terminal (ternombre, ternumero, tercalle, tercolonia, ciudad) values
-('Terminal Tijuana', '123', 'Revolución', 'Centro', 'TJU'),
-('Terminal Ensenada', '456', 'Juárez', 'Valle Dorado', 'ENS'),
-('Terminal Rosarito', '78', 'Héroes', 'Playas', 'ROS'),
-('Terminal Tecate', '90', 'Independencia', 'Centro', 'TEC'),
-('Terminal Mexicali', '321', 'Lázaro Cárdenas', 'Zona Centro', 'MXL'),
-('Terminal San Felipe', '12', 'Marina', 'Pueblo Nuevo', 'SFE');
+-- 3️⃣ TABLAS DE OPERACIÓN
 
+CREATE TABLE viaje (
+    numero INT PRIMARY KEY AUTO_INCREMENT,
+    fecha DATE NOT NULL,
+    horasalida TIME NOT NULL,
+    horaentrada TIME NOT NULL,
+    ruta INT NOT NULL,
+    estado INT NOT NULL,
+    FOREIGN KEY (ruta) REFERENCES ruta(codigo),
+    FOREIGN KEY (estado) REFERENCES edo_viaje(numero)
+) ENGINE=InnoDB;
 
-create table ruta (
-    codigo int primary key auto_increment,
-    origen int not null,
-    destino int not null,
-    duracion varchar(10) not null,
-    foreign key (origen) references terminal(numero),
-    foreign key (destino) references terminal(numero)
-) engine=innodb;
+CREATE TABLE detalle_viaje (
+    autobus INT,
+    viaje INT,
+    conductor INT,
+    PRIMARY KEY (autobus, viaje, conductor),
+    FOREIGN KEY (autobus) REFERENCES autobus(numero),
+    FOREIGN KEY (viaje) REFERENCES viaje(numero),
+    FOREIGN KEY (conductor) REFERENCES conductor(registro)
+) ENGINE=InnoDB;
 
-create table autobus (
-    numero int primary key auto_increment,
-    modelo int not null,
-    placas varchar(10) not null unique,
-    foreign key (modelo) references modelo(numero)
-) engine=innodb;
+CREATE TABLE asiento (
+    numero INT PRIMARY KEY AUTO_INCREMENT,
+    ocupado BOOLEAN NOT NULL,
+    tipo VARCHAR(5) NOT NULL,
+    autobus INT NOT NULL,
+    FOREIGN KEY (tipo) REFERENCES tipo_asientos(codigo),
+    FOREIGN KEY (autobus) REFERENCES autobus(numero)
+) ENGINE=InnoDB;
 
-create table conductor (
-    registro int primary key auto_increment,
-    connombre varchar(30) not null,
-    conprimerapell varchar(30) not null,
-    consegundoapell varchar(30),
-    licnumero varchar(15) not null,
-    licvencimiento date not null,
-    fechacontrato date not null
-) engine=innodb;
+CREATE TABLE pago (
+    codigo INT PRIMARY KEY AUTO_INCREMENT,
+    fechapago DATETIME NOT NULL,
+    monto DECIMAL(10,2) NOT NULL,
+    tipo INT NOT NULL,
+    FOREIGN KEY (tipo) REFERENCES tipo_pago(numero)
+) ENGINE=InnoDB;
 
-create table pasajero (
-    num int primary key auto_increment,
-    panombre varchar(30) not null,
-    paprimerapell varchar(30) not null,
-    pasegundoapell varchar(30),
-    fechanacimiento date not null,
-    edad int
-) engine=innodb;
+CREATE TABLE ticket (
+    codigo INT PRIMARY KEY AUTO_INCREMENT,
+    precio DECIMAL(10,2) NOT NULL,
+    fechaemision DATETIME NOT NULL,
+    asiento INT NOT NULL,
+    viaje INT NOT NULL,
+    pasajero INT NOT NULL,
+    tipopasajero INT NOT NULL,
+    pago INT NOT NULL,
+    vendedor INT NOT NULL,
+    FOREIGN KEY (asiento) REFERENCES asiento(numero),
+    FOREIGN KEY (viaje) REFERENCES viaje(numero),
+    FOREIGN KEY (pasajero) REFERENCES pasajero(num),
+    FOREIGN KEY (tipopasajero) REFERENCES tipo_pasajero(num),
+    FOREIGN KEY (pago) REFERENCES pago(codigo),
+    FOREIGN KEY (vendedor) REFERENCES taquillero(registro)
+) ENGINE=InnoDB;
 
-create table taquillero (
-    registro int primary key auto_increment,
-    taqnombre varchar(30) not null,
-    taqprimerapell varchar(30) not null,
-    taqsegundoapell varchar(30),
-    fechacontrato date not null,
-    usuario varchar(20) not null,
-    contrasena varchar(20) not null,
-    terminal int not null,
-    foreign key (terminal) references terminal(numero)
-) engine=innodb;
+-- 4️⃣ DATOS DE PRUEBA BÁSICOS
 
--- 3️⃣ tablas de operación
+INSERT INTO modelo (nombre, numasientos, anio, cre, marca)
+VALUES ('Volvo 9700', 40, 2020, 3, 'Volvo');
 
-create table viaje (
-    numero int primary key auto_increment,
-    fecha date not null,
-    horasalida time not null,
-    horaentrada time not null,
-    ruta int not null,
-    estado int not null,
-    foreign key (ruta) references ruta(codigo),
-    foreign key (estado) references edo_viaje(numero)
-) engine=innodb;
+INSERT INTO edo_viaje (nombre, descripcion)
+VALUES ('Programado', 'Viaje aún no iniciado'),
+       ('En curso', 'Viaje en progreso'),
+       ('Finalizado', 'Viaje completado');
 
-create table detalle_viaje (
-    autobus int,
-    viaje int,
-    conductor int,
-    primary key (autobus, viaje, conductor),
-    foreign key (autobus) references autobus(numero),
-    foreign key (viaje) references viaje(numero),
-    foreign key (conductor) references conductor(registro)
-) engine=innodb;
+INSERT INTO tipo_asientos (codigo, descripcion)
+VALUES ('NOR', 'Normal'), ('PRE', 'Premium');
 
-create table asiento (
-    numero int primary key auto_increment,
-    ocupado boolean not null,
-    tipo varchar(5) not null,
-    autobus int not null,
-    foreign key (tipo) references tipo_asientos(codigo),
-    foreign key (autobus) references autobus(numero)
-) engine=innodb;
+INSERT INTO tipo_pasajero (descuento, descripcion)
+VALUES (0.00, 'Adulto'), (0.50, 'Estudiante');
 
-create table pago (
-    codigo int primary key auto_increment,
-    fechapago datetime not null,
-    monto decimal(10,2) not null,
-    tipo int not null,
-    foreign key (tipo) references tipo_pago(numero)
-) engine=innodb;
-
-create table ticket (
-    codigo int primary key auto_increment,
-    precio decimal(10,2) not null,
-    fechaemision datetime not null,
-    asiento int not null,
-    viaje int not null,
-    pasajero int not null,
-    tipopasajero int not null,
-    pago int not null,
-    vendedor int not null,
-    foreign key (asiento) references asiento(numero),
-    foreign key (viaje) references viaje(numero),
-    foreign key (pasajero) references pasajero(num),
-    foreign key (tipopasajero) references tipo_pasajero(num),
-    foreign key (pago) references pago(codigo),
-    foreign key (vendedor) references taquillero(registro)
-) engine=innodb;
+INSERT INTO tipo_pago (nombre, descripcion)
+VALUES ('Efectivo', 'Pago en ventanilla'),
+       ('Tarjeta', 'Pago con tarjeta bancaria');

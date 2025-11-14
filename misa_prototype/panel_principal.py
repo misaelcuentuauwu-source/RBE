@@ -3,7 +3,10 @@ from PySide6.QtWidgets import (
     QLineEdit, QStackedWidget, QFrame, QSizePolicy, QSpacerItem, QMessageBox
 )
 from PySide6.QtCore import Qt
-from epilepsia import VentanaAnimada  # ✅ Importa la ventana RGB
+from pasajero import VentanaRegistroPasajero   # ⭐ IMPORTANTE
+from epilepsia import VentanaAnimada
+from terminales import VentanaTerminales
+
 
 class PanelPrincipal(QMainWindow):
     def __init__(self, usuario_actual, volver_callback):
@@ -22,11 +25,11 @@ class PanelPrincipal(QMainWindow):
         self.setGeometry(100, 100, 1000, 640)
         self.setStyleSheet(f"background-color: {COLOR_FONDO}; font-family: 'Segoe UI';")
 
-        # Layout principal
+        # =========================  CONTENEDOR PRINCIPAL  =========================
         central = QWidget()
         layout_main = QHBoxLayout(central)
 
-        # Sidebar naranja
+        # =========================  SIDEBAR LATERAL IZQUIERDA  =========================
         self.sidebar = QFrame()
         self.sidebar.setFixedWidth(260)
         self.sidebar.setStyleSheet(f"background-color: {COLOR_NARANJA};")
@@ -36,6 +39,7 @@ class PanelPrincipal(QMainWindow):
         self.brand.setStyleSheet("color: white; font-size: 16pt; font-weight: bold; padding: 16px;")
         layout_sidebar.addWidget(self.brand)
 
+        # --------------------  BOTONES DEL SIDEBAR --------------------
         def nav_button(text):
             btn = QPushButton(text)
             btn.setObjectName("btn_nav")
@@ -57,18 +61,16 @@ class PanelPrincipal(QMainWindow):
             """)
             return btn
 
-        self.btn_dashboard = nav_button("Dashboard")
-        self.btn_rutas = nav_button("Rutas")
-        self.btn_choferes = nav_button("Choferes")
-        self.btn_finanzas = nav_button("Finanzas")
+        self.btn_terminales = nav_button("Terminales disponibles")
+        self.btn_epilepsia = nav_button("Epilepsia")
         self.btn_config = nav_button("Configuración")
-        self.btn_epilepsia = nav_button("Epilepsia")  # ✅ Botón nuevo
 
-        for btn in [self.btn_dashboard, self.btn_rutas, self.btn_choferes, self.btn_finanzas, self.btn_config, self.btn_epilepsia]:
-            layout_sidebar.addWidget(btn)
-
+        layout_sidebar.addWidget(self.btn_terminales)
+        layout_sidebar.addWidget(self.btn_config)
+        layout_sidebar.addWidget(self.btn_epilepsia)
         layout_sidebar.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
+        # Botón cerrar sesión
         self.btn_logout = QPushButton("Cerrar sesión")
         self.btn_logout.setStyleSheet(f"""
             QPushButton {{
@@ -85,11 +87,11 @@ class PanelPrincipal(QMainWindow):
         """)
         layout_sidebar.addWidget(self.btn_logout)
 
-        # Contenido principal blanco
+        # =========================  ÁREA DE CONTENIDO  =========================
         main_content = QFrame()
         layout_content = QVBoxLayout(main_content)
 
-        # Topbar
+        # -------------------  TOPBAR -------------------
         topbar = QFrame()
         topbar.setMaximumHeight(70)
         layout_topbar = QHBoxLayout(topbar)
@@ -108,8 +110,8 @@ class PanelPrincipal(QMainWindow):
                 background-color: #0d6ca4;
             }}
         """)
-        layout_topbar.addWidget(self.btn_toggle)
 
+        layout_topbar.addWidget(self.btn_toggle)
         layout_topbar.addStretch()
 
         welcome = QLabel(f"Hola, {self.usuario_actual['taqnombre']} {self.usuario_actual['taqprimerapell']}")
@@ -129,31 +131,45 @@ class PanelPrincipal(QMainWindow):
         """)
         layout_topbar.addWidget(search)
 
-        # Stacked pages
+        # =========================  STACKED PAGES =========================
         self.stacked = QStackedWidget()
+
+        # ----------------------  DASHBOARD  ----------------------
         self.page_dashboard = QWidget()
         layout_dash = QVBoxLayout(self.page_dashboard)
+
         title = QLabel("Dashboard")
-        title.setAlignment(Qt.AlignCenter)
-        title.setStyleSheet(f"font-size: 28pt; font-weight: 600; color: {COLOR_PRINCIPAL};")
-        layout_dash.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
+        title.setAlignment(Qt.AlignLeft)
+        title.setStyleSheet(f"font-size: 28pt; font-weight: 600; color: {COLOR_PRINCIPAL}; padding: 8px;")
         layout_dash.addWidget(title)
-        layout_dash.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
-        self.page_rutas = QLabel("Rutas - contenido")
-        self.page_choferes = QLabel("Choferes - contenido")
-        self.page_finanzas = QLabel("Finanzas - contenido")
-        self.page_config = QLabel("Configuración - contenido")
+        # ----------------------  TARJETAS / CUBOS  ----------------------
+        cards = QHBoxLayout()
 
-        for page in [self.page_rutas, self.page_choferes, self.page_finanzas, self.page_config]:
-            w = QWidget()
-            l = QVBoxLayout(w)
-            l.addWidget(page)
-            self.stacked.addWidget(w)
+        # Tarjeta Registrar Pasajero
+        self.card_registro = QPushButton("Registrar\nPasajero")
+        self.card_registro.setFixedSize(220, 140)
+        self.card_registro.setStyleSheet(f"""
+            QPushButton {{
+                background-color: white;
+                color: {COLOR_TEXTO};
+                border-radius: 16px;
+                font-size: 14pt;
+                font-weight: bold;
+                padding: 12px;
+                border: 2px solid {COLOR_PRINCIPAL};
+            }}
+            QPushButton:hover {{
+                background-color: #e4f3ff;
+            }}
+        """)
 
-        self.stacked.insertWidget(0, self.page_dashboard)
+        cards.addWidget(self.card_registro)
+        layout_dash.addLayout(cards)
 
-        # Ensamblar contenido
+        self.stacked.addWidget(self.page_dashboard)
+
+        # ========================= FIN STACKED =========================
         layout_content.addWidget(topbar)
         layout_content.addWidget(self.stacked)
 
@@ -161,20 +177,28 @@ class PanelPrincipal(QMainWindow):
         layout_main.addWidget(main_content)
         self.setCentralWidget(central)
 
-        # Eventos
-        self.btn_dashboard.clicked.connect(lambda: self.stacked.setCurrentIndex(0))
-        self.btn_rutas.clicked.connect(lambda: self.stacked.setCurrentIndex(1))
-        self.btn_choferes.clicked.connect(lambda: self.stacked.setCurrentIndex(2))
-        self.btn_finanzas.clicked.connect(lambda: self.stacked.setCurrentIndex(3))
-        self.btn_config.clicked.connect(lambda: self.stacked.setCurrentIndex(4))
-        self.btn_epilepsia.clicked.connect(self.abrir_epilepsia)  # ✅ Evento nuevo
+        # ========================= EVENTOS =========================
+
+        self.card_registro.clicked.connect(self.abrir_registro_pasajero)
+        self.btn_terminales.clicked.connect(self.abrir_terminales)
+        self.btn_epilepsia.clicked.connect(self.abrir_epilepsia)
         self.btn_logout.clicked.connect(self.cerrar_sesion)
         self.btn_toggle.clicked.connect(self.toggle_menu)
+
+    # ========================= FUNCIONES =========================
+
+    def abrir_registro_pasajero(self):
+        self.ventana_registro = VentanaRegistroPasajero()
+        self.ventana_registro.show()
+
+    def abrir_terminales(self):
+        self.ventana_terminales = VentanaTerminales()
+        self.ventana_terminales.show()
 
     def abrir_epilepsia(self):
         self.ventana_epilepsia = VentanaAnimada()
         self.ventana_epilepsia.show()
-        self.close()  # ✅ Cierra el panel principal
+        self.close()
 
     def toggle_menu(self):
         if self.menu_colapsado:
