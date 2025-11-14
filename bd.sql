@@ -2,109 +2,51 @@
 CREATE DATABASE RBE;
 use RBE;
 
-CREATE TaBLE modelo(
+
+CREATE TABLE marca (
     numero INT PRIMARY KEY,
-    nombre VARCHAR(30) NOT NULL,
-    numAsientos INT NOT NULL,
-    anio INT NOT NULL,
-    capacidad INT NOT NULL,
-    marca VARCHAR(20) NOT NULL
+    nombre VARCHAR(30) NOT NULL
 );
 
-CREATE TABLE conductor(
+CREATE TABLE conductor (
     registro INT PRIMARY KEY,
     conNombre VARCHAR(30) NOT NULL,
     conPrimerApell VARCHAR(30) NOT NULL,
-    conSegApell VARCHAR(30) NOT NULL,
-    licNumero VARCHAR(14) NOT NULL,
-    licVencimiento DATE NOT NULL
+    conSegundoApell VARCHAR(30),
+    licNumero VARCHAR(15) NOT NULL,
+    licVencimiento DATE NOT NULL,
+    fechaContrato DATE NOT NULL
 );
 
-create table ciudad(
-    codigo varchar(5) PRIMARY KEY,
-    nombre varchar(15) not null unique
+CREATE TABLE ciudad (
+    clave VARCHAR(5) PRIMARY KEY,
+    nombre VARCHAR(30) NOT NULL
 );
 
-create table tipo_asiento(
-    codigo varchar(5) PRIMARY KEY, 
-    descripcion varchar(30) not null unique
+CREATE TABLE tipo_asiento (
+    codigo VARCHAR(5) PRIMARY KEY,
+    descripcion VARCHAR(30) NOT NULL UNIQUE
 );
 
-create table tipo_pasajero(
-    num INT PRIMARY KEY, 
+CREATE TABLE tipo_pasajero (
+    num INT PRIMARY KEY,
     descuento INT NOT NULL,
-    descripcion varchar(30) not null unique
+    descripcion VARCHAR(30) NOT NULL UNIQUE
 );
 
-create table tipo_pago(
-    numero INT PRIMARY KEY, 
-    nombre VARCHAR(30) NOT NULL,
-    descripcion varchar(50) not null UNIQUE
-);
-
-create table edo_viaje(
-    numero INT PRIMARY KEY, 
-    nombre VARCHAR(30) NOT NULL,
-    descripcion varchar(50) not null UNIQUE
-);
-
-CREATE Table terminal(
+CREATE TABLE tipo_pago (
     numero INT PRIMARY KEY,
     nombre VARCHAR(30) NOT NULL,
-    dirCalle VARCHAR(30) NOT NULL,
-    dirNumero VARCHAR(30) NOT NULL,
-    dirColonia VARCHAR(30) NOT NULL,
-    ciudad varchar(5) NOT NULL,
-    Foreign Key (ciudad) REFERENCES ciudad(codigo)
+    descripcion VARCHAR(50) NOT NULL UNIQUE
 );
 
-CREATE Table ruta(
-    codigo VARCHAR(5) PRIMARY KEY,
-    duracion INT NOT NULL,
-    origen INT NOT NULL,
-    destino INT NOT NULL,
-    Foreign Key (origen) REFERENCES terminal(numero),
-    Foreign Key (destino) REFERENCES terminal(numero)
+CREATE TABLE edo_viaje (
+    numero INT PRIMARY KEY,
+    nombre VARCHAR(30) NOT NULL,
+    descripcion VARCHAR(50) NOT NULL
 );
 
-CREATE Table viaje(
-    numero INT PRIMARY KEY AUTO_INCREMENT,
-    fecha DATE NOT NULL,
-    horaSalida TIME NOT NULL,
-    horaEntrada TIME NOT NULL,
-    ruta VARCHAR(5) NOT NULL,
-    estado INT NOT NULL,
-    FOREIGN KEY (ruta) REFERENCES ruta(codigo),
-    FOREIGN KEY (estado) REFERENCES edo_viaje(numero)
-)
-
-CREATE Table autobus(
-    numero INT PRIMARY KEY AUTO_INCREMENT,
-    modelo INT NOT NULL,
-    placas VARCHAR(7),
-    FOREIGN KEY (modelo) REFERENCES modelo(numero)
-);
-
-CREATE TABLE detalle_viaje(
-    viaje INT NOT NULL,
-    conductor INT NOT NULL,
-    autobus INT NOT NULL,
-    PRIMARY KEY (viaje, conductor, autobus),
-    FOREIGN KEY (viaje) REFERENCES viaje(numero),
-    FOREIGN KEY (conductor) REFERENCES conductor(registro),
-    FOREIGN KEY (autobus) REFERENCES autobus(numero)
-);
-
-CREATE TABLE asiento(
-    numero INT PRIMARY KEY AUTO_INCREMENT,
-    ocupado BOOLEAN NOT NULL,
-    tipo VARCHAR(5) NOT NULL,
-    autobus INT NOT NULL,
-    FOREIGN KEY (tipo) REFERENCES tipo_asiento(codigo),
-    FOREIGN KEY (autobus) REFERENCES autobus(numero)
-);
-
-CREATE TABLE pasajero(
+CREATE TABLE pasajero (
     num INT PRIMARY KEY AUTO_INCREMENT,
     paNombre VARCHAR(30) NOT NULL,
     paPrimerApell VARCHAR(30) NOT NULL,
@@ -113,15 +55,75 @@ CREATE TABLE pasajero(
     edad INT
 );
 
-CREATE TABLE pago(
-    codigo VARCHAR(5) PRIMARY KEY,
-    fechaPago DATETIME NOT NULL,
-    monto DECIMAL(10,2) NOT NULL,
-    tipo INT NOT NULL,
-    FOREIGN KEY (tipo) REFERENCES tipo_pago(numero)
+CREATE TABLE modelo (
+    numero INT PRIMARY KEY,
+    nombre VARCHAR(30) NOT NULL,
+    numAsientos INT NOT NULL,
+    año INT NOT NULL,
+    capacidad INT NOT NULL,
+    marca INT NOT NULL,
+    FOREIGN KEY (marca) REFERENCES marca(numero)
 );
 
-CREATE TABLE taquillero(
+CREATE TABLE terminal (
+    numero INT PRIMARY KEY,
+    nombre VARCHAR(30) NOT NULL,
+    dirCalle VARCHAR(30) NOT NULL,
+    dirNumero VARCHAR(10) NOT NULL,
+    dirColonia VARCHAR(30) NOT NULL,
+    ciudad VARCHAR(5) NOT NULL,
+    FOREIGN KEY (ciudad) REFERENCES ciudad(clave)
+);
+
+CREATE TABLE ruta (
+    codigo INT PRIMARY KEY AUTO_INCREMENT,
+    duracion VARCHAR(10) NOT NULL,
+    origen INT NOT NULL,
+    destino INT NOT NULL,
+    FOREIGN KEY (origen) REFERENCES terminal(numero),
+    FOREIGN KEY (destino) REFERENCES terminal(numero)
+);
+
+CREATE TABLE autobus (
+    numero INT PRIMARY KEY,
+    modelo INT NOT NULL,
+    placas VARCHAR(10) NOT NULL UNIQUE,
+    serieVIN VARCHAR(17) NOT NULL UNIQUE,
+    FOREIGN KEY (modelo) REFERENCES modelo(numero)
+);
+
+CREATE TABLE VIAJE (
+    numero INT PRIMARY KEY AUTO_INCREMENT,
+    fecHoraSalida DATETIME NOT NULL,
+    fecHoraEntrada DATETIME NOT NULL,
+    ruta INT NOT NULL,
+    estado INT NOT NULL,
+    autobus INT NOT NULL,
+    conductor INT NOT NULL,
+    FOREIGN KEY (ruta) REFERENCES ruta(codigo),
+    FOREIGN KEY (estado) REFERENCES edo_viaje(numero),
+    FOREIGN KEY (autobus) REFERENCES autobus(numero),
+    FOREIGN KEY (conductor) REFERENCES conductor(registro)
+);
+
+CREATE TABLE ASIENTO (
+    numero INT PRIMARY KEY AUTO_INCREMENT,
+    tipo VARCHAR(5) NOT NULL,
+    autobus INT NOT NULL,
+    FOREIGN KEY (tipo) REFERENCES tipo_asiento(codigo),
+    FOREIGN KEY (autobus) REFERENCES autobus(numero)
+);
+
+CREATE TABLE VIAJE_ASIENTO (
+    asiento INT NOT NULL,
+    viaje INT NOT NULL,
+    ocupado BOOLEAN NOT NULL,
+    PRIMARY KEY (asiento, viaje),
+    FOREIGN KEY (asiento) REFERENCES ASIENTO(numero),
+    FOREIGN KEY (viaje) REFERENCES VIAJE(numero)
+);
+
+CREATE TABLE taquillero (
     registro INT PRIMARY KEY,
     taqNombre VARCHAR(30) NOT NULL,
     taqPrimerApell VARCHAR(30) NOT NULL,
@@ -133,27 +135,28 @@ CREATE TABLE taquillero(
     FOREIGN KEY (terminal) REFERENCES terminal(numero)
 );
 
-CREATE TABLE ticket(
-    codigo VARCHAR(10) PRIMARY KEY,
+CREATE TABLE pago (
+    numero INT PRIMARY KEY AUTO_INCREMENT,
+    fechapago DATETIME NOT NULL,
+    monto DECIMAL(10,2) NOT NULL,
+    tipo INT NOT NULL,
+    vendedor INT NOT NULL,
+    FOREIGN KEY (tipo) REFERENCES tipo_pago(numero),
+    FOREIGN KEY (vendedor) REFERENCES taquillero(registro)
+);
+
+CREATE TABLE TICKET (
+    codigo INT PRIMARY KEY AUTO_INCREMENT,
     precio DECIMAL(10,2) NOT NULL,
     fechaEmision DATETIME NOT NULL,
     asiento INT NOT NULL,
     viaje INT NOT NULL,
     pasajero INT NOT NULL,
-    tipoPasajero INT NOT NULL,
-    pago VARCHAR(5) NOT NULL,
-    vendedor INT NOT NULL,
-    FOREIGN KEY (asiento) REFERENCES asiento(numero),
-    FOREIGN KEY (viaje) REFERENCES viaje(numero),
+    tipopasajero INT NOT NULL,
+    pago INT NOT NULL,
+    FOREIGN KEY (asiento) REFERENCES ASIENTO(numero),
+    FOREIGN KEY (viaje) REFERENCES VIAJE(numero),
     FOREIGN KEY (pasajero) REFERENCES pasajero(num),
-    FOREIGN KEY (tipoPasajero) REFERENCES tipo_pasajero(num),
-    FOREIGN KEY (pago) REFERENCES pago(codigo),
-    FOREIGN KEY (vendedor) REFERENCES taquillero(registro)
-);
-
-CREATE Table viaje_asiento(
-    viaje INT NOT NULL,
-    asiento INT NOT NULL,
-    FOREIGN KEY (viaje) REFERENCES viaje(numero),
-    FOREIGN KEY (asiento) REFERENCES asiento(numero)
+    FOREIGN KEY (tipopasajero) REFERENCES tipo_pasajero(num),
+    FOREIGN KEY (pago) REFERENCES pago(numero)
 );
