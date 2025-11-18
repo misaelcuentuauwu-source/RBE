@@ -2,7 +2,6 @@
 CREATE DATABASE RBE;
 use RBE;
 
-
 CREATE TABLE marca (
     numero INT PRIMARY KEY,
     nombre VARCHAR(30) NOT NULL
@@ -58,7 +57,7 @@ CREATE TABLE pasajero (
 CREATE TABLE modelo (
     numero INT PRIMARY KEY,
     nombre VARCHAR(30) NOT NULL,
-    numAsientos INT NOT NULL,
+    numasientos INT NOT NULL,
     año INT NOT NULL,
     capacidad INT NOT NULL,
     marca INT NOT NULL,
@@ -76,10 +75,11 @@ CREATE TABLE terminal (
 );
 
 CREATE TABLE ruta (
-    codigo INT PRIMARY KEY AUTO_INCREMENT,
+    codigo INT PRIMARY KEY,
     duracion VARCHAR(10) NOT NULL,
     origen INT NOT NULL,
     destino INT NOT NULL,
+    precio DECIMAL(10,2) NOT NULL DEFAULT 250,
     FOREIGN KEY (origen) REFERENCES terminal(numero),
     FOREIGN KEY (destino) REFERENCES terminal(numero)
 );
@@ -92,7 +92,7 @@ CREATE TABLE autobus (
     FOREIGN KEY (modelo) REFERENCES modelo(numero)
 );
 
-CREATE TABLE VIAJE (
+CREATE TABLE viaje (
     numero INT PRIMARY KEY AUTO_INCREMENT,
     fecHoraSalida DATETIME NOT NULL,
     fecHoraEntrada DATETIME NOT NULL,
@@ -106,7 +106,7 @@ CREATE TABLE VIAJE (
     FOREIGN KEY (conductor) REFERENCES conductor(registro)
 );
 
-CREATE TABLE ASIENTO (
+CREATE TABLE asiento (
     numero INT PRIMARY KEY AUTO_INCREMENT,
     tipo VARCHAR(5) NOT NULL,
     autobus INT NOT NULL,
@@ -114,13 +114,13 @@ CREATE TABLE ASIENTO (
     FOREIGN KEY (autobus) REFERENCES autobus(numero)
 );
 
-CREATE TABLE VIAJE_ASIENTO (
+CREATE TABLE viaje_asiento (
     asiento INT NOT NULL,
     viaje INT NOT NULL,
     ocupado BOOLEAN NOT NULL,
     PRIMARY KEY (asiento, viaje),
-    FOREIGN KEY (asiento) REFERENCES ASIENTO(numero),
-    FOREIGN KEY (viaje) REFERENCES VIAJE(numero)
+    FOREIGN KEY (asiento) REFERENCES asiento(numero),
+    FOREIGN KEY (viaje) REFERENCES viaje(numero)
 );
 
 CREATE TABLE taquillero (
@@ -145,7 +145,7 @@ CREATE TABLE pago (
     FOREIGN KEY (vendedor) REFERENCES taquillero(registro)
 );
 
-CREATE TABLE TICKET (
+CREATE TABLE ticket (
     codigo INT PRIMARY KEY AUTO_INCREMENT,
     precio DECIMAL(10,2) NOT NULL,
     fechaEmision DATETIME NOT NULL,
@@ -154,8 +154,8 @@ CREATE TABLE TICKET (
     pasajero INT NOT NULL,
     tipopasajero INT NOT NULL,
     pago INT NOT NULL,
-    FOREIGN KEY (asiento) REFERENCES ASIENTO(numero),
-    FOREIGN KEY (viaje) REFERENCES VIAJE(numero),
+    FOREIGN KEY (asiento) REFERENCES asiento(numero),
+    FOREIGN KEY (viaje) REFERENCES viaje(numero),
     FOREIGN KEY (pasajero) REFERENCES pasajero(num),
     FOREIGN KEY (tipopasajero) REFERENCES tipo_pasajero(num),
     FOREIGN KEY (pago) REFERENCES pago(numero)
