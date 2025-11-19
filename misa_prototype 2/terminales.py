@@ -1,9 +1,17 @@
-# ventana_terminales.py
-import mysql.connector
+# terminales.py
+# ---------------------------------------------------------
+# Muestra la lista de terminales desde la BD RBE
+# Ya conectado con tu archivo conexion.py
+# ---------------------------------------------------------
+
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QLabel, QScrollArea, QFrame, QHBoxLayout
+    QWidget, QVBoxLayout, QLabel, QScrollArea, QFrame
 )
 from PySide6.QtCore import Qt
+
+# ✅ Importa conexión desde tu archivo "conexion.py"
+from conexion import crear_conexion
+
 
 class VentanaTerminales(QWidget):
     def __init__(self):
@@ -25,16 +33,16 @@ class VentanaTerminales(QWidget):
         titulo.setStyleSheet("font-size: 20pt; font-weight: bold; color: #1181c3; margin: 20px;")
         layout.addWidget(titulo)
 
-        # Scroll para mostrar varias terminales
+        # Área de scroll
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         contenedor = QWidget()
         vbox = QVBoxLayout(contenedor)
 
-        # Consultar terminales desde la base de datos
+        # Cargar terminales desde la base de datos
         terminales = self.obtener_terminales()
 
-        # Crear “cards” para cada terminal
+        # Crear tarjetas (“cards”)
         for t in terminales:
             card = QFrame()
             card.setStyleSheet("""
@@ -52,8 +60,7 @@ class VentanaTerminales(QWidget):
             layout_card = QVBoxLayout(card)
 
             nombre = QLabel(f"🏢 {t['nombre']}")
-            nombre.setStyleSheet("font-size: 14pt; font-weight: 600; color: #1181c3;")
-            direccion = QLabel(f"📍 {t['calle']} #{t['numero']}, {t['colonia']}")
+            direccion = QLabel(f"📍 {t['dirCalle']} #{t['dirNumero']}, {t['dirColonia']}")
             telefono = QLabel(f"📞 {t['telefono']}")
             ciudad = QLabel(f"🌆 Ciudad: {t['ciudad']}")
 
@@ -70,19 +77,30 @@ class VentanaTerminales(QWidget):
         scroll.setWidget(contenedor)
         layout.addWidget(scroll)
 
+    # ---------------------------------------------------------
+    # ➜ Obtener terminales desde la BD usando conexion.py
+    # ---------------------------------------------------------
     def obtener_terminales(self):
         try:
-            conexion = mysql.connector.connect(
-                host="localhost",
-                user="root",
-                password="",
-                database="prototipo"
-            )
-            cursor = conexion.cursor(dictionary=True)
-            cursor.execute("SELECT ternombre AS nombre, telefono, tercalle AS calle, ternumero AS numero, tercolonia AS colonia, ciudad FROM terminal;")
-            datos = cursor.fetchall()
-            conexion.close()
+            cn = crear_conexion()
+            cur = cn.cursor(dictionary=True)
+
+            cur.execute("""
+                SELECT 
+                    nombre,
+                    dirCalle,
+                    dirNumero,
+                    dirColonia,
+                    telefono,
+                    ciudad
+                FROM terminal;
+            """)
+
+            datos = cur.fetchall()
+            cur.close()
+            cn.close()
             return datos
+
         except Exception as e:
-            print("Error al conectar o consultar:", e)
+            print("Error al consultar terminales:", e)
             return []

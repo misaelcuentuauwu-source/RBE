@@ -1,6 +1,6 @@
--- Active: 1762888131509@@127.0.0.1@3306@rbe
-CREATE DATABASE RBE;
-use RBE;
+DROP DATABASE IF EXISTS rbe;
+CREATE DATABASE rbe;
+USE rbe;
 
 CREATE TABLE marca (
     numero INT PRIMARY KEY,
@@ -64,12 +64,14 @@ CREATE TABLE modelo (
     FOREIGN KEY (marca) REFERENCES marca(numero)
 );
 
+-- TERMINAL con TELÉFONO
 CREATE TABLE terminal (
     numero INT PRIMARY KEY,
     nombre VARCHAR(30) NOT NULL,
     dirCalle VARCHAR(30) NOT NULL,
     dirNumero VARCHAR(10) NOT NULL,
     dirColonia VARCHAR(30) NOT NULL,
+    telefono VARCHAR(10),      -- ← AGREGADO
     ciudad VARCHAR(5) NOT NULL,
     FOREIGN KEY (ciudad) REFERENCES ciudad(clave)
 );
@@ -124,7 +126,7 @@ CREATE TABLE viaje_asiento (
 );
 
 CREATE TABLE taquillero (
-    registro INT PRIMARY KEY,
+    registro INT PRIMARY KEY AUTO_INCREMENT,
     taqNombre VARCHAR(30) NOT NULL,
     taqPrimerApell VARCHAR(30) NOT NULL,
     taqSegundoApell VARCHAR(30),
