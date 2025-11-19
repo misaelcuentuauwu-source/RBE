@@ -40,7 +40,7 @@ INSERT INTO conductor VALUES
 
 -- Marcas y modelos
 INSERT INTO marca VALUES 
-(1, 'Mercedes-Benz'),
+(1, 'Mercedes'),
 (2, 'Volvo'),
 (3, 'Scania');
 
