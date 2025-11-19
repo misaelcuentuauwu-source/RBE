@@ -56,10 +56,10 @@ def registrar_taquillero_bd(nombre, ap1, ap2, usuario, contrasena, terminal=1):
         fecha_contrato = date.today()
 
         cur.execute("""
-            INSERT INTO taquillero
-            (registro, taqNombre, taqPrimerApell, taqSegundoApell,
-             fechaContrato, usuario, contraseña, terminal)
-            VALUES (NULL, %s, %s, %s, %s, %s, %s, %s)
+        INSERT INTO taquillero
+        (taqNombre, taqPrimerApell, taqSegundoApell,
+        fechaContrato, usuario, contraseña, terminal)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
         """, (nombre, ap1, ap2, fecha_contrato, usuario, contrasena, terminal))
 
         cn.commit()

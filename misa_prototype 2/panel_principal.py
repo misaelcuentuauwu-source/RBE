@@ -4,14 +4,35 @@ from PySide6.QtWidgets import (
     QLineEdit, QStackedWidget, QFrame, QSizePolicy, QSpacerItem, QMessageBox
 )
 from PySide6.QtCore import Qt
-from pasajero import VentanaRegistroPasajero      # Sin cambios
+from pasajero import VentanaRegistroPasajero
 from epilepsia import VentanaAnimada
 from terminales import VentanaTerminales
-
-# ADAPTACIÓN: importamos la clase que sí existe en venta_boleto.py
 from venta_boleto import SeleccionarViaje
+from conexion import crear_conexion
 
+# ===============================
+# Función para actualizar taquillero
+# ===============================
+def actualizar_taquillero_bd(registro, nombre, ap1, ap2, usuario, contrasena):
+    try:
+        cn = crear_conexion()
+        cur = cn.cursor()
+        cur.execute("""
+            UPDATE taquillero
+            SET taqNombre=%s, taqPrimerApell=%s, taqSegundoApell=%s,
+                usuario=%s, contraseña=%s
+            WHERE registro=%s
+        """, (nombre, ap1, ap2, usuario, contrasena, registro))
+        cn.commit()
+        cur.close()
+        cn.close()
+        return True, None
+    except Exception as e:
+        return False, str(e)
 
+# ===============================
+# Panel Principal
+# ===============================
 class PanelPrincipal(QMainWindow):
     def __init__(self, usuario_actual, volver_callback):
         super().__init__()
@@ -29,11 +50,11 @@ class PanelPrincipal(QMainWindow):
         self.setGeometry(100, 100, 1000, 640)
         self.setStyleSheet(f"background-color: {COLOR_FONDO}; font-family: 'Segoe UI';")
 
-        # =========================  CONTENEDOR PRINCIPAL  =========================
+        # ========================= CONTENEDOR PRINCIPAL =========================
         central = QWidget()
         layout_main = QHBoxLayout(central)
 
-        # =========================  SIDEBAR LATERAL IZQUIERDA  =========================
+        # ========================= SIDEBAR =========================
         self.sidebar = QFrame()
         self.sidebar.setFixedWidth(260)
         self.sidebar.setStyleSheet(f"background-color: {COLOR_NARANJA};")
@@ -43,7 +64,7 @@ class PanelPrincipal(QMainWindow):
         self.brand.setStyleSheet("color: white; font-size: 16pt; font-weight: bold; padding: 16px;")
         layout_sidebar.addWidget(self.brand)
 
-        # --------------------  BOTONES DEL SIDEBAR --------------------
+        # Botón de navegación
         def nav_button(text):
             btn = QPushButton(text)
             btn.setObjectName("btn_nav")
@@ -66,12 +87,12 @@ class PanelPrincipal(QMainWindow):
             return btn
 
         self.btn_terminales = nav_button("Terminales disponibles")
-        self.btn_vender = nav_button("Vender boletos")           # ← ADAPTACIÓN: botón para venta
+        self.btn_vender = nav_button("Vender boletos")
         self.btn_epilepsia = nav_button("Epilepsia")
         self.btn_config = nav_button("Configuración")
 
         layout_sidebar.addWidget(self.btn_terminales)
-        layout_sidebar.addWidget(self.btn_vender)                 # agregado al sidebar
+        layout_sidebar.addWidget(self.btn_vender)
         layout_sidebar.addWidget(self.btn_config)
         layout_sidebar.addWidget(self.btn_epilepsia)
         layout_sidebar.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
@@ -93,11 +114,11 @@ class PanelPrincipal(QMainWindow):
         """)
         layout_sidebar.addWidget(self.btn_logout)
 
-        # =========================  ÁREA DE CONTENIDO  =========================
+        # ========================= ÁREA DE CONTENIDO =========================
         main_content = QFrame()
         layout_content = QVBoxLayout(main_content)
 
-        # -------------------  TOPBAR -------------------
+        # Topbar
         topbar = QFrame()
         topbar.setMaximumHeight(70)
         layout_topbar = QHBoxLayout(topbar)
@@ -119,30 +140,13 @@ class PanelPrincipal(QMainWindow):
         layout_topbar.addWidget(self.btn_toggle)
         layout_topbar.addStretch()
 
-        # ======================================================
-        # ADAPTACIÓN #1 — Extraer nombre de forma segura (evita KeyError / case issues)
-        # ======================================================
-        taq_nombre = (
-            self.usuario_actual.get('taqNombre')
-            or self.usuario_actual.get('taqnombre')
-            or self.usuario_actual.get('taq_nombre')
-            or ""
-        )
-        taq_primer = (
-            self.usuario_actual.get('taqPrimerApell')
-            or self.usuario_actual.get('taqprimerapell')
-            or self.usuario_actual.get('taq_primer_apell')
-            or ""
-        )
-        taq_seg = (
-            self.usuario_actual.get('taqSegundoApell')
-            or self.usuario_actual.get('taqsegundoapell')
-            or ""
-        )
-
-        welcome = QLabel(f"Hola, {taq_nombre.strip()} {taq_primer.strip()} {taq_seg.strip()}")
-        welcome.setStyleSheet(f"font-size: 11pt; color: {COLOR_TEXTO};")
-        layout_topbar.addWidget(welcome)
+        # Texto de bienvenida
+        taq_nombre = self.usuario_actual.get('taqNombre','')
+        taq_primer = self.usuario_actual.get('taqPrimerApell','')
+        taq_seg = self.usuario_actual.get('taqSegundoApell','')
+        self.welcome = QLabel(f"Hola, {taq_nombre} {taq_primer} {taq_seg}")
+        self.welcome.setStyleSheet(f"font-size: 11pt; color: {COLOR_TEXTO};")
+        layout_topbar.addWidget(self.welcome)
 
         search = QLineEdit()
         search.setPlaceholderText("Buscar...")
@@ -157,23 +161,20 @@ class PanelPrincipal(QMainWindow):
         """)
         layout_topbar.addWidget(search)
 
-        # =========================  STACKED PAGES =========================
+        # ========================= STACKED PAGES =========================
         self.stacked = QStackedWidget()
 
-        # ----------------------  DASHBOARD  ----------------------
+        # -------- Dashboard --------
         self.page_dashboard = QWidget()
         layout_dash = QVBoxLayout(self.page_dashboard)
-
         title = QLabel("Dashboard")
         title.setAlignment(Qt.AlignLeft)
         title.setStyleSheet(f"font-size: 28pt; font-weight: 600; color: {COLOR_PRINCIPAL}; padding: 8px;")
         layout_dash.addWidget(title)
 
-        # ----------------------  TARJETAS / CUBOS  ----------------------
         cards = QHBoxLayout()
-
         self.card_registro = QPushButton("Registrar\nPasajero")
-        self.card_registro.setFixedSize(220, 140)
+        self.card_registro.setFixedSize(220,140)
         self.card_registro.setStyleSheet(f"""
             QPushButton {{
                 background-color: white;
@@ -190,8 +191,73 @@ class PanelPrincipal(QMainWindow):
         """)
         cards.addWidget(self.card_registro)
         layout_dash.addLayout(cards)
-
         self.stacked.addWidget(self.page_dashboard)
+
+        # -------- Configuración --------
+        self.page_config = QWidget()
+        layout_config = QVBoxLayout(self.page_config)
+        layout_config.setAlignment(Qt.AlignTop)
+        layout_config.setContentsMargins(20,20,20,20)
+
+        titulo_config = QLabel("Configuración de Usuario")
+        titulo_config.setAlignment(Qt.AlignCenter)
+        titulo_config.setStyleSheet("font-size: 16pt; font-weight: bold; color: #1181c3; margin-bottom: 12px;")
+        layout_config.addWidget(titulo_config)
+
+        # Campos de configuración
+        layout_config.addWidget(QLabel("Nombre:"))
+        self.config_nombre = QLineEdit(self.usuario_actual.get('taqNombre',''))
+        layout_config.addWidget(self.config_nombre)
+
+        layout_config.addWidget(QLabel("Primer Apellido:"))
+        self.config_ap1 = QLineEdit(self.usuario_actual.get('taqPrimerApell',''))
+        layout_config.addWidget(self.config_ap1)
+
+        layout_config.addWidget(QLabel("Segundo Apellido:"))
+        self.config_ap2 = QLineEdit(self.usuario_actual.get('taqSegundoApell',''))
+        layout_config.addWidget(self.config_ap2)
+
+        layout_config.addWidget(QLabel("Usuario:"))
+        self.config_usuario = QLineEdit(self.usuario_actual.get('usuario',''))
+        layout_config.addWidget(self.config_usuario)
+
+        layout_config.addWidget(QLabel("Contraseña:"))
+        self.config_pass = QLineEdit(self.usuario_actual.get('contraseña',''))
+        self.config_pass.setEchoMode(QLineEdit.Password)
+        layout_config.addWidget(self.config_pass)
+
+        btn_guardar = QPushButton("Guardar Cambios")
+        btn_guardar.setStyleSheet("background-color: #1181c3; color:white; font-weight:bold; padding:8px; margin-top:10px;")
+        layout_config.addWidget(btn_guardar)
+
+        def guardar_cambios():
+            nombre = self.config_nombre.text().strip()
+            ap1 = self.config_ap1.text().strip()
+            ap2 = self.config_ap2.text().strip()
+            usuario = self.config_usuario.text().strip()
+            contrasena = self.config_pass.text().strip()
+            if not (nombre and ap1 and usuario and contrasena):
+                QMessageBox.warning(self, "Atención", "Los campos obligatorios no pueden estar vacíos")
+                return
+            ok, err = actualizar_taquillero_bd(
+                self.usuario_actual.get('registro'), nombre, ap1, ap2, usuario, contrasena
+            )
+            if ok:
+                QMessageBox.information(self, "Éxito", "Datos actualizados correctamente")
+                self.usuario_actual.update({
+                    'taqNombre': nombre,
+                    'taqPrimerApell': ap1,
+                    'taqSegundoApell': ap2,
+                    'usuario': usuario,
+                    'contraseña': contrasena
+                })
+                self.welcome.setText(f"Hola, {nombre} {ap1} {ap2}")
+                self.stacked.setCurrentWidget(self.page_dashboard)
+            else:
+                QMessageBox.critical(self, "Error", f"No se pudo actualizar: {err}")
+
+        btn_guardar.clicked.connect(guardar_cambios)
+        self.stacked.addWidget(self.page_config)
 
         # ========================= FIN STACKED =========================
         layout_content.addWidget(topbar)
@@ -204,10 +270,11 @@ class PanelPrincipal(QMainWindow):
         # ========================= EVENTOS =========================
         self.card_registro.clicked.connect(self.abrir_registro_pasajero)
         self.btn_terminales.clicked.connect(self.abrir_terminales)
-        self.btn_vender.clicked.connect(self.abrir_venta)          # ← ADAPTACIÓN: conectar botón de venta
+        self.btn_vender.clicked.connect(self.abrir_venta)
         self.btn_epilepsia.clicked.connect(self.abrir_epilepsia)
         self.btn_logout.clicked.connect(self.cerrar_sesion)
         self.btn_toggle.clicked.connect(self.toggle_menu)
+        self.btn_config.clicked.connect(lambda: self.stacked.setCurrentWidget(self.page_config))
 
     # ========================= FUNCIONES =========================
     def abrir_registro_pasajero(self):
@@ -223,27 +290,13 @@ class PanelPrincipal(QMainWindow):
         self.ventana_epilepsia.show()
         self.close()
 
-    # -------------------------
-    # ADAPTACIÓN: abrir ventana de venta y pasar id del taquillero
-    # -------------------------
     def abrir_venta(self):
-        # intentar sacar el id del taquillero desde el diccionario que viene del login
-        taq_id = (
-            self.usuario_actual.get('registro')
-            or self.usuario_actual.get('Registro')
-            or self.usuario_actual.get('id')
-            or None
-        )
+        taq_id = self.usuario_actual.get('registro')
         if taq_id is None:
             QMessageBox.warning(self, "Error", "No se pudo determinar el ID del taquillero.")
             return
-
-        # ADAPTACIÓN: la clase disponible es SeleccionarViaje
-        # Algunas versiones de SeleccionarViaje aceptan taquillero_id en el constructor,
-        # otras no; para máxima compatibilidad asignamos el id después de crear la ventana.
         self.venta_win = SeleccionarViaje()
         try:
-            # intentar pasar como atributo (por si la ventana lo usa)
             self.venta_win.taquillero_id = taq_id
         except Exception:
             pass
