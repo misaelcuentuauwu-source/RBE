@@ -42,15 +42,9 @@ INSERT INTO conductor (registro, conNombre, conPrimerApell, conSegundoApell, lic
 (100, 'Luis', 'Rojas', 'Lopez', 'LIC12345', '2027-05-10', '2020-01-01'),
 (101, 'Marcos', 'Pérez', 'Hernandez', 'LIC56433', '2026-11-20', '2019-03-14');
 
-<<<<<<< HEAD
--- Marcas y modelos
-INSERT INTO marca VALUES 
-(1, 'Mercedes'),
-=======
 -- Marcas
 INSERT INTO marca (numero, nombre) VALUES 
 (1, 'Mercedes-Benz'),
->>>>>>> 8fdbf5c2908e3e34cb731af43a6c1fceba482301
 (2, 'Volvo'),
 (3, 'Scania');
 
