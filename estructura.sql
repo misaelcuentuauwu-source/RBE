@@ -135,7 +135,7 @@ CREATE TABLE taquillero (
     contraseña VARCHAR(20) NOT NULL,
     terminal INT NOT NULL,
     supervisa INT,
-    FOREIGN KEY (terminal) REFERENCES terminal(numero)
+    FOREIGN KEY (terminal) REFERENCES terminal(numero),
     FOREIGN KEY (supervisa) REFERENCES terminal(numero)
 );
 
