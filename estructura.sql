@@ -135,9 +135,8 @@ CREATE TABLE taquillero (
     usuario VARCHAR(20) NOT NULL,
     contraseña VARCHAR(20) NOT NULL,
     terminal INT NOT NULL,
-    supervisa INT,
-    FOREIGN KEY (terminal) REFERENCES terminal(numero),
-    FOREIGN KEY (supervisa) REFERENCES terminal(numero)
+    supervisa BOOLEAN,
+    FOREIGN KEY (terminal) REFERENCES terminal(numero)
 );
 
 CREATE TABLE pago (
