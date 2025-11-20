@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>VentanaTerminales</class>
+ <widget class="QWidget" name="VentanaTerminales">
+  <property name="geometry">
+   <rect>
+    <x>200</x>
+    <y>100</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Terminales disponibles</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">
+QWidget {
+    background-color: #f4f6f8;
+    font-family: 'Segoe UI';
+    color: #333;
+}
+   </string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+
+   <item>
+    <widget class="QLabel" name="lblTitulo">
+     <property name="text">
+      <string>Terminales disponibles</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignCenter</set>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">font-size: 20pt; font-weight: bold; color: #1181c3; margin: 20px;</string>
+     </property>
+    </widget>
+   </item>
+
+   <item>
+    <widget class="QScrollArea" name="scrollArea">
+     <property name="widgetResizable">
+      <bool>true</bool>
+     </property>
+
+     <widget class="QWidget" name="contenedorScroll">
+      <layout class="QVBoxLayout" name="layoutContenedor">
+      </layout>
+     </widget>
+
+    </widget>
+   </item>
+
+  </layout>
+ </widget>
+
+ <resources/>
+ <connections/>
+</ui>

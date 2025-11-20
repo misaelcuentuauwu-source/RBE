@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>VentanaRutas</class>
+ <widget class="QWidget" name="VentanaRutas">
+  <property name="geometry">
+   <rect>
+    <x>200</x>
+    <y>100</y>
+    <width>900</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Rutas Baja Express</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">
+QWidget {
+    background-color: #f4f6f8;
+    font-family: 'Segoe UI';
+    color: #333;
+}
+#header {
+    background-color: #1181c3;
+    padding: 16px;
+}
+#titulo {
+    color: white;
+    font-size: 22pt;
+    font-weight: bold;
+}
+#subtitulo {
+    color: #e8f3fa;
+    font-size: 11pt;
+}
+QFrame#cardRuta {
+    background-color: white;
+    border-radius: 12px;
+    border: 1px solid #d3d3d3;
+    margin: 8px;
+    padding: 14px;
+}
+QFrame#cardRuta:hover {
+    border: 1px solid #1181c3;
+}
+   </string>
+  </property>
+
+  <layout class="QVBoxLayout" name="mainLayout">
+
+   <!-- BARRA SUPERIOR -->
+   <item>
+    <widget class="QFrame" name="header">
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <layout class="QVBoxLayout" name="headerLayout">
+      <item alignment="Qt::AlignCenter">
+       <widget class="QLabel" name="titulo">
+        <property name="text">
+         <string>Rutas Baja Express</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+       </widget>
+      </item>
+
+      <item alignment="Qt::AlignCenter">
+       <widget class="QLabel" name="subtitulo">
+        <property name="text">
+         <string>Consulta las rutas disponibles por toda Baja California</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+
+   <!-- SCROLL AREA -->
+   <item>
+    <widget class="QScrollArea" name="scrollArea">
+     <property name="widgetResizable">
+      <bool>true</bool>
+     </property>
+
+     <widget class="QWidget" name="contenedorScroll">
+      <layout class="QVBoxLayout" name="layoutContenedor">
+      </layout>
+     </widget>
+
+    </widget>
+   </item>
+
+  </layout>
+ </widget>
+
+ <resources/>
+ <connections/>
+</ui>
