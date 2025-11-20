@@ -1,15 +1,12 @@
--- ======================================================
---   DATOS DE PRUEBA
--- ======================================================
-use rbe;
--- Ciudades (Baja California)
+USE rbe;
+
 -- Ciudades
 INSERT INTO ciudad (clave, nombre) VALUES
 ('TIJ', 'Tijuana'),
 ('MXL', 'Mexicali'),
 ('ENS', 'Ensenada');
 
--- Terminales (NULL para teléfono)
+-- Terminales (telefono incluido)
 INSERT INTO terminal (numero, nombre, dirCalle, dirNumero, dirColonia, telefono, ciudad) VALUES
 (1, 'Terminal Tijuana', 'Av Revolución', '100', 'Centro', NULL, 'TIJ'),
 (2, 'Terminal Mexicali', 'Calzada Independencia', '200', 'Centro', NULL, 'MXL'),
@@ -58,15 +55,17 @@ INSERT INTO autobus (numero, modelo, placas, serieVIN) VALUES
 (10, 1, 'ABC1234', '1A2B3C4D5E6F7G8H1'),
 (11, 2, 'XYZ9876', '9H8G7F6E5D4C3B2A1');
 
--- Asientos autobús 10 (40 asientos NOR)
+-- Asientos autobús 10
 INSERT INTO asiento (tipo, autobus)
-SELECT 'NOR', 10 FROM (SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9 UNION ALL SELECT 10) a,
+SELECT 'NOR', 10 FROM 
+(SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9 UNION ALL SELECT 10) a,
 (SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4) b
 LIMIT 40;
 
--- Asientos autobús 11 (50 asientos NOR)
+-- Asientos autobús 11
 INSERT INTO asiento (tipo, autobus)
-SELECT 'NOR', 11 FROM (SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9 UNION ALL SELECT 10) a,
+SELECT 'NOR', 11 FROM 
+(SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9 UNION ALL SELECT 10) a,
 (SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5) b
 LIMIT 50;
 
@@ -87,9 +86,9 @@ INSERT INTO viaje (fecHoraSalida, fecHoraEntrada, ruta, estado, autobus, conduct
 ('2025-01-12 12:00:00', '2025-01-12 13:45:00', 4, 1, 11, 101);
 
 -- Taquilleros
-INSERT INTO taquillero (registro, taqNombre, taqPrimerApell, taqSegundoApell, fechaContrato, usuario, contraseña, terminal) VALUES
-(200, 'Miguel', 'Vargas', 'Lopez', '2022-05-10', 'miquel', '1234', 1),
-(201, 'Lucia', 'Nava', NULL, '2023-07-15', 'lucia', 'abcd', 2);
+INSERT INTO taquillero (taqNombre, taqPrimerApell, taqSegundoApell, fechaContrato, usuario, `contraseña`, terminal) VALUES
+('Miguel', 'Vargas', 'Lopez', '2022-05-10', 'miquel', '1234', 1),
+('Lucia', 'Nava', NULL, '2023-07-15', 'lucia', 'abcd', 2);
 
 -- Pasajeros
 INSERT INTO pasajero (paNombre, paPrimerApell, paSegundoApell, fechaNacimiento, edad) VALUES
