@@ -6,11 +6,11 @@ INSERT INTO ciudad (clave, nombre) VALUES
 ('MXL', 'Mexicali'),
 ('ENS', 'Ensenada');
 
--- Terminales (telefono incluido)
+-- Terminales (teléfono incluido)
 INSERT INTO terminal (numero, nombre, dirCalle, dirNumero, dirColonia, telefono, ciudad) VALUES
-(1, 'Terminal Tijuana', 'Av Revolución', '100', 'Centro', NULL, 'TIJ'),
-(2, 'Terminal Mexicali', 'Calzada Independencia', '200', 'Centro', NULL, 'MXL'),
-(3, 'Terminal Ensenada', 'Blvd Costero', '300', 'Playa', NULL, 'ENS');
+(1, 'Terminal Tijuana', 'Av Revolución', '100', 'Centro', '6641234567', 'TIJ'),
+(2, 'Terminal Mexicali', 'Calzada Independencia', '200', 'Centro', '6861234567', 'MXL'),
+(3, 'Terminal Ensenada', 'Blvd Costero', '300', 'Playa', '6461234567', 'ENS');
 
 -- Tipos de asiento
 INSERT INTO tipo_asiento (codigo, descripcion) VALUES
@@ -85,10 +85,10 @@ INSERT INTO viaje (fecHoraSalida, fecHoraEntrada, ruta, estado, autobus, conduct
 ('2025-01-12 09:00:00', '2025-01-12 10:45:00', 3, 1, 10, 100),
 ('2025-01-12 12:00:00', '2025-01-12 13:45:00', 4, 1, 11, 101);
 
--- Taquilleros
-INSERT INTO taquillero (taqNombre, taqPrimerApell, taqSegundoApell, fechaContrato, usuario, `contraseña`, terminal) VALUES
-('Miguel', 'Vargas', 'Lopez', '2022-05-10', 'miquel', '1234', 1),
-('Lucia', 'Nava', NULL, '2023-07-15', 'lucia', 'abcd', 2);
+-- Taquilleros (nuevo esquema con supervisa booleano)
+INSERT INTO taquillero (taqNombre, taqPrimerApell, taqSegundoApell, fechaContrato, usuario, `contraseña`, terminal, supervisa) VALUES
+('Miguel', 'Vargas', 'Lopez', '2022-05-10', 'miquel', '1234', 1, FALSE),
+('Lucia', 'Nava', NULL, '2023-07-15', 'lucia', 'abcd', 2, TRUE);
 
 -- Pasajeros
 INSERT INTO pasajero (paNombre, paPrimerApell, paSegundoApell, fechaNacimiento, edad) VALUES
