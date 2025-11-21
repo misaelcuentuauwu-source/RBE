@@ -1,30 +1,11 @@
--- Active: 1760978807635@@127.0.0.1@3306@mysql
+-- Active: 1762888131509@@127.0.0.1@3306@rbe
 DROP DATABASE IF EXISTS rbe;
 CREATE DATABASE rbe;
 USE rbe;
 
--- ============================
--- CATÁLOGOS
--- ============================
-
-CREATE TABLE ciudad (
-    clave VARCHAR(5) PRIMARY KEY,
-    nombre VARCHAR(30) NOT NULL
-);
-
 CREATE TABLE marca (
-    codigo INT PRIMARY KEY,
-    nombre VARCHAR(30) NOT NULL
-);
-
-CREATE TABLE modelo (
     numero INT PRIMARY KEY,
-    nombre VARCHAR(30) NOT NULL,
-    numAsientos INT NOT NULL,
-    año INT NOT NULL,
-    capacidad INT NOT NULL,
-    marca INT NOT NULL,
-    FOREIGN KEY (marca) REFERENCES marca(codigo)
+    nombre VARCHAR(30) NOT NULL
 );
 
 CREATE TABLE conductor (
@@ -32,9 +13,19 @@ CREATE TABLE conductor (
     conNombre VARCHAR(30) NOT NULL,
     conPrimerApell VARCHAR(30) NOT NULL,
     conSegundoApell VARCHAR(30),
-    licNumero VARCHAR(20) NOT NULL,
+    licNumero VARCHAR(15) NOT NULL,
     licVencimiento DATE NOT NULL,
     fechaContrato DATE NOT NULL
+);
+
+CREATE TABLE ciudad (
+    clave VARCHAR(5) PRIMARY KEY,
+    nombre VARCHAR(30) NOT NULL
+);
+
+CREATE TABLE tipo_asiento (
+    codigo VARCHAR(5) PRIMARY KEY,
+    descripcion VARCHAR(30) NOT NULL UNIQUE
 );
 
 CREATE TABLE tipo_pasajero (
@@ -43,29 +34,45 @@ CREATE TABLE tipo_pasajero (
     descripcion VARCHAR(30) NOT NULL UNIQUE
 );
 
+CREATE TABLE tipo_pago (
+    numero INT PRIMARY KEY,
+    nombre VARCHAR(30) NOT NULL,
+    descripcion VARCHAR(50) NOT NULL UNIQUE
+);
+
 CREATE TABLE edo_viaje (
     numero INT PRIMARY KEY,
     nombre VARCHAR(30) NOT NULL,
     descripcion VARCHAR(50) NOT NULL
 );
 
-CREATE TABLE tipo_pago (
-    numero INT PRIMARY KEY,
-    nombre VARCHAR(30) NOT NULL,
-    descripcion VARCHAR(50) NOT NULL
+CREATE TABLE pasajero (
+    num INT PRIMARY KEY AUTO_INCREMENT,
+    paNombre VARCHAR(30) NOT NULL,
+    paPrimerApell VARCHAR(30) NOT NULL,
+    paSegundoApell VARCHAR(30),
+    fechaNacimiento DATE NOT NULL,
+    edad INT
 );
 
--- ============================
--- TERMINALES / RUTAS
--- ============================
+CREATE TABLE modelo (
+    numero INT PRIMARY KEY,
+    nombre VARCHAR(30) NOT NULL,
+    numasientos INT NOT NULL,
+    año INT NOT NULL,
+    capacidad INT NOT NULL,
+    marca INT NOT NULL,
+    FOREIGN KEY (marca) REFERENCES marca(numero)
+);
 
+-- TERMINAL con TELÉFONO
 CREATE TABLE terminal (
     numero INT PRIMARY KEY,
-    nombre VARCHAR(40) NOT NULL,
-    dirCalle VARCHAR(40) NOT NULL,
+    nombre VARCHAR(30) NOT NULL,
+    dirCalle VARCHAR(30) NOT NULL,
     dirNumero VARCHAR(10) NOT NULL,
-    dirColonia VARCHAR(40) NOT NULL,
-    telefono VARCHAR(12),
+    dirColonia VARCHAR(30) NOT NULL,
+    telefono VARCHAR(10),      -- ← AGREGADO
     ciudad VARCHAR(5) NOT NULL,
     FOREIGN KEY (ciudad) REFERENCES ciudad(clave)
 );
@@ -75,14 +82,10 @@ CREATE TABLE ruta (
     duracion VARCHAR(10) NOT NULL,
     origen INT NOT NULL,
     destino INT NOT NULL,
-    precio DECIMAL(10,2) NOT NULL,
+    precio DECIMAL(10,2) NOT NULL DEFAULT 250,
     FOREIGN KEY (origen) REFERENCES terminal(numero),
     FOREIGN KEY (destino) REFERENCES terminal(numero)
 );
-
--- ============================
--- AUTOBUSES Y ASIENTOS
--- ============================
 
 CREATE TABLE autobus (
     numero INT PRIMARY KEY,
@@ -91,26 +94,6 @@ CREATE TABLE autobus (
     serieVIN VARCHAR(17) NOT NULL UNIQUE,
     FOREIGN KEY (modelo) REFERENCES modelo(numero)
 );
-
-CREATE TABLE asiento (
-    numero INT PRIMARY KEY AUTO_INCREMENT,
-    autobus INT NOT NULL,
-    FOREIGN KEY (autobus) REFERENCES autobus(numero)
-);
-
--- Asientos por viaje
-CREATE TABLE viaje_asiento (
-    asiento INT NOT NULL,
-    viaje INT NOT NULL,
-    ocupado BOOLEAN NOT NULL,
-    PRIMARY KEY (asiento, viaje),
-    FOREIGN KEY (asiento) REFERENCES asiento(numero),
-    FOREIGN KEY (viaje) REFERENCES viaje(numero)
-);
-
--- ============================
--- VIAJES Y TICKETS
--- ============================
 
 CREATE TABLE viaje (
     numero INT PRIMARY KEY AUTO_INCREMENT,
@@ -126,17 +109,25 @@ CREATE TABLE viaje (
     FOREIGN KEY (conductor) REFERENCES conductor(registro)
 );
 
-CREATE TABLE pasajero (
-    num INT PRIMARY KEY,
-    paNombre VARCHAR(30) NOT NULL,
-    paPrimerApell VARCHAR(30) NOT NULL,
-    paSegundoApell VARCHAR(30),
-    fechaNacimiento DATE NOT NULL,
-    edad INT
+CREATE TABLE asiento (
+    numero INT PRIMARY KEY AUTO_INCREMENT,
+    tipo VARCHAR(5) NOT NULL,
+    autobus INT NOT NULL,
+    FOREIGN KEY (tipo) REFERENCES tipo_asiento(codigo),
+    FOREIGN KEY (autobus) REFERENCES autobus(numero)
+);
+
+CREATE TABLE viaje_asiento (
+    asiento INT NOT NULL,
+    viaje INT NOT NULL,
+    ocupado BOOLEAN NOT NULL,
+    PRIMARY KEY (asiento, viaje),
+    FOREIGN KEY (asiento) REFERENCES asiento(numero),
+    FOREIGN KEY (viaje) REFERENCES viaje(numero)
 );
 
 CREATE TABLE taquillero (
-    registro INT PRIMARY KEY,
+    registro INT PRIMARY KEY AUTO_INCREMENT,
     taqNombre VARCHAR(30) NOT NULL,
     taqPrimerApell VARCHAR(30) NOT NULL,
     taqSegundoApell VARCHAR(30),
@@ -144,13 +135,13 @@ CREATE TABLE taquillero (
     usuario VARCHAR(20) NOT NULL,
     contraseña VARCHAR(20) NOT NULL,
     terminal INT NOT NULL,
-    supervisa BOOLEAN NOT NULL,
+    supervisa BOOLEAN,
     FOREIGN KEY (terminal) REFERENCES terminal(numero)
 );
 
 CREATE TABLE pago (
     numero INT PRIMARY KEY AUTO_INCREMENT,
-    fechaPago DATETIME NOT NULL,
+    fechapago DATETIME NOT NULL,
     monto DECIMAL(10,2) NOT NULL,
     tipo INT NOT NULL,
     vendedor INT NOT NULL,
@@ -165,11 +156,11 @@ CREATE TABLE ticket (
     asiento INT NOT NULL,
     viaje INT NOT NULL,
     pasajero INT NOT NULL,
-    tipoPasajero INT NOT NULL,
+    tipopasajero INT NOT NULL,
     pago INT NOT NULL,
     FOREIGN KEY (asiento) REFERENCES asiento(numero),
     FOREIGN KEY (viaje) REFERENCES viaje(numero),
     FOREIGN KEY (pasajero) REFERENCES pasajero(num),
-    FOREIGN KEY (tipoPasajero) REFERENCES tipo_pasajero(num),
+    FOREIGN KEY (tipopasajero) REFERENCES tipo_pasajero(num),
     FOREIGN KEY (pago) REFERENCES pago(numero)
 );
