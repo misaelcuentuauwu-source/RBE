@@ -14,6 +14,7 @@ from PySide6.QtCore import Qt
 
 from conexion import crear_conexion
 from panel_principal import PanelPrincipal
+from panel_admin import PanelAdministrador   # ✅ AGREGADO
 
 # ===========================
 # 🚀 FUNCIONES DE BASE DE DATOS
@@ -174,22 +175,37 @@ class App:
     def intentar_login(self):
         usuario = self.usuario_entry.text().strip()
         contrasena = self.contrasena_entry.text().strip()
+
         if not usuario or not contrasena:
             QMessageBox.warning(self.win_login, "Atención", "Completa todos los campos")
             return
+
         fila = iniciar_sesion_bd(usuario, contrasena)
         if fila:
             self.usuario_actual = fila
-            QMessageBox.information(self.win_login, "Bienvenido",
-                                    f"Hola {fila.get('taqNombre')} {fila.get('taqPrimerApell')}")
+            QMessageBox.information(
+                self.win_login,
+                "Bienvenido",
+                f"Hola {fila.get('taqNombre')} {fila.get('taqPrimerApell')}"
+            )
             self.win_login.close()
-            self.abrir_panel_principal()
+
+            # ✅ Si supervisa = 1 → PanelAdmin
+            if fila.get("supervisa", 0) == 1:
+                self.abrir_panel_admin()
+            else:
+                self.abrir_panel_principal()
+
         else:
             QMessageBox.critical(self.win_login, "Error", "Usuario o contraseña incorrectos")
 
     def abrir_panel_principal(self):
         self.panel = PanelPrincipal(self.usuario_actual, self.ventana_login)
         self.panel.show()
+
+    def abrir_panel_admin(self):   # ✅ NUEVO
+        self.panel_admin = PanelAdministrador(self.usuario_actual, self.ventana_login)
+        self.panel_admin.show()
 
     def abrir_registro_taquillero(self):
         self.win_login.close()
