@@ -5,23 +5,16 @@
 
 import sys
 from datetime import date
-
 from PySide6.QtWidgets import (
     QApplication, QWidget, QVBoxLayout, QLabel, QLineEdit,
-    QPushButton, QMessageBox, QFrame, QSpacerItem, QSizePolicy
+    QPushButton, QMessageBox, QFrame, QSpacerItem, QSizePolicy,
+    QComboBox, QCheckBox
 )
 from PySide6.QtCore import Qt
 
-# ----------------------------
-# ✅ ADAPTACIÓN 1:
-# Ya no usamos mysql.connector aquí.
-# La conexión viene del archivo conexion.py
-# ----------------------------
 from conexion import crear_conexion
-
-# Importación de tu panel principal
 from panel_principal import PanelPrincipal
-
+from panel_admin import PanelAdministrador   # ✅ AGREGADO
 
 # ===========================
 # 🚀 FUNCIONES DE BASE DE DATOS
@@ -30,49 +23,42 @@ from panel_principal import PanelPrincipal
 def iniciar_sesion_bd(usuario, contrasena):
     """Login del taquillero"""
     try:
-        cn = crear_conexion()   # ← ADAPTACIÓN 2: uso de tu módulo
+        cn = crear_conexion()
         cur = cn.cursor(dictionary=True)
-
         cur.execute("""
             SELECT * FROM taquillero
             WHERE usuario=%s AND contraseña=%s
         """, (usuario, contrasena))
-
         row = cur.fetchone()
         cur.close()
         cn.close()
         return row
-
     except Exception as e:
         QMessageBox.critical(None, "Error BD", f"Error al conectar: {e}")
         return None
 
 
-def registrar_taquillero_bd(nombre, ap1, ap2, usuario, contrasena, terminal=1):
+def registrar_taquillero_bd(nombre, ap1, ap2, usuario, contrasena, terminal=1, supervisa=False):
     """Registro de taquillero"""
     try:
-        cn = crear_conexion()   # ← ADAPTACIÓN 3
+        cn = crear_conexion()
         cur = cn.cursor()
         fecha_contrato = date.today()
-
         cur.execute("""
         INSERT INTO taquillero
         (taqNombre, taqPrimerApell, taqSegundoApell,
-        fechaContrato, usuario, contraseña, terminal)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """, (nombre, ap1, ap2, fecha_contrato, usuario, contrasena, terminal))
-
+        fechaContrato, usuario, contraseña, terminal, supervisa)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        """, (nombre, ap1, ap2, fecha_contrato, usuario, contrasena, terminal, supervisa))
         cn.commit()
         cur.close()
         cn.close()
         return True, None
-
     except Exception as e:
         return False, str(e)
 
-
 # ===========================
-# 🚀 INTERFAZ GRÁFICA (LOGIN/REGISTRO)
+# 🚀 INTERFAZ GRÁFICA
 # ===========================
 
 class App:
@@ -122,7 +108,7 @@ class App:
         layout_main.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
         frame = QFrame()
-        frame.setMaximumSize(400, 360)
+        frame.setMaximumSize(400, 380)
         frame.setStyleSheet("""
         QFrame {
             background-color: #f2f2f2;
@@ -130,7 +116,6 @@ class App:
             border: 3px solid #ffffff;
         }
         """)
-
         layout_card = QVBoxLayout(frame)
 
         titulo = QLabel("Rutas Baja Express")
@@ -196,7 +181,6 @@ class App:
             return
 
         fila = iniciar_sesion_bd(usuario, contrasena)
-
         if fila:
             self.usuario_actual = fila
             QMessageBox.information(
@@ -205,13 +189,23 @@ class App:
                 f"Hola {fila.get('taqNombre')} {fila.get('taqPrimerApell')}"
             )
             self.win_login.close()
-            self.abrir_panel_principal()
+
+            # ✅ Si supervisa = 1 → PanelAdmin
+            if fila.get("supervisa", 0) == 1:
+                self.abrir_panel_admin()
+            else:
+                self.abrir_panel_principal()
+
         else:
             QMessageBox.critical(self.win_login, "Error", "Usuario o contraseña incorrectos")
 
     def abrir_panel_principal(self):
         self.panel = PanelPrincipal(self.usuario_actual, self.ventana_login)
         self.panel.show()
+
+    def abrir_panel_admin(self):   # ✅ NUEVO
+        self.panel_admin = PanelAdministrador(self.usuario_actual, self.ventana_login)
+        self.panel_admin.show()
 
     def abrir_registro_taquillero(self):
         self.win_login.close()
@@ -220,7 +214,7 @@ class App:
     def win_registro_taquillero(self):
         w = QWidget()
         w.setWindowTitle("Registro de Taquillero")
-        w.setGeometry(100, 100, 460, 520)
+        w.setGeometry(100, 100, 460, 550)
         w.setStyleSheet("background-color: #f2f2f2; font-family: 'Segoe UI';")
 
         layout = QVBoxLayout()
@@ -240,6 +234,26 @@ class App:
                 e.setEchoMode(QLineEdit.Password)
             layout.addWidget(e)
             self.entradas[etiqueta] = e
+
+        # Combo terminal
+        layout.addWidget(QLabel("Terminal:"))
+        self.combo_terminal = QComboBox()
+        try:
+            cn = crear_conexion()
+            cur = cn.cursor(dictionary=True)
+            cur.execute("SELECT numero, nombre FROM terminal")
+            for t in cur.fetchall():
+                self.combo_terminal.addItem(t["nombre"], t["numero"])
+            cur.close()
+            cn.close()
+        except Exception as e:
+            QMessageBox.critical(None, "Error BD", f"No se pudo cargar las terminales: {e}")
+            return
+        layout.addWidget(self.combo_terminal)
+
+        # Checkbox supervisor
+        self.chk_supervisor = QCheckBox("Supervisor")
+        layout.addWidget(self.chk_supervisor)
 
         btn_registrar = QPushButton("Registrar")
         btn_registrar.setStyleSheet("background-color: #ed7237; color: white; font-weight: bold; height: 30px;")
@@ -265,14 +279,16 @@ class App:
             QMessageBox.warning(None, "Atención", "Completa los campos obligatorios")
             return
 
-        ok, err = registrar_taquillero_bd(nombre, ap1, ap2, usuario, contrasena)
+        terminal = self.combo_terminal.currentData()
+        supervisa = self.chk_supervisor.isChecked()
+
+        ok, err = registrar_taquillero_bd(nombre, ap1, ap2, usuario, contrasena, terminal, supervisa)
         if ok:
             QMessageBox.information(None, "Éxito", "Taquillero registrado correctamente")
             ventana.close()
             self.ventana_login()
         else:
             QMessageBox.critical(None, "Error", f"No se pudo registrar: {err}")
-
 
 # ===========================
 # 🚀 Ejecutar app
