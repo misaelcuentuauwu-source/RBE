@@ -1,0 +1,35 @@
+<RCC>
+  <qresource prefix="recursos">
+    <file>asiento.svg</file>
+    <file>asientocursor.svg</file>
+    <file>asientoespecial.svg</file>
+    <file>asientoespecialcursor.svg</file>
+    <file>asientoespecialseleccionado.svg</file>
+    <file>asientoocupado.svg</file>
+    <file>asientoseleccionado.svg</file>
+    <file>au.png</file>
+    <file>auto1.jpg</file>
+    <file>auto4.jpg</file>
+    <file>autobusmarco.png</file>
+    <file>boleto.png</file>
+    <file>calendar.svg</file>
+    <file>Cartoon-style illust.png</file>
+    <file>Convierte el logo de.png</file>
+    <file>date.png</file>
+    <file>flecha.png</file>
+    <file>groups.svg</file>
+    <file>icon.svg</file>
+    <file>icon2.svg</file>
+    <file>icon3.svg</file>
+    <file>icon4.svg</file>
+    <file>icon5.svg</file>
+    <file>location.svg</file>
+    <file>lock.png</file>
+    <file>logo.png</file>
+    <file>logocirculo.png</file>
+    <file>mapa de Baja Califor.png</file>
+    <file>person.png</file>
+    <file>walk.svg</file>
+    <file>warning.png</file>
+  </qresource>
+</RCC>

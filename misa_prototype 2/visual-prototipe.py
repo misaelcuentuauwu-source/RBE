@@ -14,7 +14,9 @@ from PySide6.QtCore import Qt
 
 from conexion import crear_conexion
 from panel_principal import PanelPrincipal
-from panel_admin import PanelAdministrador   # ✅ AGREGADO
+from panel_admin import PanelAdministrador
+from animacion import Animador
+
 
 # ===========================
 # 🚀 FUNCIONES DE BASE DE DATOS
@@ -57,6 +59,7 @@ def registrar_taquillero_bd(nombre, ap1, ap2, usuario, contrasena, terminal=1, s
     except Exception as e:
         return False, str(e)
 
+
 # ===========================
 # 🚀 INTERFAZ GRÁFICA
 # ===========================
@@ -64,10 +67,29 @@ def registrar_taquillero_bd(nombre, ap1, ap2, usuario, contrasena, terminal=1, s
 class App:
     def __init__(self):
         self.usuario_actual = None
+        self.animaciones_activas = []  # <- Lista de animadores vivos
         self.app = QApplication(sys.argv)
         self.ventana_login()
         sys.exit(self.app.exec())
 
+    # ===========================
+    # ✨ FUNCIÓN DE TRANSICIÓN
+    # ===========================
+    def transicion(self, ventana_vieja, ventana_nueva):
+        ventana_nueva.setGeometry(ventana_vieja.geometry())
+        ventana_nueva.show()
+
+        anim = Animador()
+        anim.transicion_fade(ventana_vieja, ventana_nueva)
+
+        # Conectar cierre de ventana vieja y remover animador de lista
+        anim.anim_group.finished.connect(lambda: ventana_vieja.close())
+        anim.anim_group.finished.connect(lambda: self.animaciones_activas.remove(anim))
+        self.animaciones_activas.append(anim)
+
+    # ===========================
+    # VENTANA LOGIN
+    # ===========================
     def ventana_login(self):
         self.win_login = QWidget()
         self.win_login.setWindowTitle("Rutas Baja Express - Inicio de Sesión")
@@ -172,6 +194,9 @@ class App:
 
         self.win_login.show()
 
+    # ===========================
+    # LOGIN
+    # ===========================
     def intentar_login(self):
         usuario = self.usuario_entry.text().strip()
         contrasena = self.contrasena_entry.text().strip()
@@ -188,30 +213,25 @@ class App:
                 "Bienvenido",
                 f"Hola {fila.get('taqNombre')} {fila.get('taqPrimerApell')}"
             )
-            self.win_login.close()
 
-            # ✅ Si supervisa = 1 → PanelAdmin
             if fila.get("supervisa", 0) == 1:
-                self.abrir_panel_admin()
+                nueva = PanelAdministrador(self.usuario_actual, self.ventana_login)
             else:
-                self.abrir_panel_principal()
+                nueva = PanelPrincipal(self.usuario_actual, self.ventana_login)
+
+            self.transicion(self.win_login, nueva)
 
         else:
             QMessageBox.critical(self.win_login, "Error", "Usuario o contraseña incorrectos")
 
-    def abrir_panel_principal(self):
-        self.panel = PanelPrincipal(self.usuario_actual, self.ventana_login)
-        self.panel.show()
-
-    def abrir_panel_admin(self):   # ✅ NUEVO
-        self.panel_admin = PanelAdministrador(self.usuario_actual, self.ventana_login)
-        self.panel_admin.show()
-
+    # ===========================
+    # REGISTRO (CON TRANSICIÓN)
+    # ===========================
     def abrir_registro_taquillero(self):
-        self.win_login.close()
-        self.win_registro_taquillero()
+        nueva = self.win_registro_taquillero(retornar=True)
+        self.transicion(self.win_login, nueva)
 
-    def win_registro_taquillero(self):
+    def win_registro_taquillero(self, retornar=False):
         w = QWidget()
         w.setWindowTitle("Registro de Taquillero")
         w.setGeometry(100, 100, 460, 550)
@@ -235,9 +255,9 @@ class App:
             layout.addWidget(e)
             self.entradas[etiqueta] = e
 
-        # Combo terminal
         layout.addWidget(QLabel("Terminal:"))
         self.combo_terminal = QComboBox()
+
         try:
             cn = crear_conexion()
             cur = cn.cursor(dictionary=True)
@@ -251,7 +271,6 @@ class App:
             return
         layout.addWidget(self.combo_terminal)
 
-        # Checkbox supervisor
         self.chk_supervisor = QCheckBox("Supervisor")
         layout.addWidget(self.chk_supervisor)
 
@@ -262,12 +281,26 @@ class App:
 
         btn_volver = QPushButton("Volver")
         btn_volver.setStyleSheet("background-color: #1181c3; color: white; height: 30px;")
-        btn_volver.clicked.connect(lambda: [w.close(), self.ventana_login()])
+        btn_volver.clicked.connect(lambda: self.transicion(w, self.recrear_login()))
         layout.addWidget(btn_volver)
 
         w.setLayout(layout)
-        w.show()
 
+        if retornar:
+            return w
+        else:
+            w.show()
+
+    # ===========================
+    # VOLVER A LOGIN (CON ANIMACIÓN)
+    # ===========================
+    def recrear_login(self):
+        self.ventana_login()
+        return self.win_login
+
+    # ===========================
+    # REGISTRAR BD
+    # ===========================
     def registrar(self, ventana):
         nombre = self.entradas["Nombre"].text().strip()
         ap1 = self.entradas["Primer Apellido"].text().strip()
@@ -285,10 +318,10 @@ class App:
         ok, err = registrar_taquillero_bd(nombre, ap1, ap2, usuario, contrasena, terminal, supervisa)
         if ok:
             QMessageBox.information(None, "Éxito", "Taquillero registrado correctamente")
-            ventana.close()
-            self.ventana_login()
+            self.transicion(ventana, self.recrear_login())
         else:
             QMessageBox.critical(None, "Error", f"No se pudo registrar: {err}")
+
 
 # ===========================
 # 🚀 Ejecutar app
