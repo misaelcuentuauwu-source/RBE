@@ -1,5 +1,7 @@
 <RCC>
   <qresource prefix="recursos">
+    <file>camiona.png</file>
+    <file>clock.svg</file>
     <file>asiento.svg</file>
     <file>asientocursor.svg</file>
     <file>asientoespecial.svg</file>

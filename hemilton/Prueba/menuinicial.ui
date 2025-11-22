@@ -85,7 +85,7 @@ background-color: rgb(255, 255, 255);</string>
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>130</y>
+         <y>140</y>
          <width>201</width>
          <height>51</height>
         </rect>
@@ -119,7 +119,7 @@ font: 600 18pt &quot;Segoe UI&quot;;</string>
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>190</y>
+         <y>210</y>
          <width>201</width>
          <height>41</height>
         </rect>
@@ -140,7 +140,7 @@ color: rgb(238, 115, 58);</string>
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>240</y>
+         <y>270</y>
          <width>201</width>
          <height>41</height>
         </rect>
@@ -161,7 +161,7 @@ color: rgb(238, 115, 58);</string>
        <property name="geometry">
         <rect>
          <x>20</x>
-         <y>290</y>
+         <y>330</y>
          <width>201</width>
          <height>41</height>
         </rect>
@@ -182,7 +182,7 @@ color: rgb(238, 115, 58);</string>
        <property name="geometry">
         <rect>
          <x>30</x>
-         <y>460</y>
+         <y>440</y>
          <width>181</width>
          <height>31</height>
         </rect>
@@ -197,6 +197,27 @@ color: rgb(255, 255, 255);</string>
        </property>
        <property name="text">
         <string>Cerrar sesion</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_40">
+       <property name="geometry">
+        <rect>
+         <x>20</x>
+         <y>390</y>
+         <width>201</width>
+         <height>41</height>
+        </rect>
+       </property>
+       <property name="whatsThis">
+        <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;&lt;br/&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color: rgb(255, 255, 255);
+font: 600 10pt &quot;Segoe UI&quot;;
+color: rgb(238, 115, 58);</string>
+       </property>
+       <property name="text">
+        <string>Viajes</string>
        </property>
       </widget>
      </widget>
@@ -271,8 +292,211 @@ border-radius:12px;</string>
         <string>Regresar</string>
        </property>
       </widget>
+      <widget class="QLabel" name="label_50">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>20</y>
+         <width>101</width>
+         <height>71</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">image: url(:/recursos/camiona.png);</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_51">
+       <property name="geometry">
+        <rect>
+         <x>130</x>
+         <y>15</y>
+         <width>211</width>
+         <height>71</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">font: 600 28pt &quot;Segoe UI&quot;;</string>
+       </property>
+       <property name="text">
+        <string>11:00AM</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_52">
+       <property name="geometry">
+        <rect>
+         <x>190</x>
+         <y>10</y>
+         <width>49</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>23 Nov</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_53">
+       <property name="geometry">
+        <rect>
+         <x>140</x>
+         <y>85</y>
+         <width>51</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">image: url(:/recursos/clock.svg);</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_54">
+       <property name="geometry">
+        <rect>
+         <x>180</x>
+         <y>85</y>
+         <width>91</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>10 horas 30 min</string>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_55">
+       <property name="geometry">
+        <rect>
+         <x>410</x>
+         <y>15</y>
+         <width>141</width>
+         <height>71</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">font: 600 28pt &quot;Segoe UI&quot;;</string>
+       </property>
+       <property name="text">
+        <string>11:00AM</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="pushButton_41">
+       <property name="geometry">
+        <rect>
+         <x>580</x>
+         <y>40</y>
+         <width>50</width>
+         <height>50</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">color: rgb(255, 255, 255);
+background-color: rgb(238, 115, 58);
+font: 600 12pt &quot;Segoe UI&quot;;
+border-radius:25px;
+image: url(:/recursos/flecha.png);</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_56">
+       <property name="geometry">
+        <rect>
+         <x>460</x>
+         <y>10</y>
+         <width>49</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>23 Nov</string>
+       </property>
+      </widget>
+      <widget class="QFrame" name="frame_7">
+       <property name="geometry">
+        <rect>
+         <x>280</x>
+         <y>15</y>
+         <width>120</width>
+         <height>80</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">color: rgb(238, 115, 58);</string>
+       </property>
+       <property name="frameShape">
+        <enum>QFrame::Shape::HLine</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Shadow::Plain</enum>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_57">
+       <property name="geometry">
+        <rect>
+         <x>280</x>
+         <y>51</y>
+         <width>8</width>
+         <height>8</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">image: url(:/recursos/icon.svg);</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_58">
+       <property name="geometry">
+        <rect>
+         <x>396</x>
+         <y>51</y>
+         <width>8</width>
+         <height>8</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">image: url(:/recursos/icon.svg);</string>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+      </widget>
+      <widget class="QLabel" name="label_59">
+       <property name="geometry">
+        <rect>
+         <x>560</x>
+         <y>15</y>
+         <width>101</width>
+         <height>16</height>
+        </rect>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">font: 600 14pt &quot;Segoe UI&quot;;
+color: rgb(238, 115, 58);</string>
+       </property>
+       <property name="text">
+        <string>$1500 MXN</string>
+       </property>
+      </widget>
       <zorder>pushButton_33</zorder>
       <zorder>pushButton_32</zorder>
+      <zorder>label_50</zorder>
+      <zorder>label_51</zorder>
+      <zorder>label_52</zorder>
+      <zorder>label_53</zorder>
+      <zorder>label_54</zorder>
+      <zorder>label_55</zorder>
+      <zorder>pushButton_41</zorder>
+      <zorder>label_56</zorder>
+      <zorder>frame_7</zorder>
+      <zorder>label_57</zorder>
+      <zorder>label_58</zorder>
+      <zorder>label_59</zorder>
      </widget>
      <widget class="QLabel" name="label_19">
       <property name="geometry">
@@ -295,7 +519,7 @@ font: 600 16pt &quot;Segoe UI&quot;;</string>
      <widget class="QFrame" name="frame_4">
       <property name="geometry">
        <rect>
-        <x>5</x>
+        <x>10</x>
         <y>100</y>
         <width>681</width>
         <height>81</height>

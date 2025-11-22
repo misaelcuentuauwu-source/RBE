@@ -17,7 +17,7 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
     QPalette, QPixmap, QRadialGradient, QTransform)
 from PySide6.QtWidgets import (QApplication, QLabel, QLineEdit, QMainWindow,
     QPushButton, QSizePolicy, QStackedWidget, QWidget)
-from ventanas import recursos_rc
+import recursos_rc
 
 class Ui_loginWindow(object):
     def setupUi(self, loginWindow):
@@ -85,7 +85,7 @@ class Ui_loginWindow(object):
         self.widget_2 = QWidget(self.page_6)
         self.widget_2.setObjectName(u"widget_2")
         self.widget_2.setGeometry(QRect(20, 30, 221, 91))
-        self.widget_2.setStyleSheet(u"image: url(:/inicio/warning.png);")
+        self.widget_2.setStyleSheet(u"image: url(:/recursos/warning.png);")
         self.pushButton_7 = QPushButton(self.page_6)
         self.pushButton_7.setObjectName(u"pushButton_7")
         self.pushButton_7.setGeometry(QRect(40, 130, 171, 41))

@@ -12,69 +12,121 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        # Cargar login primero
+        # --- Cargar pantalla de login ---
         self.login_ui = Ui_loginWindow()
         self.login_ui.setupUi(self)
 
-        # Cambia "pushButton_5" por el botón correcto para ACCEDER
-        self.login_ui.pushButton_5.clicked.connect(self.mostrar_menu)
+        # Conectar botón ACCEDER
+        self.login_ui.pushButton_5.clicked.connect(self.validar_login)
 
-    # -------------------------
-    #   CAMBIAR A MENU INICIAL
-    # -------------------------
+        # Conectar botones de la página 6 (error)
+        self.login_ui.pushButton_7.clicked.connect(self.reintentar_login)
+        self.login_ui.pushButton_8.clicked.connect(self.salir)
+
+    # ====================================
+    #    VALIDAR USUARIO / CONTRASEÑA
+    # ====================================
+    def validar_login(self):
+        usuario = self.login_ui.lineEdit_4.text()
+        password = self.login_ui.lineEdit_5.text()
+
+        if usuario == "admin" and password == "1234":
+            self.mostrar_menu()
+        else:
+            self.login_ui.login.setCurrentIndex(1)
+
+    # ====================================
+    #   REINTENTAR LOGIN
+    # ====================================
+    def reintentar_login(self):
+        self.login_ui.lineEdit_4.clear()
+        self.login_ui.lineEdit_5.clear()
+        self.login_ui.login.setCurrentIndex(0)
+
+    # ====================================
+    #   CERRAR APP
+    # ====================================
+    def salir(self):
+        sys.exit(0)
+
+    # ====================================
+    #   MOSTRAR MENÚ INICIAL
+    # ====================================
     def mostrar_menu(self):
         self.menu_ui = Ui_MenuInicial()
         self.menu_ui.setupUi(self)
 
-        # ================
-        # NAVEGACIÓN PEDIDA
-        # ================
+        # -------------------------
+        #  Aquí conectamos botones
+        # -------------------------
 
-        # 1) Comprar boletos → page_3
-        self.menu_ui.pushButton_comprar.clicked.connect(
+        # VENDER BOLETOS → PAGE_3
+        self.menu_ui.pushButton_2.clicked.connect(
             lambda: self.menu_ui.menuinicial.setCurrentIndex(1)
         )
+        
+        # pa que se regrese#
+        self.menu_ui.pushButton_33.clicked.connect(
+            lambda: self.menu_ui.menuinicial.setCurrentIndex(0)
+        )
 
-        # 2) En page_3 → pushButton_29 → page_2
+        # En page_3 → pushButton_29 → page_2
         self.menu_ui.pushButton_29.clicked.connect(
             lambda: self.menu_ui.menuinicial.setCurrentIndex(2)
         )
+         # pa que se regrese#
+        self.menu_ui.pushButton_36.clicked.connect(
+            lambda: self.menu_ui.menuinicial.setCurrentIndex(1)
+        )
 
-        # 3) En page_2 → boton siguiente → page_4
-        self.menu_ui.pushButton_siguiente_p2.clicked.connect(
+
+        # ⭐ NUEVO: En page_3 → pushButton_41 → page_2
+        self.menu_ui.pushButton_41.clicked.connect(
+            lambda: self.menu_ui.menuinicial.setCurrentIndex(2)
+        )
+         # pa que se regrese#
+        self.menu_ui.pushButton_34.clicked.connect(
+            lambda: self.menu_ui.menuinicial.setCurrentIndex(2)
+        )
+        
+        
+
+        # ⭐ NUEVO: En page_2 → pushButton_27 → page_4
+        self.menu_ui.pushButton_27.clicked.connect(
+            lambda: self.menu_ui.menuinicial.setCurrentIndex(3)
+        )
+        # pa que se regrese#
+        self.menu_ui.pushButton_5.clicked.connect(
+            lambda: self.menu_ui.menuinicial.setCurrentIndex(3)
+        )
+        
+        
+        # En page_2 → siguiente → page_4 (botón previo tuyo)
+        self.menu_ui.pushButton_37.clicked.connect(
             lambda: self.menu_ui.menuinicial.setCurrentIndex(3)
         )
 
-        # 4) En page_4 → boton siguiente → page_5
-        self.menu_ui.pushButton_siguiente_p4.clicked.connect(
+        # En page_4 → siguiente → page_5
+        self.menu_ui.pushButton_35.clicked.connect(
             lambda: self.menu_ui.menuinicial.setCurrentIndex(4)
         )
 
-        # 5) En page_5 → aceptar → page_6
-        self.menu_ui.pushButton_aceptar_p5.clicked.connect(
+        # En page_5 → aceptar → page_6
+        self.menu_ui.pushButton_22.clicked.connect(
             lambda: self.menu_ui.menuinicial.setCurrentIndex(5)
         )
-
-        # -------------------------------
-        #   STACKEDWIDGET INTERNO EN PAGE 6
-        # -------------------------------
-        # combo box: self.menu_ui.comboBox_pago
-        # stacked interno: self.menu_ui.stacked_pago
-        # página resumen: index 1 (por ejemplo)
-
+        # Combo de pago en page_6
         self.menu_ui.comboBox_pago.currentIndexChanged.connect(self.cambiar_pago)
 
-    # -------------------------
-    #  CAMBIA ENTRE PAGO/RESUMEN
-    # -------------------------
+    # ====================================
+    #   CAMBIAR ENTRE MÉTODOS DE PAGO
+    # ====================================
     def cambiar_pago(self):
         metodo = self.menu_ui.comboBox_pago.currentText()
 
         if metodo.lower() == "efectivo":
-            # mostrar página donde está “Resumen de compra”
             self.menu_ui.stacked_pago.setCurrentIndex(1)
         else:
-            # mostrar página normal
             self.menu_ui.stacked_pago.setCurrentIndex(0)
 
 

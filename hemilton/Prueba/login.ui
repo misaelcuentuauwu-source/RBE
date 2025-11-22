@@ -206,7 +206,7 @@ color: rgb(255, 255, 255);</string>
        </rect>
       </property>
       <property name="styleSheet">
-       <string notr="true">image: url(:/inicio/warning.png);</string>
+       <string notr="true">image: url(:/recursos/warning.png);</string>
       </property>
      </widget>
      <widget class="QPushButton" name="pushButton_7">

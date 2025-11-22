@@ -18,7 +18,7 @@ from PySide6.QtGui import (QBrush, QColor, QConicalGradient, QCursor,
 from PySide6.QtWidgets import (QApplication, QComboBox, QDateEdit, QFrame,
     QLabel, QLineEdit, QMainWindow, QPushButton,
     QSizePolicy, QStackedWidget, QWidget)
-from ventanas import recursos_rc
+import recursos_rc
 
 class Ui_loginWindow(object):
     def setupUi(self, loginWindow):
@@ -50,7 +50,7 @@ class Ui_loginWindow(object):
         self.frame.setFrameShadow(QFrame.Shadow.Raised)
         self.label_2 = QLabel(self.frame)
         self.label_2.setObjectName(u"label_2")
-        self.label_2.setGeometry(QRect(20, 130, 201, 51))
+        self.label_2.setGeometry(QRect(20, 140, 201, 51))
         self.label_2.setStyleSheet(u"color: rgb(255, 255, 255);\n"
 "font: 18pt \"Segoe UI\";\n"
 "font: 600 18pt \"Segoe UI\";")
@@ -60,28 +60,34 @@ class Ui_loginWindow(object):
         self.label_5.setStyleSheet(u"image: url(:/recursos/logocirculo.png);")
         self.pushButton = QPushButton(self.frame)
         self.pushButton.setObjectName(u"pushButton")
-        self.pushButton.setGeometry(QRect(20, 190, 201, 41))
+        self.pushButton.setGeometry(QRect(20, 210, 201, 41))
         self.pushButton.setStyleSheet(u"background-color: rgb(255, 255, 255);\n"
 "font: 600 10pt \"Segoe UI\";\n"
 "color: rgb(238, 115, 58);")
         self.pushButton_2 = QPushButton(self.frame)
         self.pushButton_2.setObjectName(u"pushButton_2")
-        self.pushButton_2.setGeometry(QRect(20, 240, 201, 41))
+        self.pushButton_2.setGeometry(QRect(20, 270, 201, 41))
         self.pushButton_2.setStyleSheet(u"background-color: rgb(255, 255, 255);\n"
 "font: 600 10pt \"Segoe UI\";\n"
 "color: rgb(238, 115, 58);")
         self.pushButton_3 = QPushButton(self.frame)
         self.pushButton_3.setObjectName(u"pushButton_3")
-        self.pushButton_3.setGeometry(QRect(20, 290, 201, 41))
+        self.pushButton_3.setGeometry(QRect(20, 330, 201, 41))
         self.pushButton_3.setStyleSheet(u"background-color: rgb(255, 255, 255);\n"
 "font: 600 10pt \"Segoe UI\";\n"
 "color: rgb(238, 115, 58);")
         self.pushButton_4 = QPushButton(self.frame)
         self.pushButton_4.setObjectName(u"pushButton_4")
-        self.pushButton_4.setGeometry(QRect(30, 460, 181, 31))
+        self.pushButton_4.setGeometry(QRect(30, 440, 181, 31))
         self.pushButton_4.setStyleSheet(u"background-color: rgb(20, 128, 196);\n"
 "font: 600 10pt \"Segoe UI\";\n"
 "color: rgb(255, 255, 255);")
+        self.pushButton_40 = QPushButton(self.frame)
+        self.pushButton_40.setObjectName(u"pushButton_40")
+        self.pushButton_40.setGeometry(QRect(20, 390, 201, 41))
+        self.pushButton_40.setStyleSheet(u"background-color: rgb(255, 255, 255);\n"
+"font: 600 10pt \"Segoe UI\";\n"
+"color: rgb(238, 115, 58);")
         self.widget_14 = QWidget(self.page)
         self.widget_14.setObjectName(u"widget_14")
         self.widget_14.setGeometry(QRect(229, -10, 481, 521))
@@ -111,8 +117,72 @@ class Ui_loginWindow(object):
 "background-color: rgb(238, 115, 58);\n"
 "font: 600 12pt \"Segoe UI\";\n"
 "border-radius:12px;")
+        self.label_50 = QLabel(self.frame_5)
+        self.label_50.setObjectName(u"label_50")
+        self.label_50.setGeometry(QRect(10, 20, 101, 71))
+        self.label_50.setStyleSheet(u"image: url(:/recursos/camiona.png);")
+        self.label_51 = QLabel(self.frame_5)
+        self.label_51.setObjectName(u"label_51")
+        self.label_51.setGeometry(QRect(130, 15, 211, 71))
+        self.label_51.setStyleSheet(u"font: 600 28pt \"Segoe UI\";")
+        self.label_52 = QLabel(self.frame_5)
+        self.label_52.setObjectName(u"label_52")
+        self.label_52.setGeometry(QRect(190, 10, 49, 16))
+        self.label_53 = QLabel(self.frame_5)
+        self.label_53.setObjectName(u"label_53")
+        self.label_53.setGeometry(QRect(140, 85, 51, 21))
+        self.label_53.setStyleSheet(u"image: url(:/recursos/clock.svg);")
+        self.label_54 = QLabel(self.frame_5)
+        self.label_54.setObjectName(u"label_54")
+        self.label_54.setGeometry(QRect(180, 85, 91, 21))
+        self.label_55 = QLabel(self.frame_5)
+        self.label_55.setObjectName(u"label_55")
+        self.label_55.setGeometry(QRect(410, 15, 141, 71))
+        self.label_55.setStyleSheet(u"font: 600 28pt \"Segoe UI\";")
+        self.pushButton_41 = QPushButton(self.frame_5)
+        self.pushButton_41.setObjectName(u"pushButton_41")
+        self.pushButton_41.setGeometry(QRect(580, 40, 50, 50))
+        self.pushButton_41.setStyleSheet(u"color: rgb(255, 255, 255);\n"
+"background-color: rgb(238, 115, 58);\n"
+"font: 600 12pt \"Segoe UI\";\n"
+"border-radius:25px;\n"
+"image: url(:/recursos/flecha.png);")
+        self.label_56 = QLabel(self.frame_5)
+        self.label_56.setObjectName(u"label_56")
+        self.label_56.setGeometry(QRect(460, 10, 49, 16))
+        self.frame_7 = QFrame(self.frame_5)
+        self.frame_7.setObjectName(u"frame_7")
+        self.frame_7.setGeometry(QRect(280, 15, 120, 80))
+        self.frame_7.setStyleSheet(u"color: rgb(238, 115, 58);")
+        self.frame_7.setFrameShape(QFrame.Shape.HLine)
+        self.frame_7.setFrameShadow(QFrame.Shadow.Plain)
+        self.label_57 = QLabel(self.frame_5)
+        self.label_57.setObjectName(u"label_57")
+        self.label_57.setGeometry(QRect(280, 51, 8, 8))
+        self.label_57.setStyleSheet(u"image: url(:/recursos/icon.svg);")
+        self.label_58 = QLabel(self.frame_5)
+        self.label_58.setObjectName(u"label_58")
+        self.label_58.setGeometry(QRect(396, 51, 8, 8))
+        self.label_58.setStyleSheet(u"image: url(:/recursos/icon.svg);")
+        self.label_59 = QLabel(self.frame_5)
+        self.label_59.setObjectName(u"label_59")
+        self.label_59.setGeometry(QRect(560, 15, 101, 16))
+        self.label_59.setStyleSheet(u"font: 600 14pt \"Segoe UI\";\n"
+"color: rgb(238, 115, 58);")
         self.pushButton_33.raise_()
         self.pushButton_32.raise_()
+        self.label_50.raise_()
+        self.label_51.raise_()
+        self.label_52.raise_()
+        self.label_53.raise_()
+        self.label_54.raise_()
+        self.label_55.raise_()
+        self.pushButton_41.raise_()
+        self.label_56.raise_()
+        self.frame_7.raise_()
+        self.label_57.raise_()
+        self.label_58.raise_()
+        self.label_59.raise_()
         self.label_19 = QLabel(self.page_3)
         self.label_19.setObjectName(u"label_19")
         self.label_19.setGeometry(QRect(20, 180, 181, 51))
@@ -121,7 +191,7 @@ class Ui_loginWindow(object):
 "font: 600 16pt \"Segoe UI\";")
         self.frame_4 = QFrame(self.page_3)
         self.frame_4.setObjectName(u"frame_4")
-        self.frame_4.setGeometry(QRect(5, 100, 681, 81))
+        self.frame_4.setGeometry(QRect(10, 100, 681, 81))
         self.frame_4.setStyleSheet(u"QWidget#frame_2{\n"
 "border-radius:15px;\n"
 "background-color: rgb(255, 255, 255);}\n"
@@ -1460,8 +1530,23 @@ class Ui_loginWindow(object):
         self.pushButton_4.setWhatsThis(QCoreApplication.translate("loginWindow", u"<html><head/><body><p><br/></p></body></html>", None))
 #endif // QT_CONFIG(whatsthis)
         self.pushButton_4.setText(QCoreApplication.translate("loginWindow", u"Cerrar sesion", None))
+#if QT_CONFIG(whatsthis)
+        self.pushButton_40.setWhatsThis(QCoreApplication.translate("loginWindow", u"<html><head/><body><p><br/></p></body></html>", None))
+#endif // QT_CONFIG(whatsthis)
+        self.pushButton_40.setText(QCoreApplication.translate("loginWindow", u"Viajes", None))
         self.pushButton_32.setText(QCoreApplication.translate("loginWindow", u"Aceptar", None))
         self.pushButton_33.setText(QCoreApplication.translate("loginWindow", u"Regresar", None))
+        self.label_50.setText("")
+        self.label_51.setText(QCoreApplication.translate("loginWindow", u"11:00AM", None))
+        self.label_52.setText(QCoreApplication.translate("loginWindow", u"23 Nov", None))
+        self.label_53.setText("")
+        self.label_54.setText(QCoreApplication.translate("loginWindow", u"10 horas 30 min", None))
+        self.label_55.setText(QCoreApplication.translate("loginWindow", u"11:00AM", None))
+        self.pushButton_41.setText("")
+        self.label_56.setText(QCoreApplication.translate("loginWindow", u"23 Nov", None))
+        self.label_57.setText("")
+        self.label_58.setText("")
+        self.label_59.setText(QCoreApplication.translate("loginWindow", u"$1500 MXN", None))
         self.label_19.setText(QCoreApplication.translate("loginWindow", u"Viajes disponibles:", None))
         self.pushButton_29.setText("")
         self.comboBox.setItemText(0, QCoreApplication.translate("loginWindow", u"Tijuana B.C", None))
