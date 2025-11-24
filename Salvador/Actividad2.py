@@ -10,13 +10,13 @@ configuracion = {
     'connect_timeout': 10
 }
 
-def obtener_conexion():
+def obtenerConexion():
     return mysql.connector.connect(**configuracion)
 
 
-def crear_pasajero(nombre, primer_ap, segundo_ap, fecha_nac, edad):
+def registrarPasajero(nombre, primer_ap, segundo_ap, fecha_nac, edad):
     try:
-        conexion = obtener_conexion()
+        conexion = obtenerConexion()
         cursor = conexion.cursor()
 
         sql = """
@@ -27,7 +27,7 @@ def crear_pasajero(nombre, primer_ap, segundo_ap, fecha_nac, edad):
         cursor.execute(sql, (nombre, primer_ap, segundo_ap, fecha_nac, edad))
         conexion.commit()
 
-        print("✔ Pasajero registrado correctamente.")
+        print("Pasajero registrado correctamente.")
 
         cursor.close()
         conexion.close()
@@ -36,9 +36,9 @@ def crear_pasajero(nombre, primer_ap, segundo_ap, fecha_nac, edad):
         print(f"Error al crear pasajero: {error}")
 
 
-def leer_pasajeros():
+def leerPasajeros():
     try:
-        conexion = obtener_conexion()
+        conexion = obtenerConexion()
         cursor = conexion.cursor(dictionary=True)
 
         cursor.execute("SELECT * FROM pasajero;")
@@ -52,9 +52,9 @@ def leer_pasajeros():
         print(f"Error al leer pasajeros: {error}")
 
 
-def leer_pasajero_por_id(id_pasajero):
+def buscarPasajero(id_pasajero):
     try:
-        conexion = obtener_conexion()
+        conexion = obtenerConexion()
         cursor = conexion.cursor(dictionary=True)
 
         cursor.execute("SELECT * FROM pasajero WHERE num = %s;", (id_pasajero,))
@@ -68,9 +68,9 @@ def leer_pasajero_por_id(id_pasajero):
         print(f"Error al buscar pasajero: {error}")
 
 
-def actualizar_pasajero(id_pasajero, nombre, primer_ap, segundo_ap, fecha_nac, edad):
+def actualizarPasajero(id_pasajero, nombre, primer_ap, segundo_ap, fecha_nac, edad):
     try:
-        conexion = obtener_conexion()
+        conexion = obtenerConexion()
         cursor = conexion.cursor()
 
         sql = """
@@ -95,9 +95,9 @@ def actualizar_pasajero(id_pasajero, nombre, primer_ap, segundo_ap, fecha_nac, e
         print(f"Error al actualizar pasajero: {error}")
 
 
-def eliminar_pasajero(id_pasajero):
+def eliminarPasajero(id_pasajero):
     try:
-        conexion = obtener_conexion()
+        conexion = obtenerConexion()
         cursor = conexion.cursor()
 
         cursor.execute("DELETE FROM pasajero WHERE num = %s;", (id_pasajero,))
@@ -109,15 +109,19 @@ def eliminar_pasajero(id_pasajero):
         conexion.close()
 
     except mysql.connector.Error as error:
-        print(f"❌ Error al eliminar pasajero: {error}")
+        print(f"Error al eliminar pasajero: {error}")
 
 
-#crear_pasajero("Carlos", "Lopez", "Ramirez", "1999-05-10", 25)
+registrarPasajero("Garcia", "Bojorquez", "Salvador", "2006-02-17", 19)
 
-pasajeros = leer_pasajeros()
+pasajeros = leerPasajeros()
 for p in pasajeros:
-    print(p)
+    print(f"{p}\n")
 
-print(leer_pasajero_por_id(1))
+print(buscarPasajero(1))
 
-actualizar_pasajero(1, "Carlos", "Lopez", "Hernandez", "1999-05-10", 25)
+actualizarPasajero(1, "Urquidez", "Arredondo", "Misael", "2006-03-08", 19)
+
+pasajeros = leerPasajeros()
+for p in pasajeros:
+    print(f"{p}\n")
