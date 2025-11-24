@@ -1,8 +1,5 @@
 import mysql.connector
 
-# ------------------------------
-# CONEXIÓN BASE
-# ------------------------------
 configuracion = {
     'host': 'localhost',
     'port': 3306,
@@ -16,9 +13,7 @@ configuracion = {
 def obtener_conexion():
     return mysql.connector.connect(**configuracion)
 
-# ------------------------------
-# CREAR REGISTRO
-# ------------------------------
+
 def crear_pasajero(nombre, primer_ap, segundo_ap, fecha_nac, edad):
     try:
         conexion = obtener_conexion()
@@ -38,12 +33,9 @@ def crear_pasajero(nombre, primer_ap, segundo_ap, fecha_nac, edad):
         conexion.close()
 
     except mysql.connector.Error as error:
-        print(f"❌ Error al crear pasajero: {error}")
+        print(f"Error al crear pasajero: {error}")
 
 
-# ------------------------------
-# LEER TODOS LOS REGISTROS
-# ------------------------------
 def leer_pasajeros():
     try:
         conexion = obtener_conexion()
@@ -57,12 +49,9 @@ def leer_pasajeros():
         return resultados
 
     except mysql.connector.Error as error:
-        print(f"❌ Error al leer pasajeros: {error}")
+        print(f"Error al leer pasajeros: {error}")
 
 
-# ------------------------------
-# LEER PASAJERO POR ID
-# ------------------------------
 def leer_pasajero_por_id(id_pasajero):
     try:
         conexion = obtener_conexion()
@@ -76,12 +65,9 @@ def leer_pasajero_por_id(id_pasajero):
         return resultado
 
     except mysql.connector.Error as error:
-        print(f"❌ Error al buscar pasajero: {error}")
+        print(f"Error al buscar pasajero: {error}")
 
 
-# ------------------------------
-# ACTUALIZAR REGISTRO
-# ------------------------------
 def actualizar_pasajero(id_pasajero, nombre, primer_ap, segundo_ap, fecha_nac, edad):
     try:
         conexion = obtener_conexion()
@@ -100,18 +86,15 @@ def actualizar_pasajero(id_pasajero, nombre, primer_ap, segundo_ap, fecha_nac, e
         cursor.execute(sql, (nombre, primer_ap, segundo_ap, fecha_nac, edad, id_pasajero))
         conexion.commit()
 
-        print("✔ Pasajero actualizado correctamente.")
+        print("Padajero actualizado correctamente.")
 
         cursor.close()
         conexion.close()
 
     except mysql.connector.Error as error:
-        print(f"❌ Error al actualizar pasajero: {error}")
+        print(f"Error al actualizar pasajero: {error}")
 
 
-# ------------------------------
-# ELIMINAR REGISTRO
-# ------------------------------
 def eliminar_pasajero(id_pasajero):
     try:
         conexion = obtener_conexion()
@@ -129,18 +112,12 @@ def eliminar_pasajero(id_pasajero):
         print(f"❌ Error al eliminar pasajero: {error}")
 
 
-# ------------------------------
-# EJEMPLOS DE USO (DESCOMENTA)
-# ------------------------------
+#crear_pasajero("Carlos", "Lopez", "Ramirez", "1999-05-10", 25)
 
-# crear_pasajero("Carlos", "Lopez", "Ramirez", "1999-05-10", 25)
+pasajeros = leer_pasajeros()
+for p in pasajeros:
+    print(p)
 
-# pasajeros = leer_pasajeros()
-# for p in pasajeros:
-#     print(p)
+print(leer_pasajero_por_id(1))
 
-# print(leer_pasajero_por_id(1))
-
-# actualizar_pasajero(1, "Carlos", "Lopez", "Hernandez", "1999-05-10", 25)
-
-# eliminar_pasajero(3)
+actualizar_pasajero(1, "Carlos", "Lopez", "Hernandez", "1999-05-10", 25)
