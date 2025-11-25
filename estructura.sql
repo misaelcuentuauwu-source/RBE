@@ -65,14 +65,13 @@ CREATE TABLE modelo (
     FOREIGN KEY (marca) REFERENCES marca(numero)
 );
 
--- TERMINAL con TELÉFONO
 CREATE TABLE terminal (
     numero INT PRIMARY KEY,
     nombre VARCHAR(30) NOT NULL,
     dirCalle VARCHAR(30) NOT NULL,
     dirNumero VARCHAR(10) NOT NULL,
     dirColonia VARCHAR(30) NOT NULL,
-    telefono VARCHAR(10),      -- ← AGREGADO
+    telefono VARCHAR(12),
     ciudad VARCHAR(5) NOT NULL,
     FOREIGN KEY (ciudad) REFERENCES ciudad(clave)
 );
