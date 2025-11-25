@@ -183,4 +183,4 @@ JOIN ciudad cd ON td.ciudad = cd.clave
 JOIN autobus a ON v.autobus = a.numero
 JOIN conductor c ON v.conductor = c.registro
 WHERE DATE(v.fecHoraSalida) = '01/10/2025'
-AND t.ciudad = 1;
+AND t.ciudad = 'MXL';
