@@ -1,22 +1,24 @@
-# panel_admin.py
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QLineEdit, QStackedWidget, QFrame, QSizePolicy, QSpacerItem, QMessageBox
+    QStackedWidget, QFrame, QSizePolicy, QSpacerItem, QMessageBox,
+    QLineEdit, QComboBox
 )
 from PySide6.QtCore import Qt
 from conexion import crear_conexion
 
-# Función para actualizar taquillero (igual que PanelPrincipal)
-def actualizar_taquillero_bd(registro, nombre, ap1, ap2, usuario, contrasena):
+
+# ===========================================================
+# --- UTIL BD ---
+# ===========================================================
+def actualizar_taquillero_bd(registro, usuario, contrasena):
     try:
         cn = crear_conexion()
         cur = cn.cursor()
         cur.execute("""
             UPDATE taquillero
-            SET taqNombre=%s, taqPrimerApell=%s, taqSegundoApell=%s,
-                usuario=%s, contraseña=%s
+            SET usuario=%s, contraseña=%s
             WHERE registro=%s
-        """, (nombre, ap1, ap2, usuario, contrasena, registro))
+        """, (usuario, contrasena, registro))
         cn.commit()
         cur.close()
         cn.close()
@@ -24,249 +26,242 @@ def actualizar_taquillero_bd(registro, nombre, ap1, ap2, usuario, contrasena):
     except Exception as e:
         return False, str(e)
 
-# ===============================
-# Panel Administrador
-# ===============================
+
+# ===========================================================
+# CARD GENÉRICO (vista bonita)
+# ===========================================================
+class CardEntidad(QWidget):
+    def __init__(self, title, insert_callback=None, modify_callback=None, delete_callback=None, read_callback=None):
+        super().__init__()
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(18, 18, 18, 18)
+
+        # title
+        lbl = QLabel(title)
+        lbl.setStyleSheet("""
+            font-size: 22pt;
+            font-weight: 700;
+            color: #ffa600;
+        """)
+        layout.addWidget(lbl)
+
+        btns = QHBoxLayout()
+        def mkbtn(txt, color):
+            b = QPushButton(txt)
+            b.setStyleSheet(f"""
+                QPushButton {{
+                    background: {color};
+                    color: white;
+                    padding: 8px 14px;
+                    border-radius: 8px;
+                    font-weight: bold;
+                }}
+                QPushButton:hover {{
+                    background: #333333;
+                }}
+            """)
+            return b
+
+        if insert_callback:
+            b = mkbtn("➕ Insertar", "#52b788")
+            b.clicked.connect(insert_callback)
+            btns.addWidget(b)
+
+        if modify_callback:
+            b = mkbtn("✏️ Modificar", "#ffb703")
+            b.clicked.connect(modify_callback)
+            btns.addWidget(b)
+
+        if delete_callback:
+            b = mkbtn("🗑 Eliminar", "#e63946")
+            b.clicked.connect(delete_callback)
+            btns.addWidget(b)
+
+        if read_callback:
+            b = mkbtn("👁 Leer", "#457b9d")
+            b.clicked.connect(read_callback)
+            btns.addWidget(b)
+
+        layout.addLayout(btns)
+
+
+# ===========================================================
+# PANEL ADMIN
+# ===========================================================
 class PanelAdministrador(QMainWindow):
     def __init__(self, usuario_actual, volver_callback):
         super().__init__()
-        self.usuario_actual = usuario_actual or {}
+        self.usuario_actual = usuario_actual
         self.volver_callback = volver_callback
-        self.menu_colapsado = False
 
-        # Colores corporativos
-        COLOR_FONDO = "#f2f2f2"
-        COLOR_PRINCIPAL = "#f2e800"   # Amarillo limón
-        COLOR_NARANJA = "#ff8c00"     # Naranja fuerte
-        COLOR_TEXTO = "#2b2b2b"
+        # ======== UI BASE ========
+        self.setWindowTitle("Rutas Baja Express — Administrador")
+        self.setGeometry(200, 80, 1050, 680)
+        self.setStyleSheet("font-family: Segoe UI; background:#f2f2f2;")
 
-        self.setWindowTitle("Rutas Baja Express - Panel Administrador")
-        self.setGeometry(100, 100, 1000, 640)
-        self.setStyleSheet(f"background-color: {COLOR_FONDO}; font-family: 'Segoe UI';")
+        cont = QWidget()
+        ly = QHBoxLayout(cont)
 
-        # ========================= CONTENEDOR PRINCIPAL =========================
-        central = QWidget()
-        layout_main = QHBoxLayout(central)
-
-        # ========================= SIDEBAR =========================
+        # ======== SIDEBAR ========
         self.sidebar = QFrame()
-        self.sidebar.setFixedWidth(260)
-        self.sidebar.setStyleSheet(f"background-color: {COLOR_NARANJA};")
-        layout_sidebar = QVBoxLayout(self.sidebar)
+        self.sidebar.setFixedWidth(210)
+        self.sidebar.setStyleSheet("background:#ff8c00;")
+        sb = QVBoxLayout(self.sidebar)
 
-        self.brand = QLabel("Rutas Baja Express")
-        self.brand.setStyleSheet("color: white; font-size: 16pt; font-weight: bold; padding: 16px;")
-        layout_sidebar.addWidget(self.brand)
+        brand = QLabel("ADMIN RBE")
+        brand.setStyleSheet("color:white;font-size:18pt;font-weight:bold;padding:16px;")
+        sb.addWidget(brand)
 
-        # Botón de navegación
-        def nav_button(text):
-            btn = QPushButton(text)
-            btn.setObjectName("btn_nav")
-            btn.setStyleSheet(f"""
-                QPushButton#btn_nav {{
-                    background-color: white;
-                    color: {COLOR_NARANJA};
-                    border: none;
-                    text-align: left;
-                    padding: 10px 18px;
-                    font-size: 11pt;
-                    border-radius: 6px;
-                    margin: 4px 12px;
-                }}
-                QPushButton#btn_nav:hover {{
-                    background-color: #fff9e5;
-                    color: {COLOR_PRINCIPAL};
-                }}
+        def nav(text, event):
+            b = QPushButton(text)
+            b.setStyleSheet("""
+                QPushButton {
+                    background:white;
+                    color:#ff8c00;
+                    margin:6px 12px;
+                    padding:8px 16px;
+                    border-radius:8px;
+                    font-weight:600;
+                    text-align:left;
+                }
+                QPushButton:hover{
+                    background:#ffe7c2;
+                }
             """)
-            return btn
+            b.clicked.connect(event)
+            return b
 
-        # Botones del menú admin
-        self.btn_taquilleros = nav_button("Gestión de Taquilleros")
-        self.btn_terminales = nav_button("Terminales")
-        self.btn_viajes = nav_button("Gestión de Viajes")
-        self.btn_reportes = nav_button("Reportes")
-        self.btn_config = nav_button("Configuración")
+        self.btn_dash = nav("Dashboard", lambda: self.stacked.setCurrentWidget(self.pg_dashboard))
+        self.btn_config = nav("Configuración", lambda: self.stacked.setCurrentWidget(self.pg_config))
 
-        layout_sidebar.addWidget(self.btn_taquilleros)
-        layout_sidebar.addWidget(self.btn_terminales)
-        layout_sidebar.addWidget(self.btn_viajes)
-        layout_sidebar.addWidget(self.btn_reportes)
-        layout_sidebar.addWidget(self.btn_config)
-        layout_sidebar.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
+        sb.addWidget(self.btn_dash)
+        sb.addWidget(self.btn_config)
+        sb.addSpacerItem(QSpacerItem(10,10, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
-        # Botón cerrar sesión
-        self.btn_logout = QPushButton("Cerrar sesión")
-        self.btn_logout.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {COLOR_PRINCIPAL};
-                color: white;
-                border-radius: 8px;
-                padding: 10px;
-                font-weight: bold;
-                margin: 12px;
-            }}
-            QPushButton:hover {{
-                background-color: #d6d600;
-            }}
+        # cerrar sesión
+        logout = QPushButton("Cerrar sesión")
+        logout.setStyleSheet("""
+            QPushButton{
+                background:#f2e800;
+                color:#202020;
+                margin:10px;
+                padding:10px;
+                border-radius:8px;
+                font-weight:800;
+            }
         """)
-        layout_sidebar.addWidget(self.btn_logout)
+        logout.clicked.connect(self.logout)
+        sb.addWidget(logout)
 
-        # ========================= ÁREA DE CONTENIDO =========================
-        main_content = QFrame()
-        layout_content = QVBoxLayout(main_content)
-
-        # Topbar
-        topbar = QFrame()
-        topbar.setMaximumHeight(70)
-        layout_topbar = QHBoxLayout(topbar)
-
-        self.btn_toggle = QPushButton("☰")
-        self.btn_toggle.setFixedSize(36, 36)
-        self.btn_toggle.setStyleSheet(f"""
-            QPushButton {{
-                background-color: {COLOR_PRINCIPAL};
-                color: white;
-                border-radius: 8px;
-                font-size: 14pt;
-                font-weight: bold;
-            }}
-            QPushButton:hover {{
-                background-color: #d6d600;
-            }}
-        """)
-        layout_topbar.addWidget(self.btn_toggle)
-        layout_topbar.addStretch()
-
-        # Texto de bienvenida
-        taq_nombre = self.usuario_actual.get('taqNombre','')
-        taq_primer = self.usuario_actual.get('taqPrimerApell','')
-        taq_seg = self.usuario_actual.get('taqSegundoApell','')
-        self.welcome = QLabel(f"Hola, {taq_nombre} {taq_primer} {taq_seg}")
-        self.welcome.setStyleSheet(f"font-size: 11pt; color: {COLOR_TEXTO};")
-        layout_topbar.addWidget(self.welcome)
-
-        layout_content.addWidget(topbar)
-
-        # ========================= STACKED PAGES =========================
+        # ======== CONTENIDO ========
+        content = QVBoxLayout()
         self.stacked = QStackedWidget()
 
-        # -------- Dashboard Admin --------
-        self.page_dashboard = QWidget()
-        layout_dash = QVBoxLayout(self.page_dashboard)
-        title = QLabel("Dashboard Administrador")
-        title.setAlignment(Qt.AlignLeft)
-        title.setStyleSheet(f"font-size: 28pt; font-weight: 600; color: {COLOR_PRINCIPAL}; padding: 8px;")
-        layout_dash.addWidget(title)
+        # ----------------------------------
+        # PAGE DASHBOARD
+        # ----------------------------------
+        self.pg_dashboard = QWidget()
+        dash = QVBoxLayout(self.pg_dashboard)
+        dash.setContentsMargins(26,26,26,26)
 
-        cards = QHBoxLayout()
-        self.card_taquilleros = QPushButton("Gestionar\nTaquilleros")
-        self.card_taquilleros.setFixedSize(220,140)
-        self.card_taquilleros.setStyleSheet(f"""
-            QPushButton {{
-                background-color: white;
-                color: {COLOR_TEXTO};
-                border-radius: 16px;
-                font-size: 14pt;
-                font-weight: bold;
-                padding: 12px;
-                border: 2px solid {COLOR_PRINCIPAL};
-            }}
-            QPushButton:hover {{
-                background-color: #fff9e5;
-            }}
-        """)
-        cards.addWidget(self.card_taquilleros)
-        layout_dash.addLayout(cards)
-        self.stacked.addWidget(self.page_dashboard)
+        t = QLabel("Panel Administrativo")
+        t.setStyleSheet("font-size:26pt;font-weight:700;color:#ff8c00;")
+        dash.addWidget(t)
 
-        # -------- Configuración --------
-        self.page_config = QWidget()
-        layout_config = QVBoxLayout(self.page_config)
-        layout_config.setAlignment(Qt.AlignTop)
-        layout_config.setContentsMargins(20,20,20,20)
+        # Grid visual
+        grid = QVBoxLayout()
+        dash.addLayout(grid)
 
-        titulo_config = QLabel("Configuración de Usuario")
-        titulo_config.setAlignment(Qt.AlignCenter)
-        titulo_config.setStyleSheet(f"font-size: 16pt; font-weight: bold; color: {COLOR_PRINCIPAL}; margin-bottom: 12px;")
-        layout_config.addWidget(titulo_config)
+        # CREA CARDS POR TABLA (19)
+        tablas = [
+            "marca","conductor","ciudad","tipo_asiento","tipo_pasajero","tipo_pago","edo_viaje",
+            "pasajero","modelo","terminal","ruta","autobus","viaje","asiento","viaje_asiento",
+            "taquillero","pago","ticket"
+        ]
 
-        # Campos de configuración
-        layout_config.addWidget(QLabel("Nombre:"))
-        self.config_nombre = QLineEdit(self.usuario_actual.get('taqNombre',''))
-        layout_config.addWidget(self.config_nombre)
-
-        layout_config.addWidget(QLabel("Primer Apellido:"))
-        self.config_ap1 = QLineEdit(self.usuario_actual.get('taqPrimerApell',''))
-        layout_config.addWidget(self.config_ap1)
-
-        layout_config.addWidget(QLabel("Segundo Apellido:"))
-        self.config_ap2 = QLineEdit(self.usuario_actual.get('taqSegundoApell',''))
-        layout_config.addWidget(self.config_ap2)
-
-        layout_config.addWidget(QLabel("Usuario:"))
-        self.config_usuario = QLineEdit(self.usuario_actual.get('usuario',''))
-        layout_config.addWidget(self.config_usuario)
-
-        layout_config.addWidget(QLabel("Contraseña:"))
-        self.config_pass = QLineEdit(self.usuario_actual.get('contraseña',''))
-        self.config_pass.setEchoMode(QLineEdit.Password)
-        layout_config.addWidget(self.config_pass)
-
-        btn_guardar = QPushButton("Guardar Cambios")
-        btn_guardar.setStyleSheet(f"background-color: {COLOR_PRINCIPAL}; color:white; font-weight:bold; padding:8px; margin-top:10px;")
-        layout_config.addWidget(btn_guardar)
-
-        def guardar_cambios():
-            nombre = self.config_nombre.text().strip()
-            ap1 = self.config_ap1.text().strip()
-            ap2 = self.config_ap2.text().strip()
-            usuario = self.config_usuario.text().strip()
-            contrasena = self.config_pass.text().strip()
-            if not (nombre and ap1 and usuario and contrasena):
-                QMessageBox.warning(self, "Atención", "Los campos obligatorios no pueden estar vacíos")
-                return
-            ok, err = actualizar_taquillero_bd(
-                self.usuario_actual.get('registro'), nombre, ap1, ap2, usuario, contrasena
+        for tb in tablas:
+            grid.addWidget(
+                CardEntidad(
+                    title=f"Tabla: {tb}",
+                    insert_callback=lambda tb=tb: self.show_form(tb, "insert"),
+                    modify_callback=lambda tb=tb: self.show_form(tb, "update"),
+                    delete_callback=lambda tb=tb: self.show_form(tb, "delete"),
+                    read_callback=lambda tb=tb: self.show_form(tb, "read")
+                )
             )
-            if ok:
-                QMessageBox.information(self, "Éxito", "Datos actualizados correctamente")
-                self.usuario_actual.update({
-                    'taqNombre': nombre,
-                    'taqPrimerApell': ap1,
-                    'taqSegundoApell': ap2,
-                    'usuario': usuario,
-                    'contraseña': contrasena
-                })
-                self.welcome.setText(f"Hola, {nombre} {ap1} {ap2}")
-                self.stacked.setCurrentWidget(self.page_dashboard)
-            else:
-                QMessageBox.critical(self, "Error", f"No se pudo actualizar: {err}")
 
-        btn_guardar.clicked.connect(guardar_cambios)
-        self.stacked.addWidget(self.page_config)
+        self.stacked.addWidget(self.pg_dashboard)
 
-        layout_content.addWidget(self.stacked)
-        layout_main.addWidget(self.sidebar)
-        layout_main.addWidget(main_content)
-        self.setCentralWidget(central)
+        # ----------------------------------
+        # PAGE CONFIGURACIÓN
+        # ----------------------------------
+        self.pg_config = QWidget()
+        cfg = QVBoxLayout(self.pg_config)
+        cfg.setContentsMargins(40,40,40,40)
 
-        # ========================= EVENTOS =========================
-        self.btn_logout.clicked.connect(self.cerrar_sesion)
-        self.btn_toggle.clicked.connect(self.toggle_menu)
-        self.btn_config.clicked.connect(lambda: self.stacked.setCurrentWidget(self.page_config))
+        title = QLabel("Configuración de cuenta")
+        title.setStyleSheet("font-size:20pt;font-weight:700;color:#ff8c00;")
+        cfg.addWidget(title)
 
-    # ========================= FUNCIONES =========================
-    def toggle_menu(self):
-        if self.menu_colapsado:
-            self.sidebar.setFixedWidth(260)
-            self.brand.setText("Rutas Baja Express")
+        # DATOS (solo lectura)
+        for label, key in [
+            ("Nombre", "taqNombre"),
+            ("Primer Apellido", "taqPrimerApell"),
+            ("Segundo Apellido", "taqSegundoApell"),
+        ]:
+            l = QLabel(f"{label}: {self.usuario_actual.get(key,'')}")
+            l.setStyleSheet("font-size:12pt;color:#333;padding:6px;")
+            cfg.addWidget(l)
+
+        # USUARIO y CONTRASEÑA editables
+        cfg.addWidget(QLabel("\nUsuario:"))
+        self.ed_user = QLineEdit(self.usuario_actual.get('usuario', ''))
+
+        cfg.addWidget(self.ed_user)
+
+        cfg.addWidget(QLabel("Contraseña:"))
+        self.ed_pass = QLineEdit(self.usuario_actual.get('contraseña', ''))
+        self.ed_pass.setEchoMode(QLineEdit.Password)
+        cfg.addWidget(self.ed_pass)
+
+        btn = QPushButton("Guardar cambios")
+        btn.setStyleSheet("background:#f2e800;padding:10px;font-weight:700;border-radius:8px;")
+        btn.clicked.connect(self.save_config)
+        cfg.addWidget(btn)
+
+        self.stacked.addWidget(self.pg_config)
+
+        content.addWidget(self.stacked)
+        ly.addWidget(self.sidebar)
+        ly.addLayout(content)
+        self.setCentralWidget(cont)
+
+
+    # ===========================================================
+    def show_form(self, tabla, modo):
+        QMessageBox.information(self, "Vista Form", f"Aquí iría formulario bonito de:\n{tabla}\nModo: {modo}\n(Sin tablas Excel)")
+
+    def save_config(self):
+        if not self.ed_user.text() or not self.ed_pass.text():
+            QMessageBox.warning(self, "Atención", "Usuario/Contraseña no pueden estar vacíos.")
+            return
+
+        ok, err = actualizar_taquillero_bd(
+            self.usuario_actual['registro'],
+            self.ed_user.text(),
+            self.ed_pass.text()
+        )
+
+        if ok:
+            QMessageBox.information(self, "OK", "Datos actualizados.")
+            self.usuario_actual['usuario'] = self.ed_user.text()
+            self.usuario_actual['contraseña'] = self.ed_pass.text()
+            self.stacked.setCurrentWidget(self.pg_dashboard)
         else:
-            self.sidebar.setFixedWidth(64)
-            self.brand.setText("RBE")
-        self.menu_colapsado = not self.menu_colapsado
+            QMessageBox.critical(self, "Error", err)
 
-    def cerrar_sesion(self):
-        confirm = QMessageBox.question(self, "Confirmar", "¿Cerrar sesión?", QMessageBox.Yes | QMessageBox.No)
-        if confirm == QMessageBox.Yes:
+    def logout(self):
+        if QMessageBox.question(self,"Salir","¿Cerrar sesión?",QMessageBox.Yes|QMessageBox.No)==QMessageBox.Yes:
             self.close()
             self.volver_callback()
