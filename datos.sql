@@ -1,96 +1,254 @@
-USE rbe;
-
--- Ciudades
-INSERT INTO ciudad (clave, nombre) VALUES
-('TIJ', 'Tijuana'),
-('MXL', 'Mexicali'),
-('ENS', 'Ensenada');
-
--- Terminales (teléfono incluido)
-INSERT INTO terminal (numero, nombre, dirCalle, dirNumero, dirColonia, telefono, ciudad) VALUES
-(1, 'Terminal Tijuana', 'Av Revolución', '100', 'Centro', '6641234567', 'TIJ'),
-(2, 'Terminal Mexicali', 'Calzada Independencia', '200', 'Centro', '6861234567', 'MXL'),
-(3, 'Terminal Ensenada', 'Blvd Costero', '300', 'Playa', '6461234567', 'ENS');
-
--- Tipos de asiento
-INSERT INTO tipo_asiento (codigo, descripcion) VALUES
-('NOR', 'Normal'),
-('PRE', 'Premium');
-
--- Tipos de pasajero
-INSERT INTO tipo_pasajero (num, descuento, descripcion) VALUES
-(1, 0, 'Adulto'),
-(2, 50, 'Estudiante'),
-(3, 30, 'INAPAM');
-
--- Tipos de pago
-INSERT INTO tipo_pago (numero, nombre, descripcion) VALUES
-(1, 'Efectivo', 'Pago en efectivo'),
-(2, 'Tarjeta', 'Pago con tarjeta bancaria');
-
--- Estados de viaje
-INSERT INTO edo_viaje (numero, nombre, descripcion) VALUES
-(1, 'Programado', 'Viaje aún no inicia'),
-(2, 'En curso', 'Viaje en progreso'),
-(3, 'Finalizado', 'Viaje terminado');
-
--- Conductores
-INSERT INTO conductor (registro, conNombre, conPrimerApell, conSegundoApell, licNumero, licVencimiento, fechaContrato) VALUES
-(100, 'Luis', 'Rojas', 'Lopez', 'LIC12345', '2027-05-10', '2020-01-01'),
-(101, 'Marcos', 'Pérez', 'Hernandez', 'LIC56433', '2026-11-20', '2019-03-14');
-
--- Marcas
-INSERT INTO marca (numero, nombre) VALUES 
-(1, 'Mercedes-Benz'),
-(2, 'Volvo'),
-(3, 'Scania');
-
--- Modelos
-INSERT INTO modelo (numero, nombre, numasientos, año, capacidad, marca) VALUES
-(1, 'Modelo 2022', 40, 2022, 5000, 1),
-(2, 'Modelo 2021', 50, 2021, 6000, 2);
-
--- Autobuses
-INSERT INTO autobus (numero, modelo, placas, serieVIN) VALUES
-(10, 1, 'ABC1234', '1A2B3C4D5E6F7G8H1'),
-(11, 2, 'XYZ9876', '9H8G7F6E5D4C3B2A1');
-
--- Asientos autobús 10
-INSERT INTO asiento (tipo, autobus)
-SELECT 'NOR', 10 FROM 
-(SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9 UNION ALL SELECT 10) a,
-(SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4) b
-LIMIT 40;
-
--- Asientos autobús 11
-INSERT INTO asiento (tipo, autobus)
-SELECT 'NOR', 11 FROM 
-(SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9 UNION ALL SELECT 10) a,
-(SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4 UNION ALL SELECT 5) b
-LIMIT 50;
-
--- Rutas
-INSERT INTO ruta (codigo, duracion, origen, destino, precio) VALUES
-(1, '02:30', 1, 2, 450.00),  
-(2, '02:30', 2, 1, 450.00),  
-(3, '01:45', 1, 3, 300.00),  
-(4, '01:45', 3, 1, 300.00),  
-(5, '03:00', 2, 3, 400.00),  
-(6, '03:00', 3, 2, 400.00);
-
--- Viajes
-INSERT INTO viaje (fecHoraSalida, fecHoraEntrada, ruta, estado, autobus, conductor) VALUES
-('2025-01-10 08:00:00', '2025-01-10 10:30:00', 1, 1, 10, 100),
-('2025-01-11 08:00:00', '2025-01-11 10:30:00', 2, 1, 11, 101),
-('2025-01-12 09:00:00', '2025-01-12 10:45:00', 3, 1, 10, 100),
-('2025-01-12 12:00:00', '2025-01-12 13:45:00', 4, 1, 11, 101);
-
--- Taquilleros (nuevo esquema con supervisa booleano)
-INSERT INTO taquillero (taqNombre, taqPrimerApell, taqSegundoApell, fechaContrato, usuario, `contraseña`, terminal, supervisa) VALUES
-('Miguel', 'Vargas', 'Lopez', '2022-05-10', 'miquel', '1234', 1, FALSE),
-('Lucia', 'Nava', NULL, '2023-07-15', 'lucia', 'abcd', 2, TRUE);
-
--- Pasajeros
 INSERT INTO pasajero (paNombre, paPrimerApell, paSegundoApell, fechaNacimiento, edad) VALUES
-('Carlos', 'Martinez', 'Lopez', '1990-05-10', 34),
-('Ana', 'Soto', NULL, '2001-10-21', 23);
+('Alejandro', 'Torres', 'López', '1995-04-12', 30),
+('Mariana', 'Hernández', 'Cruz', '1988-11-03', 37),
+('Luis', 'Aguilar', 'Soto', '2001-06-21', 24),
+('Fernanda', 'Ruiz', 'Martínez', '1999-09-15', 26),
+('Ricardo', 'Medina', 'Vargas', '1987-02-08', 38),
+('Sofía', 'Castillo', 'Ponce', '2005-12-01', 19),
+('Mateo', 'García', 'León', '1991-05-22', 34),
+('Daniela', 'López', 'Silva', '1993-10-09', 32),
+('Jorge', 'Sánchez', 'Rivera', '1980-03-14', 45),
+('Paola', 'Ramírez', 'Díaz', '1997-08-20', 28),
+('Iván', 'Flores', 'Navarro', '2004-01-10', 21),
+('Teresa', 'Morales', 'Romero', '1985-06-30', 40),
+('Pedro', 'Vargas', 'Camacho', '1992-12-04', 32),
+('Karen', 'Soto', 'Aguilar', '1994-02-19', 31),
+('Brenda', 'León', 'Herrera', '1998-07-07', 27),
+('Miguel', 'Cruz', 'Delgado', '1989-01-23', 36),
+('Ana', 'Molina', 'Rojas', '2000-04-28', 25),
+('Jesús', 'Paredes', 'Luna', '1979-09-01', 46),
+('Valeria', 'Cabrera', 'Solís', '1996-11-12', 28),
+('Héctor', 'Ortega', 'Villalobos', '1984-05-18', 41),
+('Andrea', 'Castillo', 'Ramos', '1999-03-22', 26),
+('Carlos', 'Navarro', 'Cárdenas', '1993-07-30', 32),
+('Elisa', 'Ramírez', 'Cruz', '2002-10-17', 23),
+('Omar', 'Herrera', 'Lozano', '1988-04-25', 37),
+('Natalia', 'Vega', 'Bernal', '1997-03-04', 28),
+('Diego', 'Tapia', 'Rivera', '1990-08-16', 35),
+('Laura', 'Camacho', 'Flores', '1986-02-11', 39),
+('Alan', 'Ruiz', 'Castro', '2003-09-29', 22),
+('Miriam', 'Ríos', 'Sánchez', '1995-06-10', 30),
+('Esteban', 'Salinas', 'Duarte', '1992-01-14', 33),
+('Julieta', 'Campos', 'Lara', '1981-07-03', 44),
+('Christian', 'Carrillo', 'Peña', '1994-05-27', 31),
+('Marcela', 'Delgado', 'Fierro', '1999-12-22', 25),
+('Roberto', 'Castañeda', 'Torres', '1983-03-02', 42),
+('Diana', 'Rosas', 'Méndez', '1978-09-18', 47),
+('José', 'Ávila', 'Serrano', '2001-11-05', 23),
+('Adriana', 'Silva', 'Maldonado', '1996-01-29', 29),
+('Kevin', 'Márquez', 'Pérez', '2005-06-09', 20),
+('Paulina', 'Varela', 'Díaz', '1993-04-21', 32),
+('Eduardo', 'Gallardo', 'Lozano', '1998-10-30', 27),
+('Diego', 'Torres', 'Soto', '2016-07-14', 9),
+('Camila', 'Hernández', 'Ruiz', '2015-02-01', 10),
+('Samuel', 'Medina', 'López', '2017-11-23', 8),
+('Zoe', 'Aguilar', 'Vega', '2019-03-08', 6),
+('Emiliano', 'Cruz', 'Ponce', '2014-09-25', 11),
+('Valentina', 'Flores', 'Navarro', '2018-12-30', 6),
+('Karina', 'Serrano', 'Beltrán', '1990-04-03', 35),
+('Mauricio', 'Ochoa', 'Rentería', '1987-12-15', 37),
+('Evelyn', 'Robles', 'Martínez', '1994-11-26', 30),
+('Abel', 'Cota', 'Guerrero', '1985-08-02', 40),
+('Miriam', 'Valdez', 'Ruelas', '1999-05-27', 26),
+('Leonardo', 'Estrada', 'Quiroz', '2002-01-19', 23),
+('Patricia', 'Medina', 'Solano', '1991-06-11', 34),
+('Bryan', 'Romero', 'Torres', '2003-10-07', 22),
+('Elena', 'López', 'Murillo', '1996-09-14', 28),
+('Juan', 'Rosales', 'Páez', '1980-05-01', 45),
+('Liliana', 'Cárdenas', 'Lugo', '1988-03-03', 37),
+('Andrés', 'Navarro', 'Carrillo', '1993-02-18', 32),
+('Claudia', 'Vargas', 'Díaz', '1986-12-09', 38),
+('Sergio', 'Camargo', 'León', '1997-04-30', 28),
+('Teresa', 'Soto', 'Aguilar', '1984-07-16', 41),
+('Félix', 'Aguilar', 'Rivera', '1990-09-28', 35),
+('Rebeca', 'Franco', 'Cortés', '1998-01-22', 27),
+('Orlando', 'Paredes', 'Vázquez', '1995-10-05', 30),
+('Jazmín', 'Rivera', 'Campos', '1992-04-11', 33),
+('Saúl', 'Herrera', 'Cabrera', '1983-06-29', 42),
+('Miriam', 'Zepeda', 'Molina', '1979-01-07', 46),
+('Cristian', 'Salgado', 'Zúñiga', '1989-02-25', 36),
+('Ximena', 'Beltrán', 'Ortiz', '2001-07-19', 24),
+('Rodrigo', 'Montoya', 'Olivares', '1994-10-02', 31),
+('Héctor', 'Sepúlveda', 'Ramos', '1955-04-12', 70),
+('Rosa', 'Camacho', 'Valenzuela', '1948-11-22', 77),
+('Manuel', 'Ramírez', 'Castro', '1952-06-01', 73),
+('Irma', 'Martínez', 'Rivas', '1945-02-14', 80),
+('Alfredo', 'Torres', 'González', '1958-09-30', 67),
+('Petra', 'García', 'Solís', '1950-03-28', 75),
+('Tomás', 'Hernández', 'Franco', '1939-12-16', 85),
+('Luz', 'Duarte', 'Chávez', '1956-07-18', 69),
+('Salvador', 'Vega', 'Luna', '1947-10-09', 78),
+('Josefina', 'Ponce', 'Castañeda', '1954-01-25', 71),
+('Omar', 'Acosta', 'Padilla', '1989-09-12', 36),
+('Yesenia', 'Bravo', 'Salinas', '1993-03-01', 32),
+('Arturo', 'Rocha', 'Figueroa', '1987-05-21', 38),
+('Celeste', 'Villar', 'Peña', '1999-02-17', 26),
+('Marcos', 'Solís', 'Duarte', '1991-11-04', 34),
+('Verónica', 'León', 'Navarro', '1996-06-29', 28),
+('Aldo', 'Castro', 'Aguirre', '1985-07-15', 40),
+('Miriam', 'Rodríguez', 'Lozoya', '2000-10-13', 24),
+('Francisco', 'Morales', 'Pérez', '1982-01-02', 43),
+('Andrea', 'Ortiz', 'Serrano', '1995-09-25', 30),
+('Joaquín', 'Pineda', 'Beltrán', '1997-03-09', 28),
+('Pamela', 'Zúñiga', 'Cárdenas', '1994-08-01', 31),
+('Héctor', 'Rentería', 'Salas', '2003-12-14', 21),
+('Brenda', 'Vega', 'Castillo', '1986-04-10', 39),
+('Damián', 'Rivera', 'Tapia', '1988-02-26', 37),
+('Estefanía', 'Montaño', 'Pacheco', '1990-11-06', 34),
+('Jonathan', 'Aguirre', 'Mejía', '1992-05-30', 33),
+('Isabel', 'Cárdenas', 'Paredes', '2001-01-15', 24),
+('Luis', 'Morales', 'Ibarra', '1998-07-03', 27),
+('Karla', 'Campos', 'Reyes', '1983-10-20', 42);
+
+INSERT INTO ciudad (clave, nombre) VALUES
+('TJ',  'Tijuana'),
+('MXL', 'Mexicali'),
+('ENS', 'Ensenada'),
+('TEC', 'Tecate'),
+('RSO', 'Rosarito'),
+('SQN', 'San Quintín'),
+('SFE', 'San Felipe');
+
+INSERT INTO terminal 
+(numero, nombre, dirCalle, dirNumero, dirColonia, telefono, ciudad)
+VALUES
+(1, 'Central Tijuana', 'Blvd. Insurgentes', '2100', 'El Florido', '6641123344', 'TJ'),
+(2, 'Central Mexicali', 'Calz. Independencia', '501', 'Pueblo Nuevo', '6862219080', 'MXL'),
+(3, 'Central Ensenada', 'Av. Reforma', '1245', 'Moderna', '6463317722', 'ENS'),
+(4, 'Terminal Tecate', 'Blvd. Benito Juárez', '780', 'Las Palmas', '6652294433', 'TEC'),
+(5, 'Terminal Rosarito', 'Blvd. Popotla', '455', 'Centro', '6611238899', 'RSO'),
+(6, 'Terminal San Quintín', 'Carretera Transpeninsular', 'KM 189', 'Lázaro Cárdenas', '6161237700', 'SQN'),
+(7, 'Terminal San Felipe', 'Av. Mar de Cortés', '320', 'Centro', '6861985522', 'SFE');
+
+INSERT INTO ruta (codigo, duracion, origen, destino, precio) VALUES
+(1, '0h45m', 1, 5, 90.00),
+(2, '0h45m', 5, 1, 90.00),
+(3, '2h', 1, 3, 240.00),
+(4, '2h', 3, 1, 240.00),
+(5, '1h15m', 1, 4, 180.00),
+(6, '1h15m', 4, 1, 180.00),
+(7, '2h50m', 1, 2, 350.00),
+(8, '2h50m', 2, 1, 350.00),
+(9, '2h', 5, 3, 240.00),
+(10, '2h', 3, 5, 240.00),
+(11, '3h', 3, 6, 320.00),
+(12, '3h', 6, 3, 320.00),
+(13, '4h', 1, 6, 500.00),
+(14, '4h', 6, 1, 500.00),
+(15, '6h', 5, 6, 550.00),
+(16, '6h', 6, 5, 550.00),
+(17, '2h15m', 2, 7, 300.00),
+(18, '2h15m', 7, 2, 300.00),
+(19, '5h', 3, 7, 650.00),
+(20, '5h', 7, 3, 650.00),
+(21, '6h30m', 6, 7, 900.00),
+(22, '6h30m', 7, 6, 900.00),
+(23, '1h', 4, 5, 120.00),
+(24, '1h', 5, 4, 120.00),
+(25, '3h', 4, 3, 300.00),
+(26, '3h', 3, 4, 300.00),
+(27, '4h', 4, 6, 520.00),
+(28, '4h', 6, 4, 520.00),
+(29, '3h20m', 2, 3, 390.00),
+(30, '3h20m', 3, 2, 390.00),
+(31, '5h10m', 2, 6, 720.00),
+(32, '5h10m', 6, 2, 720.00),
+(33, '1h10m', 4, 1, 180.00),
+(34, '1h10m', 1, 4, 180.00),
+(35, '6h', 5, 7, 750.00),
+(36, '6h', 7, 5, 750.00),
+(37, '4h20m', 3, 4, 470.00),
+(38, '4h20m', 4, 3, 470.00),
+(39, '7h', 1, 7, 950.00),
+(40, '7h', 7, 1, 950.00),
+(41, '5h40m', 5, 2, 690.00),
+(42, '5h40m', 2, 5, 690.00);
+
+INSERT INTO edo_viaje (numero, nombre, descripcion) VALUES
+(1, 'Disponible', 'Se puede vender'),
+(2, 'En Ruta', 'Actualmente en trayecto'),
+(3, 'Finalizado', 'Llegó a destino'),
+(4, 'Cancelado', 'Viaje suspendido'),
+(5, 'Retrasado', 'Salida demorada');
+
+INSERT INTO tipo_pasajero (num, descuento, descripcion) VALUES
+(1, 0,  'Adulto'),
+(2, 50, 'Niño'),
+(3, 30, 'Adulto Mayor'),
+(4, 25, 'Estudiante'),
+(5, 15, 'Discapacitado');
+
+INSERT INTO marca (numero, nombre) VALUES
+(1, 'Volvo'),
+(2, 'Mercedes-Benz'),
+(3, 'Scania'),
+(4, 'MAN'),
+(5, 'Irizar');
+
+INSERT INTO modelo (numero, nombre, numasientos, año, capacidad, marca) VALUES
+(1, 'Irizar i8', 52, 2020, 52, 5),
+(2, 'Volvo 9800', 48, 2021, 48, 1),
+(3, 'Scania K440', 50, 2019, 50, 3),
+(4, 'Mercedes OC500', 46, 2018, 46, 2),
+(5, 'MAN Lion’s Coach', 49, 2022, 49, 4);
+
+INSERT INTO taquillero (registro, taqNombre, taqPrimerApell, taqSegundoApell, fechaContrato, usuario, contraseña, terminal, supervisa) VALUES
+(1, 'Ana', 'Gómez', 'Ruiz', '2023-01-10', 'agomez', 'AG2023', 1, 1),
+(2, 'Mario', 'Sánchez', 'López', '2023-03-22', 'msanchez', 'MS22', 1, 0),
+(3, 'Brenda', 'Torres', 'Aguilar', '2024-07-15', 'btorres', 'BT24', 1, 0),
+(4, 'José', 'Pérez', 'Méndez', '2024-04-05', 'jperez', 'JP24', 2, 1),
+(5, 'Diana', 'Ramírez', 'Soto', '2023-10-11', 'dramirez', 'DR23', 2, 0),
+(6, 'Kevin', 'Herrera', 'Salas', '2025-01-18', 'kherrera', 'KH25', 2, 0),
+(7, 'Laura', 'Sánchez', 'Díaz', '2022-09-14', 'lsanchez', 'LS22', 3, 1),
+(8, 'Carlos', 'Medina', 'Ruiz', '2023-05-03', 'cmedina', 'CM23', 3, 0),
+(9, 'Fernanda', 'Reyes', 'Aguilar', '2025-01-01', 'freyes', 'FR25', 3, 0),
+(10, 'Carlos', 'Torres', 'Ramírez', '2021-02-19', 'ctorres', 'CT21', 4, 1),
+(11, 'Ivana', 'Cruz', 'Vega', '2022-08-29', 'icruz', 'IC22', 4, 0),
+(12, 'Samuel', 'Ortega', 'Flores', '2024-02-14', 'sortega', 'SO24', 4, 0),
+(13, 'Sergio', 'Delgado', 'Montoya', '2023-06-12', 'sdelgado', 'SD23', 5, 1),
+(14, 'Valeria', 'Muñoz', 'Tapia', '2024-01-04', 'vmunoz', 'VM24', 5, 0),
+(15, 'Hugo', 'Paredes', 'León', '2022-11-20', 'hparedes', 'HP22', 5, 0),
+(16, 'Paola', 'Flores', 'Rivas', '2024-05-19', 'pflores', 'PF24', 6, 1),
+(17, 'Edgar', 'Vargas', 'Molina', '2023-03-02', 'evargas', 'EV23', 6, 0),
+(18, 'Karla', 'Salgado', 'Ruiz', '2025-02-07', 'ksalgado', 'KS25', 6, 0),
+(19, 'Miriam', 'Castillo', 'Pérez', '2023-09-30', 'mcastillo', 'MC23', 7, 1),
+(20, 'Luis', 'Navarro', 'Beltrán', '2024-03-21', 'lnavarro', 'LN24', 7, 0),
+(21, 'Sofía', 'Ávila', 'Torres', '2025-01-13', 'savila', 'SA25', 7, 0);
+
+INSERT INTO conductor 
+(registro, conNombre, conPrimerApell, conSegundoApell, licNumero, licVencimiento, fechaContrato)
+VALUES
+(1, 'Marco', 'Hernández', 'Soto', 'BCF-2025-91342', '2028-04-12', '2022-03-10'),
+(2, 'Luis', 'Medina', 'Torres', 'BCF-2024-55102', '2027-11-01', '2021-07-14'),
+(3, 'Rosa', 'Aguilar', 'Ponce', 'BCF-2026-77421', '2029-02-20', '2023-02-01'),
+(4, 'Jaime', 'Flores', 'Ramírez', 'BCF-2023-10455', '2027-09-30', '2020-05-22'),
+(5, 'Daniela', 'Sánchez', 'Vega', 'BCF-2026-66790', '2030-01-17', '2024-01-03'),
+(6, 'Héctor', 'Ramos', 'Cruz', 'BCF-2025-22984', '2028-06-13', '2025-01-18'),
+(7, 'Brenda', 'López', 'Castillo', 'BCF-2024-88311', '2027-03-09', '2022-09-09'),
+(8, 'Oscar', 'Delgado', 'Silva', 'BCF-2025-55009', '2028-12-14', '2021-12-14'),
+(9, 'Kevin', 'Ortiz', 'Molina', 'BCF-2027-33201', '2029-04-25', '2023-02-20'),
+(10, 'Miriam', 'Navarro', 'Ruiz', 'BCF-2024-11798', '2026-10-11', '2024-06-11'),
+(11, 'Roberto', 'Pérez', 'León', 'BCF-2023-42055', '2027-08-09', '2023-08-03'),
+(12, 'Alejandra', 'Varela', 'Díaz', 'BCF-2026-90021', '2029-03-01', '2025-03-01');
+
+INSERT INTO tipo_asiento (codigo, descripcion) VALUES
+('COM', 'Comun'),
+('PLU', 'Plus'),
+('DIS', 'Discapacitado');
+
+INSERT INTO autobus (numero, modelo, placas, serieVIN) VALUES
+(1, 1, 'ABC1234', '1HGCM82633A004352'),
+(2, 2, 'BCD2345', '2HGFA16598H392847'),
+(3, 3, 'CDE3456', '3N1AB7AP4HY256981'),
+(4, 4, 'DEF4567', '4T1BF1FK5HU789654'),
+(5, 5, 'EFG5678', '5YFBURHE6HP123478'),
+(6, 1, 'FGH6789', '1HD1BW5177Y035721'),
+(7, 2, 'GHI7890', 'JHMCM56557C404578'),
+(8, 3, 'HIJ8901', 'KMHCT4AE1FU765432'),
+(9, 4, 'IJK9012', 'WDBRF40J43F392167'),
+(10, 5, 'JKL0123', '1FTFW1EG1HFC98325');
+
+INSERT INTO viaje (numero, fecHoraSalida, fecHoraEntrada, ruta, estado, autobus, conductor) VALUES
+(1, '2025-01-10 08:00:00', '2025-01-10 12:00:00', 1, 3, 1, 1),
+(2, '2025-01-10 09:00:00', '2025-01-11 13:30:00', 2, 3, 2, 2),
+(3, '2025-01-12 07:30:00', '2025-01-12 11:45:00', 3, 3, 3, 3);
