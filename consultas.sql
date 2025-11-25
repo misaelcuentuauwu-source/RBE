@@ -79,7 +79,7 @@ JOIN terminal o ON r.origen = o.numero
 JOIN ciudad co ON o.ciudad = co.clave
 JOIN terminal d ON r.destino = d.numero
 JOIN ciudad cd ON d.ciudad = cd.clave
-WHERE DATE(v.fecHoraSalida) = '';
+WHERE DATE(v.fecHoraSalida) = '01/10/2025';
 
 --5. Detalle de un boleto
 SELECT 
@@ -102,7 +102,7 @@ JOIN terminal d ON r.destino = d.numero
 JOIN ciudad cd ON d.ciudad = cd.clave
 JOIN asiento a ON t.asiento = a.numero
 JOIN tipo_asiento ta ON a.tipo = ta.codigo
-WHERE t.codigo = ?;
+WHERE t.codigo = 1;
 
 --6. Boletos vendidos por viaje en una fecha
 SELECT
@@ -121,7 +121,7 @@ JOIN ciudad co ON o.ciudad = co.clave
 JOIN terminal d ON r.destino = d.numero
 JOIN ciudad cd ON d.ciudad = cd.clave
 LEFT JOIN ticket t ON t.viaje = v.numero
-WHERE DATE(v.fecHoraSalida) = ?
+WHERE DATE(v.fecHoraSalida) = 1
 GROUP BY v.numero;
 
 --7. Viajes de un conductor
@@ -140,7 +140,7 @@ JOIN terminal o ON r.origen = o.numero
 JOIN ciudad co ON o.ciudad = co.clave
 JOIN terminal d ON r.destino = d.numero
 JOIN ciudad cd ON d.ciudad = cd.clave
-WHERE c.registro = ?;
+WHERE c.registro = 1;
 
 --8. Información de un autobús
 SELECT
@@ -153,7 +153,7 @@ SELECT
 FROM autobus a
 JOIN modelo m ON a.modelo = m.numero
 JOIN marca m2 ON m.marca = m2.numero
-WHERE a.numero = ?;
+WHERE a.numero = 1;
 
 --9. Cantidad por tipo de asiento en un autobús
 SELECT
@@ -162,7 +162,7 @@ SELECT
     COUNT(*) AS cantidad
 FROM asiento a
 JOIN tipo_asiento ta ON a.tipo = ta.codigo
-WHERE a.autobus = ?
+WHERE a.autobus = 1
 GROUP BY a.tipo;
 
 --10. Corridas que salen de una misma ciudad en una fecha
@@ -182,5 +182,5 @@ JOIN terminal td ON r.destino = td.numero
 JOIN ciudad cd ON td.ciudad = cd.clave
 JOIN autobus a ON v.autobus = a.numero
 JOIN conductor c ON v.conductor = c.registro
-WHERE DATE(v.fecHoraSalida) = ?
-AND t.ciudad = ?;
+WHERE DATE(v.fecHoraSalida) = '01/10/2025'
+AND t.ciudad = 1;
