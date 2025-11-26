@@ -25,7 +25,7 @@ CREATE TABLE `asiento` (
   `numero` int(11) NOT NULL,
   `tipo` varchar(5) NOT NULL,
   `autobus` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+);
 
 -- --------------------------------------------------------
 
@@ -38,7 +38,7 @@ CREATE TABLE `autobus` (
   `modelo` int(11) NOT NULL,
   `placas` varchar(10) NOT NULL,
   `serieVIN` varchar(17) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+);
 
 -- --------------------------------------------------------
 
@@ -49,7 +49,7 @@ CREATE TABLE `autobus` (
 CREATE TABLE `ciudad` (
   `clave` varchar(5) NOT NULL,
   `nombre` varchar(30) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+);
 
 -- --------------------------------------------------------
 
@@ -65,7 +65,7 @@ CREATE TABLE `conductor` (
   `licNumero` varchar(15) NOT NULL,
   `licVencimiento` date NOT NULL,
   `fechaContrato` date NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+);
 
 -- --------------------------------------------------------
 
@@ -77,7 +77,7 @@ CREATE TABLE `edo_viaje` (
   `numero` int(11) NOT NULL,
   `nombre` varchar(30) NOT NULL,
   `descripcion` varchar(50) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+);
 
 -- --------------------------------------------------------
 
@@ -88,7 +88,7 @@ CREATE TABLE `edo_viaje` (
 CREATE TABLE `marca` (
   `numero` int(11) NOT NULL,
   `nombre` varchar(30) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+);
 
 -- --------------------------------------------------------
 
@@ -103,7 +103,7 @@ CREATE TABLE `modelo` (
   `año` int(11) NOT NULL,
   `capacidad` int(11) NOT NULL,
   `marca` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+);
 
 -- --------------------------------------------------------
 
@@ -117,7 +117,7 @@ CREATE TABLE `pago` (
   `monto` decimal(10,2) NOT NULL,
   `tipo` int(11) NOT NULL,
   `vendedor` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+);
 
 -- --------------------------------------------------------
 
@@ -132,7 +132,7 @@ CREATE TABLE `pasajero` (
   `paSegundoApell` varchar(30) DEFAULT NULL,
   `fechaNacimiento` date NOT NULL,
   `edad` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+);
 
 -- --------------------------------------------------------
 
@@ -146,7 +146,7 @@ CREATE TABLE `ruta` (
   `origen` int(11) NOT NULL,
   `destino` int(11) NOT NULL,
   `precio` decimal(10,2) NOT NULL DEFAULT 250.00
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+);
 
 -- --------------------------------------------------------
 
@@ -164,7 +164,7 @@ CREATE TABLE `taquillero` (
   `contraseña` varchar(20) NOT NULL,
   `terminal` int(11) NOT NULL,
   `supervisa` tinyint(1) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+);
 
 -- --------------------------------------------------------
 
@@ -180,7 +180,7 @@ CREATE TABLE `terminal` (
   `dirColonia` varchar(30) NOT NULL,
   `telefono` varchar(12) DEFAULT NULL,
   `ciudad` varchar(5) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+);
 
 -- --------------------------------------------------------
 
@@ -197,7 +197,7 @@ CREATE TABLE `ticket` (
   `pasajero` int(11) NOT NULL,
   `tipopasajero` int(11) NOT NULL,
   `pago` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+);
 
 -- --------------------------------------------------------
 
@@ -208,7 +208,7 @@ CREATE TABLE `ticket` (
 CREATE TABLE `tipo_asiento` (
   `codigo` varchar(5) NOT NULL,
   `descripcion` varchar(30) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+);
 
 -- --------------------------------------------------------
 
@@ -220,7 +220,7 @@ CREATE TABLE `tipo_pago` (
   `numero` int(11) NOT NULL,
   `nombre` varchar(30) NOT NULL,
   `descripcion` varchar(50) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+);
 
 -- --------------------------------------------------------
 
@@ -232,7 +232,7 @@ CREATE TABLE `tipo_pasajero` (
   `num` int(11) NOT NULL,
   `descuento` int(11) NOT NULL,
   `descripcion` varchar(30) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+);
 
 -- --------------------------------------------------------
 
@@ -248,7 +248,7 @@ CREATE TABLE `viaje` (
   `estado` int(11) NOT NULL,
   `autobus` int(11) DEFAULT NULL,
   `conductor` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+);
 
 -- --------------------------------------------------------
 
@@ -260,7 +260,7 @@ CREATE TABLE `viaje_asiento` (
   `asiento` int(11) NOT NULL,
   `viaje` int(11) NOT NULL,
   `ocupado` tinyint(1) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+);
 
 --
 -- Indexes for dumped tables
