@@ -38,6 +38,7 @@ LEFT JOIN conductor c ON v.conductor = c.registro
 LEFT JOIN autobus a ON v.autobus = a.numero
 LEFT JOIN modelo m ON a.modelo = m.numero
 WHERE v.numero = 1;
+
 /*
 2. Obtener la lista de pasajeros que compraron boleto para un viaje específico.
 a. Número de viaje
@@ -68,8 +69,45 @@ JOIN terminal torg ON r.origen = torg.numero
 JOIN ciudad torig ON torg.ciudad = torig.clave
 JOIN terminal tdest ON r.destino = tdest.numero
 JOIN ciudad tdest_ci ON tdest.ciudad = tdest_ci.clave
-WHERE v.numero = :viaje
+WHERE v.numero = 1
 ORDER BY t.asiento;
+
+/*
+    Consulta dividida en 2
+*/
+
+SELECT
+  v.numero AS numero_viaje,
+  torig.nombre AS ciudad_origen,
+  tdest_ci.nombre AS ciudad_destino,
+  v.fecHoraSalida AS fecha_hora_salida
+FROM ticket t
+JOIN viaje v ON t.viaje = v.numero
+JOIN ruta r ON v.ruta = r.codigo
+JOIN terminal torg ON r.origen = torg.numero
+JOIN ciudad torig ON torg.ciudad = torig.clave
+JOIN terminal tdest ON r.destino = tdest.numero
+JOIN ciudad tdest_ci ON tdest.ciudad = tdest_ci.clave
+WHERE v.numero = 1
+ORDER BY t.asiento
+LIMIT 1;
+SELECT
+  CONCAT(p.paNombre,' ', p.paPrimerApell, ' ', IFNULL(p.paSegundoApell,'')) AS nombre_pasajero,
+  p.edad AS edad_pasajero,
+  v.autobus AS numero_autobus,
+  t.codigo AS numero_boleto,
+  t.asiento AS numero_asiento
+FROM ticket t
+JOIN pasajero p ON t.pasajero = p.num
+JOIN viaje v ON t.viaje = v.numero
+JOIN ruta r ON v.ruta = r.codigo
+JOIN terminal torg ON r.origen = torg.numero
+JOIN ciudad torig ON torg.ciudad = torig.clave
+JOIN terminal tdest ON r.destino = tdest.numero
+JOIN ciudad tdest_ci ON tdest.ciudad = tdest_ci.clave
+WHERE v.numero = 1
+ORDER BY t.asiento;
+
 /*
 3. Asientos que están disponibles para un viaje dado.
 a. Número de viaje
@@ -94,9 +132,45 @@ JOIN terminal torg ON r.origen = torg.numero
 JOIN ciudad torig ON torg.ciudad = torig.clave
 JOIN terminal tdest ON r.destino = tdest.numero
 JOIN ciudad tdest_ci ON tdest.ciudad = tdest_ci.clave
-WHERE v.numero = :viaje
+WHERE v.numero = 1
   AND va.ocupado = 0
 ORDER BY a.numero;
+
+/*
+    Consulta dividida en 2
+*/
+
+SELECT
+  v.numero AS numero_viaje,
+  torig.nombre AS ciudad_origen,
+  tdest_ci.nombre AS ciudad_destino,
+  v.fecHoraSalida AS fecha_hora_salida,
+  v.autobus AS numero_autobus
+FROM viaje_asiento va
+JOIN asiento a ON va.asiento = a.numero
+JOIN viaje v ON va.viaje = v.numero
+JOIN ruta r ON v.ruta = r.codigo
+JOIN terminal torg ON r.origen = torg.numero
+JOIN ciudad torig ON torg.ciudad = torig.clave
+JOIN terminal tdest ON r.destino = tdest.numero
+JOIN ciudad tdest_ci ON tdest.ciudad = tdest_ci.clave
+WHERE v.numero = 1
+  AND va.ocupado = 0
+LIMIT 1;
+SELECT
+  a.numero AS numero_asiento
+FROM viaje_asiento va
+JOIN asiento a ON va.asiento = a.numero
+JOIN viaje v ON va.viaje = v.numero
+JOIN ruta r ON v.ruta = r.codigo
+JOIN terminal torg ON r.origen = torg.numero
+JOIN ciudad torig ON torg.ciudad = torig.clave
+JOIN terminal tdest ON r.destino = tdest.numero
+JOIN ciudad tdest_ci ON tdest.ciudad = tdest_ci.clave
+WHERE v.numero = 1
+  AND va.ocupado = 0
+ORDER BY a.numero;
+
 /*
 4. Viajes programados para una fecha específica.
 a. Fecha y hora de salida, en una columna
@@ -117,7 +191,7 @@ JOIN terminal torg ON r.origen = torg.numero
 JOIN ciudad torig ON torg.ciudad = torig.clave
 JOIN terminal tdest ON r.destino = tdest.numero
 JOIN ciudad tdest_ci ON tdest.ciudad = tdest_ci.clave
-WHERE DATE(v.fecHoraSalida) = :fecha
+WHERE DATE(v.fecHoraSalida) = '2025-01-10'
 ORDER BY v.fecHoraSalida;
 
 /*
@@ -152,7 +226,7 @@ JOIN terminal torg ON r.origen = torg.numero
 JOIN ciudad torig ON torg.ciudad = torig.clave
 JOIN terminal tdest ON r.destino = tdest.numero
 JOIN ciudad tdest_ci ON tdest.ciudad = tdest_ci.clave
-WHERE t.codigo = :ticket;
+WHERE t.codigo = 1;
 
 /*
 6. Boletos vendidos para cada viaje de una fecha.
@@ -181,9 +255,38 @@ JOIN terminal torg ON r.origen = torg.numero
 JOIN ciudad torig ON torg.ciudad = torig.clave
 JOIN terminal tdest ON r.destino = tdest.numero
 JOIN ciudad tdest_ci ON tdest.ciudad = tdest_ci.clave
-WHERE DATE(v.fecHoraSalida) = :fecha
+WHERE DATE(v.fecHoraSalida) = '2025-01-10'
 GROUP BY v.numero, v.fecHoraSalida, torig.nombre, tdest_ci.nombre, v.autobus
 ORDER BY v.fecHoraSalida;
+
+/*
+    Consulta dividida en 2
+*/
+
+SELECT
+  DATE(v.fecHoraSalida) AS fecha_programada
+FROM viaje v
+WHERE DATE(v.fecHoraSalida) = '2025-01-10'
+LIMIT 1;
+SELECT
+  v.numero AS numero_viaje,
+  v.fecHoraSalida AS fecha_hora_salida,
+  torig.nombre AS ciudad_origen,
+  tdest_ci.nombre AS ciudad_destino,
+  v.autobus AS numero_autobus,
+  COUNT(t.codigo) AS boletos_vendidos,
+  ( (SELECT COUNT(*) FROM asiento a WHERE a.autobus = v.autobus) - COUNT(t.codigo) ) AS boletos_disponibles
+FROM viaje v
+LEFT JOIN ticket t ON t.viaje = v.numero
+JOIN ruta r ON v.ruta = r.codigo
+JOIN terminal torg ON r.origen = torg.numero
+JOIN ciudad torig ON torg.ciudad = torig.clave
+JOIN terminal tdest ON r.destino = tdest.numero
+JOIN ciudad tdest_ci ON tdest.ciudad = tdest_ci.clave
+WHERE DATE(v.fecHoraSalida) = '2025-01-10'
+GROUP BY v.numero, v.fecHoraSalida, torig.nombre, tdest_ci.nombre, v.autobus
+ORDER BY v.fecHoraSalida;
+
 
 /*
 7. Viajes de un mismo conductor
@@ -210,7 +313,33 @@ JOIN terminal torg ON r.origen = torg.numero
 JOIN ciudad torig ON torg.ciudad = torig.clave
 JOIN terminal tdest ON r.destino = tdest.numero
 JOIN ciudad tdest_ci ON tdest.ciudad = tdest_ci.clave
-WHERE c.registro = :conductor_registro
+WHERE c.registro = 3
+ORDER BY v.fecHoraSalida;
+
+/*
+    Consulta dividida en 2
+*/
+
+SELECT
+  CONCAT(c.conNombre,' ', c.conPrimerApell, ' ', IFNULL(c.conSegundoApell,'')) AS nombre_conductor
+FROM viaje v
+JOIN conductor c ON v.conductor = c.registro
+WHERE c.registro = 3;
+SELECT
+  v.numero AS numero_viaje,
+  v.fecHoraSalida AS fecha_hora_salida,
+  v.fecHoraEntrada AS fecha_hora_llegada,
+  torig.nombre AS ciudad_origen,
+  tdest_ci.nombre AS ciudad_destino,
+  v.autobus AS numero_autobus
+FROM viaje v
+JOIN conductor c ON v.conductor = c.registro
+JOIN ruta r ON v.ruta = r.codigo
+JOIN terminal torg ON r.origen = torg.numero
+JOIN ciudad torig ON torg.ciudad = torig.clave
+JOIN terminal tdest ON r.destino = tdest.numero
+JOIN ciudad tdest_ci ON tdest.ciudad = tdest_ci.clave
+WHERE c.registro = 3
 ORDER BY v.fecHoraSalida;
 
 /*
@@ -234,6 +363,7 @@ JOIN modelo m ON a.modelo = m.numero
 JOIN marca mk ON m.marca = mk.numero
 WHERE a.numero = :autobus;
 
+
 /*
 9. Cantidad por tipos de asiento que tiene un autobús
 a. Número del autobús
@@ -241,14 +371,36 @@ b. Descripción del tipo de asiento
 c. Cantidad por tipo de asiento
 */
 SELECT
-  a.numero AS numero_autobus,
+  au.numero AS numero_autobus,
   ta.descripcion AS descripcion_tipo_asiento,
   COUNT(*) AS cantidad_por_tipo
 FROM asiento a
 JOIN tipo_asiento ta ON a.tipo = ta.codigo
-WHERE a.autobus = :autobus
+JOIN autobus au ON a.autobus = au.numero
+WHERE a.autobus = 1
 GROUP BY ta.descripcion
 ORDER BY ta.descripcion;
+
+/*
+    Consulta dividida en 2
+*/
+
+SELECT
+  au.numero AS numero_autobus
+FROM asiento a
+JOIN autobus au ON a.autobus = au.numero
+WHERE a.autobus = 1
+LIMIT 1;
+SELECT
+  ta.descripcion AS descripcion_tipo_asiento,
+  COUNT(*) AS cantidad_por_tipo
+FROM asiento a
+JOIN tipo_asiento ta ON a.tipo = ta.codigo
+JOIN autobus au ON a.autobus = au.numero
+WHERE a.autobus = 1
+GROUP BY ta.descripcion
+ORDER BY ta.descripcion;
+
 
 /*
 10.Corridas que salen de una misma ciudad en una fecha
@@ -276,6 +428,39 @@ JOIN terminal tdest ON r.destino = tdest.numero
 JOIN ciudad tdest_ci ON tdest.ciudad = tdest_ci.clave
 LEFT JOIN autobus aut ON v.autobus = aut.numero
 LEFT JOIN conductor c ON v.conductor = c.registro
-WHERE torig.nombre = :ciudad
-  AND DATE(v.fecHoraSalida) = :fecha
+WHERE torig.nombre = 'Tijuana'
+  AND DATE(v.fecHoraSalida) = '2025-01-10'
+ORDER BY v.fecHoraSalida;
+
+
+/*
+    Consulta dividida en 2
+*/
+
+SELECT
+  torig.nombre AS ciudad,
+  v.fecHoraSalida AS fecha_hora_salida
+FROM viaje v
+JOIN ruta r ON v.ruta = r.codigo
+JOIN terminal torg ON r.origen = torg.numero
+JOIN ciudad torig ON torg.ciudad = torig.clave
+WHERE torig.nombre = 'Tijuana'
+  AND DATE(v.fecHoraSalida) = '2025-01-10'
+LIMIT 1;
+SELECT
+  v.numero AS numero_corrida,
+  tdest_ci.nombre AS ciudad_destino,
+  v.autobus AS numero_autobus,
+  aut.placas AS matricula_autobus,
+  CONCAT(c.conNombre,' ', c.conPrimerApell, ' ', IFNULL(c.conSegundoApell,'')) AS operador_asignado
+FROM viaje v
+JOIN ruta r ON v.ruta = r.codigo
+JOIN terminal torg ON r.origen = torg.numero
+JOIN ciudad torig ON torg.ciudad = torig.clave
+JOIN terminal tdest ON r.destino = tdest.numero
+JOIN ciudad tdest_ci ON tdest.ciudad = tdest_ci.clave
+LEFT JOIN autobus aut ON v.autobus = aut.numero
+LEFT JOIN conductor c ON v.conductor = c.registro
+WHERE torig.nombre = 'Tijuana'
+  AND DATE(v.fecHoraSalida) = '2025-01-10'
 ORDER BY v.fecHoraSalida;
