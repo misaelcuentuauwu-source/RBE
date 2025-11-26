@@ -34,8 +34,8 @@ class PanelAdministrador(QMainWindow):
 
         # Colores
         COLOR_BG = "#f2f2f2"
-        COLOR_PRIMARY = "#f2e800"
-        COLOR_ACCENT = "#ff8c00"
+        COLOR_PRIMARY = "#1181c3"
+        COLOR_ACCENT = "#ed7237"
         COLOR_TEXT = "#222"
 
         self.setWindowTitle("Rutas Baja Express - Panel Administrador")
