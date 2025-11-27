@@ -97,14 +97,18 @@ class VentanaRegistroPasajero(QWidget):
         campo_ap2 = crear_campo("Segundo Apellido")
 
         # ============================
-        # CAMPO FECHA (MODERNO CON PLACEHOLDER Y FONDO BLANCO)
+        # CAMPO FECHA (MODIFICADO)
         # ============================
         date = QDateEdit()
         date.setCalendarPopup(True)
         date.setDisplayFormat("dd/MM/yyyy")
-        date.setDate(QDate.currentDate())
+        date.setDate(QDate.currentDate())  # fecha real del calendario
 
-        # Fondo blanco y estilo del QDateEdit
+        # ❗ Hacer que el QDateEdit INICIE VACÍO visualmente
+        date.lineEdit().setText("")
+        date.setSpecialValueText("")
+
+        # Estilo
         date.setStyleSheet("""
             QDateEdit {
                 background-color: white;
@@ -126,7 +130,6 @@ class VentanaRegistroPasajero(QWidget):
             }
         """)
 
-        # Fecha almacenada internamente
         self.fecha_real = None
 
         # --- Placeholder superpuesto ---
@@ -137,18 +140,12 @@ class VentanaRegistroPasajero(QWidget):
         placeholder.setAttribute(Qt.WA_TransparentForMouseEvents)
         placeholder.show()
 
-        # Ocultar placeholder cuando el usuario seleccione fecha
-        def seleccionar_fecha(d):
-            date.setDate(d)
-            self.fecha_real = d
+        # --- Eventos para ocultar placeholder ---
+        def ocultar_placeholder():
             placeholder.hide()
 
-        date.calendarWidget().activated.connect(lambda d: seleccionar_fecha(d))
-
-        # Mostrar/ocultar placeholder según el texto
-        date.lineEdit().textChanged.connect(
-            lambda txt: placeholder.setVisible(txt.strip() == "")
-        )
+        date.dateChanged.connect(lambda _: ocultar_placeholder())
+        date.calendarWidget().activated.connect(lambda _: ocultar_placeholder())
 
         # --- QCalendarWidget personalizado ---
         calendar = QCalendarWidget()
