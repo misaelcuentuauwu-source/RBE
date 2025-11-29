@@ -157,49 +157,75 @@ class PassengersDialog(QDialog):
         self.setWindowTitle(f"Pasajeros del viaje {trip.get('trip_id')}")
         self.resize(720, 480)
 
+        # ------------------- ESTILO -------------------
         self.setStyleSheet("""
             QWidget { background:#f8fafc; }
-            QLabel#title { font-size:20px; font-weight:700; color:#0b3a66; }
-            QTableWidget { background:white; border-radius:8px; }
-            QPushButton#closeBtn { background:#ff7b00; color:white; padding:8px 16px; border-radius:8px; }
-            QPushButton#closeBtn:hover { background:#ff9c33; }
+            QFrame#card { 
+                background:white; 
+                border-radius:12px; 
+                padding:14px; 
+                border:1px solid #d9dfe5; 
+            }
+            QLabel#title { font-size:18px; font-weight:700; color:#0b3a66; }
+            QTableWidget { 
+                background:white; 
+                border-radius:8px; 
+                gridline-color:#e0e0e0;
+                selection-background-color:#4a90e2;
+                selection-color:white;
+            }
+            QPushButton#btn { 
+                background:#ff7b00; 
+                color:white; 
+                padding:8px 16px; 
+                border-radius:8px; 
+            }
+            QPushButton#btn:hover { background:#ff9c33; }
         """)
 
-        main = QVBoxLayout(self)
-        main.setContentsMargins(12, 12, 12, 12)
+        main_layout = QVBoxLayout(self)
+        main_layout.setContentsMargins(12, 12, 12, 12)
+
+        # ------------------- CARD -------------------
+        card = QFrame()
+        card.setObjectName("card")
+        card_layout = QVBoxLayout(card)
+        card_layout.setSpacing(12)
 
         title = QLabel(f"Pasajeros del Viaje {trip.get('trip_id')}")
         title.setObjectName("title")
-        main.addWidget(title)
+        card_layout.addWidget(title)
 
         # Tabla
         self.table = QTableWidget()
         self.table.setColumnCount(5)
         self.table.setHorizontalHeaderLabels(["# Ticket", "Nombre", "Edad", "Asiento", "Precio"])
         self.table.horizontalHeader().setStretchLastSection(True)
-        # Ajuste de columnas
-        self.table.setColumnWidth(0, 90)    # Ticket
-        self.table.setColumnWidth(1, 250)   # Nombre completo (más grande)
-        self.table.setColumnWidth(2, 60)    # Edad
-        self.table.setColumnWidth(3, 70)    # Asiento
-        self.table.setColumnWidth(4, 90)    # Precio (más pequeño)
-
-        main.addWidget(self.table)
+        self.table.setColumnWidth(0, 90)
+        self.table.setColumnWidth(1, 250)
+        self.table.setColumnWidth(2, 60)
+        self.table.setColumnWidth(3, 70)
+        self.table.setColumnWidth(4, 90)
+        card_layout.addWidget(self.table)
 
         # Botones
+        btn_layout = QHBoxLayout()
+        btn_layout.addStretch()
+
         btn_export = QPushButton("Exportar CSV")
+        btn_export.setObjectName("btn")
         btn_export.clicked.connect(self.export_csv)
 
         btn_close = QPushButton("Cerrar")
-        btn_close.setObjectName("closeBtn")
+        btn_close.setObjectName("btn")
         btn_close.clicked.connect(self.close)
 
-        h = QHBoxLayout()
-        h.addStretch()
-        h.addWidget(btn_export)
-        h.addWidget(btn_close)
-        main.addLayout(h)
+        btn_layout.addWidget(btn_export)
+        btn_layout.addWidget(btn_close)
 
+        card_layout.addLayout(btn_layout)
+        main_layout.addWidget(card)
+        
         # Carga de datos
         try:
             self.load_passengers()
@@ -231,11 +257,25 @@ class PassengersDialog(QDialog):
 
         # --- YA SOLO 5 COLUMNAS (sin apellidos) ---
         for r, p in enumerate(rows):
-            self.table.setItem(r, 0, QTableWidgetItem(str(p.get("ticket_no", ""))))
-            self.table.setItem(r, 1, QTableWidgetItem(str(p.get("nombre_completo", ""))))   # <- NOMBRE COMPLETO
-            self.table.setItem(r, 2, QTableWidgetItem(str(p.get("edad", ""))))
-            self.table.setItem(r, 3, QTableWidgetItem(str(p.get("asiento", ""))))
-            self.table.setItem(r, 4, QTableWidgetItem(str(p.get("precio", ""))))
+            ticket_item = QTableWidgetItem(str(p.get("ticket_no", "")))
+            ticket_item.setFlags(ticket_item.flags() & ~Qt.ItemIsEditable)
+            self.table.setItem(r, 0, ticket_item)
+
+            nombre_item = QTableWidgetItem(str(p.get("nombre_completo", "")))
+            nombre_item.setFlags(nombre_item.flags() & ~Qt.ItemIsEditable)
+            self.table.setItem(r, 1, nombre_item)
+
+            edad_item = QTableWidgetItem(str(p.get("edad", "")))
+            edad_item.setFlags(edad_item.flags() & ~Qt.ItemIsEditable)
+            self.table.setItem(r, 2, edad_item)
+
+            asiento_item = QTableWidgetItem(str(p.get("asiento", "")))
+            asiento_item.setFlags(asiento_item.flags() & ~Qt.ItemIsEditable)
+            self.table.setItem(r, 3, asiento_item)
+
+            precio_item = QTableWidgetItem(str(p.get("precio", "")))
+            precio_item.setFlags(precio_item.flags() & ~Qt.ItemIsEditable)
+            self.table.setItem(r, 4, precio_item)
 
     def export_csv(self):
         path, _ = QFileDialog.getSaveFileName(self, "Guardar CSV", f"pasajeros_viaje_{self.trip.get('trip_id')}.csv", "CSV Files (*.csv)")
@@ -296,7 +336,11 @@ class TripCard(QFrame):
         bus = QLabel(f"Autobús: {trip.get('bus_number', '')}  •  Placas: {trip.get('plate', '')}")
         bus.setProperty("class", "meta")
 
-        passengers = QLabel(f"Pasajeros vendidos: {trip.get('passengers_count', 0)}")
+        seats = trip.get("seats_count", 0)
+        sold = trip.get("passengers_count", 0)
+
+        passengers = QLabel(f"Asientos: {seats}   •   Pasajeros: {sold}")
+        passengers.setStyleSheet("font-size: 14px; color: #555;")
         passengers.setProperty("class", "meta")
 
         left.addWidget(title)
@@ -429,6 +473,10 @@ class MainWindow(QMainWindow):
         self.date_edit.setCalendarPopup(True)
         self.date_edit.setFixedWidth(150)
         self.date_edit.setDate(QDate.currentDate())
+        # Saber si el usuario cambió la fecha manualmente
+        self.date_edit.userChanged = False
+        self.date_edit.dateChanged.connect(lambda: setattr(self.date_edit, "userChanged", True))
+
 
         # <<< ADICIÓN CALENDARIO BLANCO >>>
         # Creamos un QCalendarWidget personalizado y lo asignamos al QDateEdit
@@ -714,11 +762,24 @@ class MainWindow(QMainWindow):
     """)
 
     def clear_cards(self):
-        for i in reversed(range(self.cards_layout.count())):
-            w = self.cards_layout.itemAt(i).widget()
-            if w is not None:
-                w.setParent(None)
-                w.deleteLater()
+        """Empty self.cards_layout completely: widgets, spacers y sublayouts."""
+        def _clear_layout(layout):
+            while layout.count():
+                item = layout.takeAt(0)
+                if item is None:
+                    continue
+                w = item.widget()
+                if w is not None:
+                    w.setParent(None)
+                    w.deleteLater()
+                else:
+                    # puede ser un layout hijo o un spacer
+                    child_layout = item.layout()
+                    if child_layout is not None:
+                        _clear_layout(child_layout)
+                    # si era un spacer, no hay widget ni layout: nothing else to do
+
+        _clear_layout(self.cards_layout)
 
     def load_cards(self, trips: List[Dict]):
         self.clear_cards()
@@ -751,35 +812,40 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, "Error", f"No se pudieron abrir pasajeros:\n{e}")
 
     def apply_filters(self):
-        origin = self.cmb_origin.currentText()
-        dest = self.cmb_dest.currentText()
+        dest = self.cmb_dest.currentText().strip()
+        selected_date = self.date_edit.date()
 
-        qdate = self.date_edit.date().toPython() if hasattr(self.date_edit.date(), "toPython") else self.date_edit.date().toPyDate()
+        filtered = self.all_trips
 
-        results = []
-        for t in self.all_trips:
+        # ---- FILTRO DESTINO ----
+        if dest != "-- Todas --":
+            filtered = [
+                t for t in filtered
+                if t.get("dest_city", "").strip().lower() == dest.lower()
+            ]
 
-            # Origen fijo Tijuana
-            if t.get("origin_city") and t.get("origin_city").strip().lower() != "tijuana":
-                continue
+        # ---- FILTRO FECHA ----
+        # Solo filtrar por fecha si el usuario cambió la fecha
+        if self.date_edit.hasFocus() or self.date_edit.userChanged:
+            py_date = selected_date.toPython()
+            filtered = [
+                t for t in filtered
+                if t.get("departure") and t["departure"].date() == py_date
+            ]
 
-            # Filtro destino (sin Tijuana)
-            if dest != "-- Todas --":
-                if t.get("dest_city") and t.get("dest_city").strip().lower() != dest.strip().lower():
-                    continue
-
-            dep = t.get("departure")
-            dep_date = dep.date() if isinstance(dep, datetime) else None
-            if dep_date != qdate:
-                continue
-
-            results.append(t)
-
-        self.load_cards(results)
+        self.load_cards(filtered)
 
     def reset_filters(self):
+        # Restaurar destino
         self.cmb_dest.setCurrentIndex(0)
+
+        # Restaurar fecha a hoy (o la fecha que tú quieras)
+        self.date_edit.userChanged = False  # <-- IMPORTANTE
+        self.date_edit.blockSignals(True)   # para que no marque como cambiada
         self.date_edit.setDate(QDate.currentDate())
+        self.date_edit.blockSignals(False)
+
+        # Recargar sin filtros
         self.load_cards(self.all_trips)
 
     # ---------------- DB ----------------
