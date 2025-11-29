@@ -1,3 +1,4 @@
+-- Active: 1762888131509@@127.0.0.1@3306@rbe
 /*
 1. Información de un viaje
 a. Número de viaje
