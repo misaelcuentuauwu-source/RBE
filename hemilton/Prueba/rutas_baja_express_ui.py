@@ -1,4 +1,3 @@
-#el archivo se llama rutas_baja_express_ui.py
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
@@ -9,7 +8,7 @@ import sys
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QLabel, QComboBox, QPushButton,
     QVBoxLayout, QHBoxLayout, QFrame, QSizePolicy, QScrollArea, QDateEdit,
-    QMessageBox
+    QMessageBox, QCheckBox
 )
 from PySide6.QtCore import Qt, QRect, QSize, QPoint, QDate
 from PySide6.QtGui import QFont, QPixmap
@@ -135,6 +134,27 @@ class MainWindow(QMainWindow):
         QComboBox::down-arrow { image: url(:/icons/down.svg); width:14px;height:14px; }
         QDateEdit::down-arrow { image: url(:/icons/calendar.svg); width:14px;height:14px; }
         QComboBox:hover, QDateEdit:hover { border:2px solid #aaaaaa; }
+        
+        QCheckBox {
+            color: #333;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        QCheckBox::indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 2px solid #cccccc;
+            background: white;
+        }
+        QCheckBox::indicator:checked {
+            background: #0a79b7;
+            border: 2px solid #0a79b7;
+            image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTYiIGhlaWdodD0iMTYiIHZpZXdCb3g9IjAgMCAxNiAxNiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEzLjMzMzMgNC42NjY2N0w2LjAwMDAwIDEyTDIuNjY2NjcgOC42NjY2NyIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+);
+        }
+        QCheckBox::indicator:hover {
+            border: 2px solid #0a79b7;
+        }
         """)
 
         central = QWidget()
@@ -179,9 +199,11 @@ class MainWindow(QMainWindow):
         # ---------- BUSCADOR ----------
         buscador = QFrame()
         buscador.setStyleSheet("background:white;border-radius:10px;")
-        busc_l = QHBoxLayout(buscador)
+        busc_l = QVBoxLayout(buscador)
         busc_l.setContentsMargins(30,12,30,12)
+        busc_l.setSpacing(8)
 
+        # Primera fila: filtros principales
         flow_container = QWidget()
         flow = FlowLayout(flow_container, margin=0, spacing=4)
 
@@ -197,11 +219,12 @@ class MainWindow(QMainWindow):
 
         # ORIGEN
         self.cb_origin = QComboBox()
-        setupComboPlaceholder(self.cb_origin,"Origen")
+        self.cb_origin.setStyleSheet("QComboBox { color:black; }")
 
         # DESTINO
         self.cb_dest = QComboBox()
-        setupComboPlaceholder(self.cb_dest,"Destino")
+        self.cb_dest.addItem("Todas")
+        self.cb_dest.setStyleSheet("QComboBox { color:black; }")
 
         # FECHA
         self.cb_date = QDateEdit()
@@ -209,26 +232,46 @@ class MainWindow(QMainWindow):
         self.cb_date.setDate(QDate.currentDate())
         self.cb_date.setDisplayFormat("dd/MM/yyyy")
 
-        # PASAJEROS
-        self.cb_pasajeros = QComboBox()
-        self.cb_pasajeros.addItems([str(i) for i in range(1,11)])
-        setupComboPlaceholder(self.cb_pasajeros,"Pasajeros")
+        # CHECKBOX FECHA EXACTA (como campo independiente)
+        checkbox_container = QWidget()
+        checkbox_layout = QVBoxLayout(checkbox_container)
+        checkbox_layout.setContentsMargins(0, 0, 0, 0)
+        checkbox_layout.setAlignment(Qt.AlignCenter)
+        
+        self.checkbox_fecha_exacta = QCheckBox("Fecha exacta")
+        self.checkbox_fecha_exacta.setToolTip("Activado: busca solo viajes en la fecha exacta\nDesactivado: busca viajes cercanos a la fecha")
+        self.checkbox_fecha_exacta.setChecked(False)
+        self.checkbox_fecha_exacta.setStyleSheet("""
+            QCheckBox { 
+                font-size: 13px; 
+                padding: 8px;
+                font-weight: 500;
+            }
+        """)
+        checkbox_layout.addWidget(self.checkbox_fecha_exacta, alignment=Qt.AlignCenter)
 
         # Añadir widgets al flow
-        for w in (self.cb_origin,self.cb_dest,self.cb_date,self.cb_pasajeros):
+        for w in (self.cb_origin, self.cb_dest, self.cb_date, checkbox_container):
             wrapper = QWidget()
             wrap_layout = QVBoxLayout(wrapper)
             wrap_layout.setContentsMargins(12,9,12,0)
             wrap_layout.addWidget(w)
             flow.addWidget(wrapper)
 
-        busc_l.addWidget(flow_container,stretch=1)
+        # Segunda fila: botón buscar
+        bottom_row = QHBoxLayout()
+        bottom_row.setContentsMargins(12, 0, 12, 0)
+        bottom_row.addStretch()
 
         # Botón buscar
         btn = QPushButton("➜")
         btn.setFixedSize(56,56)
         btn.setStyleSheet("background:#E86A1E;color:white;border-radius:12px;font-size:20px;")
-        busc_l.addWidget(btn)
+        btn.clicked.connect(self.buscar_viajes)
+        bottom_row.addWidget(btn)
+
+        busc_l.addWidget(flow_container)
+        busc_l.addLayout(bottom_row)
 
         blue_l.addWidget(buscador)
 
@@ -264,8 +307,8 @@ class MainWindow(QMainWindow):
         # Conectar búsqueda
         btn.clicked.connect(self.buscar_viajes)
 
-        # Mostrar todos los viajes al inicio
-        self.buscar_viajes()
+        # Mostrar todos los viajes futuros al inicio (sin filtros)
+        self.cargar_viajes_futuros()
 
     # -----------------------
     # Cargar combos desde BD
@@ -274,22 +317,30 @@ class MainWindow(QMainWindow):
         try:
             conn = crear_conexion()
             cursor = conn.cursor()
-            cursor.execute("SELECT nombre FROM terminal")
+            cursor.execute("SELECT nombre FROM terminal ORDER BY nombre")
             nombres = [row[0] for row in cursor.fetchall()]
+            
+            # Cargar origen
             self.cb_origin.addItems(nombres)
+            
+            # Establecer Tijuana como origen por defecto
+            tijuana_index = self.cb_origin.findText("Tijuana", Qt.MatchFixedString)
+            if tijuana_index >= 0:
+                self.cb_origin.setCurrentIndex(tijuana_index)
+            
+            # Cargar destinos (ya tiene "Todas" agregado)
             self.cb_dest.addItems(nombres)
+            
             cursor.close()
             conn.close()
         except Exception as e:
             QMessageBox.critical(self,"Error",f"No se pudieron cargar terminales:\n{e}")
 
     # -----------------------
-    # Buscar viajes
+    # Cargar viajes futuros (sin filtros)
     # -----------------------
-    def buscar_viajes(self):
-        origen = self.cb_origin.currentText() if self.cb_origin.currentIndex()!=0 else None
-        destino = self.cb_dest.currentText() if self.cb_dest.currentIndex()!=0 else None
-
+    def cargar_viajes_futuros(self):
+        """Carga todos los viajes desde hoy en adelante"""
         # Limpiar resultados
         for i in reversed(range(self.scroll_layout.count()-1)):
             item = self.scroll_layout.itemAt(i).widget()
@@ -309,24 +360,116 @@ class MainWindow(QMainWindow):
             JOIN terminal t_origen ON r.origen = t_origen.numero
             JOIN terminal t_destino ON r.destino = t_destino.numero
             LEFT JOIN autobus a ON v.autobus = a.numero
-            WHERE (%s IS NULL OR t_origen.nombre = %s)
-              AND (%s IS NULL OR t_destino.nombre = %s)
-            ORDER BY v.fecHoraSalida
+            WHERE DATE(v.fecHoraSalida) >= CURDATE()
+            ORDER BY v.fecHoraSalida ASC
             """
-            cursor.execute(query,(origen,origen,destino,destino))
+            cursor.execute(query)
             resultados = cursor.fetchall()
 
             if not resultados:
-                QMessageBox.information(self,"Aviso","No hay viajes disponibles")
+                QMessageBox.information(self, "Aviso", "No hay viajes programados")
+                cursor.close()
+                conn.close()
                 return
 
             for viaje in resultados:
-                self.scroll_layout.insertWidget(0,self._make_trip_card(viaje))
+                self.scroll_layout.insertWidget(0, self._make_trip_card(viaje))
 
             cursor.close()
             conn.close()
         except Exception as e:
-            QMessageBox.critical(self,"Error",f"No se pudieron cargar los viajes:\n{e}")
+            QMessageBox.critical(self, "Error", f"No se pudieron cargar los viajes:\n{e}")
+
+    # -----------------------
+    # Buscar viajes (con filtros)
+    # -----------------------
+    def buscar_viajes(self):
+        origen = self.cb_origin.currentText() if self.cb_origin.currentText() else None
+        destino_texto = self.cb_dest.currentText()
+        destino = None if destino_texto == "Todas" else destino_texto
+        fecha_seleccionada = self.cb_date.date().toPython()
+        fecha_exacta = self.checkbox_fecha_exacta.isChecked()
+
+        # Limpiar resultados
+        for i in reversed(range(self.scroll_layout.count()-1)):
+            item = self.scroll_layout.itemAt(i).widget()
+            if item:
+                item.setParent(None)
+
+        try:
+            conn = crear_conexion()
+            cursor = conn.cursor(dictionary=True)
+
+            if fecha_exacta:
+                # Búsqueda con fecha exacta
+                query = """
+                SELECT v.numero AS viaje_num, v.fecHoraSalida, v.fecHoraEntrada, 
+                       t_origen.nombre AS origen, t_destino.nombre AS destino,
+                       r.duracion, r.precio, a.placas
+                FROM viaje v
+                JOIN ruta r ON v.ruta = r.codigo
+                JOIN terminal t_origen ON r.origen = t_origen.numero
+                JOIN terminal t_destino ON r.destino = t_destino.numero
+                LEFT JOIN autobus a ON v.autobus = a.numero
+                WHERE (%s IS NULL OR t_origen.nombre = %s)
+                  AND (%s IS NULL OR t_destino.nombre = %s)
+                  AND DATE(v.fecHoraSalida) = %s
+                ORDER BY v.fecHoraSalida
+                """
+                cursor.execute(query, (origen, origen, destino, destino, fecha_seleccionada))
+            else:
+                # Búsqueda con fechas cercanas (±30 días / 1 mes)
+                query = """
+                SELECT v.numero AS viaje_num, v.fecHoraSalida, v.fecHoraEntrada, 
+                       t_origen.nombre AS origen, t_destino.nombre AS destino,
+                       r.duracion, r.precio, a.placas,
+                       ABS(DATEDIFF(DATE(v.fecHoraSalida), %s)) AS dias_diferencia
+                FROM viaje v
+                JOIN ruta r ON v.ruta = r.codigo
+                JOIN terminal t_origen ON r.origen = t_origen.numero
+                JOIN terminal t_destino ON r.destino = t_destino.numero
+                LEFT JOIN autobus a ON v.autobus = a.numero
+                WHERE (%s IS NULL OR t_origen.nombre = %s)
+                  AND (%s IS NULL OR t_destino.nombre = %s)
+                  AND DATE(v.fecHoraSalida) >= CURDATE()
+                  AND ABS(DATEDIFF(DATE(v.fecHoraSalida), %s)) <= 30
+                ORDER BY dias_diferencia ASC, v.fecHoraSalida ASC
+                LIMIT 20
+                """
+                cursor.execute(query, (
+                    fecha_seleccionada,
+                    origen, origen, 
+                    destino, destino,
+                    fecha_seleccionada
+                ))
+
+            resultados = cursor.fetchall()
+
+            if not resultados:
+                mensaje = "No hay viajes disponibles para la fecha exacta seleccionada." if fecha_exacta else "No hay viajes disponibles cerca de la fecha seleccionada (±30 días)."
+                QMessageBox.information(self, "Aviso", mensaje)
+                cursor.close()
+                conn.close()
+                return
+
+            # Mostrar mensaje si se encontraron viajes cercanos
+            if not fecha_exacta and len(resultados) > 0:
+                primer_viaje = resultados[0]
+                fecha_encontrada = primer_viaje['fecHoraSalida'].date()
+                if fecha_encontrada != fecha_seleccionada:
+                    dias_diff = abs((fecha_encontrada - fecha_seleccionada).days)
+                    info_label = QLabel(f"ℹ️ Mostrando viajes cercanos (más próximo: {dias_diff} día{'s' if dias_diff != 1 else ''} de diferencia)")
+                    info_label.setStyleSheet("background:#ffffcc;color:#333;padding:8px;border-radius:6px;font-size:12px;")
+                    info_label.setWordWrap(True)
+                    self.scroll_layout.insertWidget(0, info_label)
+
+            for viaje in resultados:
+                self.scroll_layout.insertWidget(0, self._make_trip_card(viaje))
+
+            cursor.close()
+            conn.close()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"No se pudieron cargar los viajes:\n{e}")
 
     # -----------------------
     # Crear card de viaje
@@ -346,6 +489,13 @@ class MainWindow(QMainWindow):
 
         # Info
         center = QVBoxLayout()
+        
+        # Fecha del viaje en la parte superior
+        fecha_viaje_top = QLabel(viaje['fecHoraSalida'].strftime("📅 %d/%m/%Y"))
+        fecha_viaje_top.setStyleSheet("color:#0a79b7;font-weight:bold;font-size:12px;")
+        fecha_viaje_top.setAlignment(Qt.AlignCenter)
+        center.addWidget(fecha_viaje_top)
+        
         top = QHBoxLayout()
         h1 = QLabel(viaje['fecHoraSalida'].strftime("%H:%M"))
         h1.setFont(QFont("Segoe UI",28,QFont.Bold))
@@ -356,20 +506,33 @@ class MainWindow(QMainWindow):
         top.addWidget(h2)
         center.addLayout(top)
 
+        # Calcular duración real del viaje
+        duracion_calculada = viaje['fecHoraEntrada'] - viaje['fecHoraSalida']
+        horas = duracion_calculada.total_seconds() // 3600
+        minutos = (duracion_calculada.total_seconds() % 3600) // 60
+        
+        if horas > 0:
+            duracion_texto = f"{int(horas)}h {int(minutos)}m"
+        else:
+            duracion_texto = f"{int(minutos)}m"
+
         bottom = QHBoxLayout()
         bottom.addWidget(QLabel(viaje['origen']))
         bottom.addStretch()
-        bottom.addWidget(QLabel(viaje['duracion']))
+        
+        # Duración calculada del viaje
+        duracion_label = QLabel(duracion_texto)
+        duracion_label.setStyleSheet("color:#E86A1E;font-weight:bold;font-size:13px;")
+        bottom.addWidget(duracion_label)
         bottom.addStretch()
+        
         bottom.addWidget(QLabel(viaje['destino']))
         center.addLayout(bottom)
         layout.addLayout(center,stretch=1)
 
         # Precio y botón
         price_l = QVBoxLayout()
-        idx = self.cb_pasajeros.currentIndex()
-        num_boletos = 1 if idx==0 else int(self.cb_pasajeros.currentText())
-        total = viaje['precio'] * num_boletos
+        total = viaje['precio']
         price = QLabel(f"${total:.2f} MXN")
         price.setFont(QFont("Segoe UI",16,QFont.Bold))
         price.setStyleSheet("color:#E86A1E;")
@@ -378,7 +541,7 @@ class MainWindow(QMainWindow):
         btn_go = QPushButton("➜")
         btn_go.setFixedSize(56,56)
         btn_go.setStyleSheet("background:#E86A1E;color:white;border-radius:28px;")
-        btn_go.clicked.connect(lambda _, id_v=viaje['viaje_num'], n=num_boletos: self.abrir_asientos(id_v, n))
+        btn_go.clicked.connect(lambda _, id_v=viaje['viaje_num']: self.abrir_asientos(id_v, 1))
         price_l.addWidget(btn_go)
         layout.addLayout(price_l)
 
@@ -387,9 +550,6 @@ class MainWindow(QMainWindow):
     # -----------------------
     # Abrir ventana de asientos
     # -----------------------
-# -----------------------
-# Abrir ventana de asientos
-# -----------------------
     def abrir_asientos(self, id_viaje, num_pasajeros=1):
         # Crear ventana usando la clase correcta
         self.ventana_asiento = VentanaAsientos(id_viaje, num_pasajeros)
