@@ -361,7 +361,7 @@ SELECT
 FROM autobus a
 JOIN modelo m ON a.modelo = m.numero
 JOIN marca mk ON m.marca = mk.numero
-WHERE a.numero = :autobus;
+WHERE a.numero = 3;
 
 
 /*
