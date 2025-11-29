@@ -1,19 +1,29 @@
 # ventana_registro_pasajero.py
-# Nueva ventana con los campos exactos del diseño
+# Ventana de registro de pasajeros - FUNCIONAL CON BD
 
+from datetime import date
 from PySide6.QtWidgets import (
     QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout,
-    QFrame, QLineEdit, QDateEdit, QCalendarWidget
+    QFrame, QLineEdit, QDateEdit, QCalendarWidget, QMessageBox
 )
-from PySide6.QtCore import Qt, QDate
+from PySide6.QtCore import Qt, QDate, Signal
 from PySide6.QtGui import QFont, QPixmap
+from conexion import crear_conexion
 import recursos_rc
 
 
 class VentanaRegistroPasajero(QWidget):
-    def __init__(self):
+    # Señal que emite el ID del pasajero registrado
+    pasajero_registrado = Signal(int)
+    
+    def __init__(self, numero_pasajero=1, asiento_id=None, tipo_pasajero=None, total_pasajeros=1):
         super().__init__()
-        self.setWindowTitle("Registro de pasajeros")
+        self.numero_pasajero = numero_pasajero
+        self.asiento_id = asiento_id
+        self.tipo_pasajero = tipo_pasajero
+        self.total_pasajeros = total_pasajeros
+        
+        self.setWindowTitle(f"Registro de pasajero {numero_pasajero}/{total_pasajeros}")
         self.resize(1100, 760)
 
         # ============================
@@ -60,7 +70,7 @@ class VentanaRegistroPasajero(QWidget):
             background: #2A9BE7;
             border-radius: 25px;
         """)
-        tarjeta.setFixedWidth(420)
+        tarjeta.setFixedWidth(450)
 
         layout_tarjeta = QVBoxLayout(tarjeta)
         layout_tarjeta.setContentsMargins(40, 20, 40, 30)
@@ -71,10 +81,18 @@ class VentanaRegistroPasajero(QWidget):
             120, 120, Qt.KeepAspectRatio, Qt.SmoothTransformation))
         icono.setAlignment(Qt.AlignCenter)
 
-        titulo = QLabel("Registro de\npasajeros")
-        titulo.setFont(QFont("Arial", 30, QFont.Bold))
+        # Título dinámico
+        titulo = QLabel(f"Pasajero {numero_pasajero}\nde {total_pasajeros}")
+        titulo.setFont(QFont("Arial", 28, QFont.Bold))
         titulo.setStyleSheet("color: white;")
         titulo.setAlignment(Qt.AlignCenter)
+
+        # Info del asiento
+        if asiento_id:
+            info_asiento = QLabel(f"Asiento: #{asiento_id}")
+            info_asiento.setFont(QFont("Arial", 16))
+            info_asiento.setStyleSheet("color: #FFD700;")
+            info_asiento.setAlignment(Qt.AlignCenter)
 
         # ============================
         # CAMPOS DE TEXTO
@@ -88,33 +106,32 @@ class VentanaRegistroPasajero(QWidget):
                     border-radius: 15px;
                     padding: 10px 15px;
                     font-size: 16px;
+                    color: black;
                 }
             """)
             return campo
 
-        campo_nombre = crear_campo("Nombre")
-        campo_ap1 = crear_campo("Primer Apellido")
-        campo_ap2 = crear_campo("Segundo Apellido")
+        self.campo_nombre = crear_campo("Nombre")
+        self.campo_ap1 = crear_campo("Primer Apellido")
+        self.campo_ap2 = crear_campo("Segundo Apellido (opcional)")
 
         # ============================
-        # CAMPO FECHA (MODIFICADO)
+        # CAMPO FECHA
         # ============================
-        date = QDateEdit()
-        date.setCalendarPopup(True)
-        date.setDisplayFormat("dd/MM/yyyy")
-        date.setDate(QDate.currentDate())  # fecha real del calendario
+        self.date = QDateEdit()
+        self.date.setCalendarPopup(True)
+        self.date.setDisplayFormat("dd/MM/yyyy")
+        self.date.setDate(QDate.currentDate())
+        self.date.lineEdit().setText("")
+        self.date.setSpecialValueText("")
 
-        # ❗ Hacer que el QDateEdit INICIE VACÍO visualmente
-        date.lineEdit().setText("")
-        date.setSpecialValueText("")
-
-        # Estilo
-        date.setStyleSheet("""
+        self.date.setStyleSheet("""
             QDateEdit {
                 background-color: white;
                 border-radius: 15px;
                 padding: 8px 12px;
                 font-size: 16px;
+                color: black;
             }
             QDateEdit::drop-down {
                 subcontrol-origin: padding;
@@ -123,31 +140,22 @@ class VentanaRegistroPasajero(QWidget):
                 border-left: 1px solid #ccc;
                 border-radius: 0 15px 15px 0;
             }
-            QDateEdit::down-arrow {
-                image: url(:/recursos/down-arrow.png);
-                width: 14px;
-                height: 14px;
-            }
         """)
 
-        self.fecha_real = None
+        # Placeholder superpuesto
+        self.placeholder = QLabel("Fecha de nacimiento", self.date)
+        self.placeholder.setStyleSheet("color:#888; padding-left:5px; font-size:16px; background-color: white;")
+        self.placeholder.move(10, 7)
+        self.placeholder.resize(200, 25)
+        self.placeholder.setAttribute(Qt.WA_TransparentForMouseEvents)
+        self.placeholder.show()
 
-        # --- Placeholder superpuesto ---
-        placeholder = QLabel("Fecha de nacimiento", date)
-        placeholder.setStyleSheet("color:#888; padding-left:5px; font-size:16px; background-color: white;")
-        placeholder.move(10, 7)
-        placeholder.resize(200, 25)
-        placeholder.setAttribute(Qt.WA_TransparentForMouseEvents)
-        placeholder.show()
-
-        # --- Eventos para ocultar placeholder ---
         def ocultar_placeholder():
-            placeholder.hide()
+            self.placeholder.hide()
 
-        date.dateChanged.connect(lambda _: ocultar_placeholder())
-        date.calendarWidget().activated.connect(lambda _: ocultar_placeholder())
+        self.date.dateChanged.connect(lambda _: ocultar_placeholder())
+        self.date.calendarWidget().activated.connect(lambda _: ocultar_placeholder())
 
-        # --- QCalendarWidget personalizado ---
         calendar = QCalendarWidget()
         calendar.setVerticalHeaderFormat(QCalendarWidget.NoVerticalHeader)
         calendar.setStyleSheet("""
@@ -171,7 +179,7 @@ class VentanaRegistroPasajero(QWidget):
                 font-size: 14px;
             }
         """)
-        date.setCalendarWidget(calendar)
+        self.date.setCalendarWidget(calendar)
 
         # ============================
         # BOTONES
@@ -179,7 +187,7 @@ class VentanaRegistroPasajero(QWidget):
         botones = QHBoxLayout()
         botones.setSpacing(20)
 
-        btn_siguiente = QPushButton("Siguiente")
+        btn_siguiente = QPushButton("Registrar →")
         btn_siguiente.setStyleSheet("""
             QPushButton {
                 background: #004C90;
@@ -187,9 +195,11 @@ class VentanaRegistroPasajero(QWidget):
                 padding: 12px 20px;
                 border-radius: 15px;
                 font-size: 18px;
+                font-weight: bold;
             }
             QPushButton:hover { background: #003866; }
         """)
+        btn_siguiente.clicked.connect(self.registrar_pasajero)
 
         btn_cancelar = QPushButton("Cancelar")
         btn_cancelar.setStyleSheet("""
@@ -202,6 +212,7 @@ class VentanaRegistroPasajero(QWidget):
             }
             QPushButton:hover { background: #CC6200; }
         """)
+        btn_cancelar.clicked.connect(self.close)
 
         botones.addWidget(btn_siguiente)
         botones.addWidget(btn_cancelar)
@@ -211,11 +222,13 @@ class VentanaRegistroPasajero(QWidget):
         # ============================
         layout_tarjeta.addWidget(icono)
         layout_tarjeta.addWidget(titulo)
+        if asiento_id:
+            layout_tarjeta.addWidget(info_asiento)
         layout_tarjeta.addSpacing(10)
-        layout_tarjeta.addWidget(campo_nombre)
-        layout_tarjeta.addWidget(campo_ap1)
-        layout_tarjeta.addWidget(campo_ap2)
-        layout_tarjeta.addWidget(date)
+        layout_tarjeta.addWidget(self.campo_nombre)
+        layout_tarjeta.addWidget(self.campo_ap1)
+        layout_tarjeta.addWidget(self.campo_ap2)
+        layout_tarjeta.addWidget(self.date)
         layout_tarjeta.addSpacing(20)
         layout_tarjeta.addLayout(botones)
 
@@ -224,12 +237,76 @@ class VentanaRegistroPasajero(QWidget):
         layout_principal.addWidget(panel_izq, 3)
         layout_principal.addWidget(panel_der, 4)
 
+    def calcular_edad(self, nacimiento):
+        """Calcula la edad a partir de la fecha de nacimiento"""
+        hoy = date.today()
+        edad = hoy.year - nacimiento.year
+        if (hoy.month, hoy.day) < (nacimiento.month, nacimiento.day):
+            edad -= 1
+        return edad
+
+    def registrar_pasajero(self):
+        """Registra el pasajero en la base de datos"""
+        nombre = self.campo_nombre.text().strip()
+        apep = self.campo_ap1.text().strip()
+        apem = self.campo_ap2.text().strip()
+        
+        # Validar que se haya seleccionado fecha
+        if self.placeholder.isVisible():
+            QMessageBox.warning(self, "Error", "Debes seleccionar una fecha de nacimiento")
+            return
+        
+        nacimiento = self.date.date().toPython()
+
+        # Validaciones
+        if not nombre or not apep:
+            QMessageBox.warning(self, "Error", "Nombre y apellido paterno son obligatorios")
+            return
+
+        edad = self.calcular_edad(nacimiento)
+
+        try:
+            conexion = crear_conexion()
+            if not conexion:
+                QMessageBox.critical(self, "Error", "No se pudo conectar a la base de datos")
+                return
+            
+            cursor = conexion.cursor()
+
+            query = """
+                INSERT INTO pasajero (paNombre, paPrimerApell, paSegundoApell, fechaNacimiento, edad)
+                VALUES (%s, %s, %s, %s, %s)
+            """
+
+            cursor.execute(query, (nombre, apep, apem if apem else None, nacimiento, edad))
+            conexion.commit()
+
+            pasajero_id = cursor.lastrowid
+            conexion.close()
+
+            # Emitir señal con el ID del pasajero
+            self.pasajero_registrado.emit(pasajero_id)
+            
+            QMessageBox.information(
+                self, 
+                "Éxito", 
+                f"Pasajero {self.numero_pasajero} registrado correctamente\n"
+                f"Nombre: {nombre} {apep}\n"
+                f"Edad: {edad} años"
+            )
+            
+            self.close()
+
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"No se pudo registrar el pasajero:\n{e}")
+
 
 if __name__ == "__main__":
     from PySide6.QtWidgets import QApplication
     import sys
 
     app = QApplication(sys.argv)
-    ventana = VentanaRegistroPasajero()
+    ventana = VentanaRegistroPasajero(numero_pasajero=1, asiento_id=12, tipo_pasajero=1, total_pasajeros=3)
+    ventana.pasajero_registrado.connect(lambda id: print(f"Pasajero registrado con ID: {id}"))
     ventana.show()
     sys.exit(app.exec())
