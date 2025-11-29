@@ -1034,3 +1034,13 @@ class Ui_MainWindow(object):
         self.pushButton_53.setText(QCoreApplication.translate("MainWindow", u"19", None))
     # retranslateUi
 
+if __name__ == "__main__":
+    import sys
+    from PySide6.QtWidgets import QApplication, QMainWindow
+
+    app = QApplication(sys.argv)
+    MainWindow = QMainWindow()
+    ui = Ui_MainWindow()
+    ui.setupUi(MainWindow)
+    MainWindow.show()
+    sys.exit(app.exec())
