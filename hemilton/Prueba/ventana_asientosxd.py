@@ -52,6 +52,13 @@ class VentanaAsientos(QMainWindow):
         self.occupied = set()
         self.selected = []
         self.autobus_numero = None
+        
+        # Variables para el flujo completo de registro
+        self.asientos_para_registrar = []
+        self.tipos_pasajeros = []  # Lista de tipos seleccionados
+        self.pasajeros_registrados = []  # Lista de objetos con toda la info
+        self.indice_actual = 0
+        self.precio_base = 0.0
 
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
@@ -210,7 +217,7 @@ class VentanaAsientos(QMainWindow):
             query = """
             SELECT v.numero AS viaje_num, v.fecHoraSalida, 
                    t_origen.nombre AS origen, t_destino.nombre AS destino,
-                   a.numero AS autobus_num, a.placas, m.numasientos
+                   a.numero AS autobus_num, a.placas, m.numasientos, r.precio
             FROM viaje v
             JOIN ruta r ON v.ruta = r.codigo
             JOIN terminal t_origen ON r.origen = t_origen.numero
@@ -224,6 +231,7 @@ class VentanaAsientos(QMainWindow):
             if viaje:
                 self.autobus_numero = viaje['autobus_num']
                 self.total_asientos = viaje['numasientos'] or 36
+                self.precio_base = float(viaje['precio'])
                 self.lbl_viaje.setText(f"Viaje: #{viaje['viaje_num']}")
                 self.lbl_bus.setText(f"Bus: {viaje['autobus_num']} ({viaje['placas']})")
                 self.lbl_fecha.setText(f"Salida: {viaje['fecHoraSalida'].strftime('%d/%m/%Y %H:%M')}")
@@ -362,65 +370,99 @@ class VentanaAsientos(QMainWindow):
         self.info_label.setText(f"Disponibles: {disponibles}/{self.total_asientos} | Seleccionados: {len(self.selected)}")
 
     def on_accept(self):
+        """Inicia el proceso de registro de pasajeros"""
         if not self.selected:
             QMessageBox.warning(self, "Sin selección", "Debes seleccionar al menos un asiento.")
             return
-        asientos_nums = [num for _, num in self.selected]
+        
+        self.asientos_para_registrar = [num for _, num in self.selected]
+        
         respuesta = QMessageBox.question(
             self, "Confirmar selección",
-            f"Has seleccionado {len(asientos_nums)} asiento(s): {asientos_nums}\n\n"
+            f"Has seleccionado {len(self.asientos_para_registrar)} asiento(s): {self.asientos_para_registrar}\n\n"
             f"¿Deseas continuar al registro de pasajeros?",
             QMessageBox.Yes | QMessageBox.No
         )
+        
         if respuesta == QMessageBox.Yes:
-            self.asientos_para_registrar = asientos_nums
+            self.tipos_pasajeros = []
             self.pasajeros_registrados = []
-            self.tipos_seleccionados = []
             self.indice_actual = 0
             self.abrir_ventana_tipo_pasajero()
 
     def abrir_ventana_tipo_pasajero(self):
+        """Abre ventana para seleccionar tipo de pasajero"""
         from ventana_tipo_pasajero import VentanaTipoPasajero
+        
         if self.indice_actual >= len(self.asientos_para_registrar):
-            self.finalizar_registro()
+            self.abrir_ventana_pago()
             return
+        
         asiento_actual = self.asientos_para_registrar[self.indice_actual]
+        
         self.ventana_tipo = VentanaTipoPasajero(
             numero_pasajero=self.indice_actual + 1,
             asiento_id=asiento_actual,
             total_pasajeros=len(self.asientos_para_registrar)
         )
+        
         self.ventana_tipo.tipo_seleccionado.connect(self.on_tipo_seleccionado)
         self.ventana_tipo.show()
     
     def on_tipo_seleccionado(self, tipo_num):
-        self.tipos_seleccionados.append(tipo_num)
+        """Guarda el tipo y abre ventana de registro"""
+        self.tipos_pasajeros.append(tipo_num)
         self.abrir_ventana_registro_pasajero()
     
     def abrir_ventana_registro_pasajero(self):
+        """Abre ventana de registro de datos del pasajero"""
         from ventana_registro_pasajero import VentanaRegistroPasajero
+        
         asiento_actual = self.asientos_para_registrar[self.indice_actual]
-        tipo_actual = self.tipos_seleccionados[self.indice_actual]
+        tipo_actual = self.tipos_pasajeros[self.indice_actual]
+        
         self.ventana_registro = VentanaRegistroPasajero(
             numero_pasajero=self.indice_actual + 1,
             asiento_id=asiento_actual,
-            tipo_pasajero=tipo_actual,
             total_pasajeros=len(self.asientos_para_registrar)
         )
-        self.ventana_registro.pasajero_registrado.connect(self.on_pasajero_registrado)
+        
+        self.ventana_registro.pasajero_registrado.connect(
+            lambda pid: self.on_pasajero_registrado(pid, asiento_actual, tipo_actual)
+        )
         self.ventana_registro.show()
     
-    def on_pasajero_registrado(self, pasajero_id):
-        self.pasajeros_registrados.append(pasajero_id)
+    def on_pasajero_registrado(self, pasajero_id, asiento_id, tipo_pasajero):
+        """Guarda info del pasajero y continúa con el siguiente"""
+        self.pasajeros_registrados.append({
+            'pasajero_id': pasajero_id,
+            'asiento_id': asiento_id,
+            'tipo_pasajero': tipo_pasajero
+        })
+        
         self.indice_actual += 1
         self.abrir_ventana_tipo_pasajero()
     
-    def finalizar_registro(self):
+    def abrir_ventana_pago(self):
+        """Abre ventana de pago con resumen"""
+        from ventana_pago import VentanaPago
+        
+        self.ventana_pago = VentanaPago(
+            pasajeros_info=self.pasajeros_registrados,
+            id_viaje=self.id_viaje,
+            precio_base=self.precio_base
+        )
+        
+        self.ventana_pago.pago_confirmado.connect(self.finalizar_compra)
+        self.ventana_pago.show()
+    
+    def finalizar_compra(self):
+        """Marca asientos como ocupados y cierra"""
         try:
             conn = crear_conexion()
             if not conn:
-                QMessageBox.critical(self, "Error", "No se pudo conectar a la base de datos")
                 return
+            
             cursor = conn.cursor()
             for asiento_num in self.asientos_para_registrar:
                 update_query = """
@@ -428,20 +470,21 @@ class VentanaAsientos(QMainWindow):
                 WHERE viaje = %s AND asiento = %s
                 """
                 cursor.execute(update_query, (self.id_viaje, asiento_num))
+            
             conn.commit()
             cursor.close()
             conn.close()
-            self.asientos_seleccionados.emit(self.asientos_para_registrar)
+            
             QMessageBox.information(
-                self, "¡Registro completo!", 
-                f"Se registraron {len(self.pasajeros_registrados)} pasajeros exitosamente.\n\n"
-                f"Asientos: {self.asientos_para_registrar}\n"
-                f"Pasajeros IDs: {self.pasajeros_registrados}\n\n"
-                f"Ahora deberías crear los tickets y el pago."
+                self, "¡Compra exitosa!", 
+                f"Se completó la compra de {len(self.pasajeros_registrados)} boletos.\n\n"
+                "Gracias por tu preferencia."
             )
+            
             self.close()
+            
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Error al finalizar registro:\n{e}")
+            QMessageBox.critical(self, "Error", f"Error al finalizar:\n{e}")
 
     def resizeEvent(self, event):
         super().resizeEvent(event)

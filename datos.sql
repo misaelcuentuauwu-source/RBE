@@ -1,3 +1,4 @@
+-- Active: 1763409133053@@localhost@3306@rbe
 INSERT INTO pasajero (paNombre, paPrimerApell, paSegundoApell, fechaNacimiento, edad) VALUES
 ('Alejandro', 'Torres', 'López', '1995-04-12', 30),
 ('Mariana', 'Hernández', 'Cruz', '1988-11-03', 37),

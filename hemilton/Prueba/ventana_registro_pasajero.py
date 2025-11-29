@@ -16,11 +16,10 @@ class VentanaRegistroPasajero(QWidget):
     # Señal que emite el ID del pasajero registrado
     pasajero_registrado = Signal(int)
     
-    def __init__(self, numero_pasajero=1, asiento_id=None, tipo_pasajero=None, total_pasajeros=1):
+    def __init__(self, numero_pasajero=1, asiento_id=None, total_pasajeros=1):
         super().__init__()
         self.numero_pasajero = numero_pasajero
         self.asiento_id = asiento_id
-        self.tipo_pasajero = tipo_pasajero
         self.total_pasajeros = total_pasajeros
         
         self.setWindowTitle(f"Registro de pasajero {numero_pasajero}/{total_pasajeros}")
@@ -212,7 +211,7 @@ class VentanaRegistroPasajero(QWidget):
             }
             QPushButton:hover { background: #CC6200; }
         """)
-        btn_cancelar.clicked.connect(self.close)
+        btn_cancelar.clicked.connect(self.cancelar_registro)
 
         botones.addWidget(btn_siguiente)
         botones.addWidget(btn_cancelar)
@@ -284,21 +283,37 @@ class VentanaRegistroPasajero(QWidget):
             pasajero_id = cursor.lastrowid
             conexion.close()
 
-            # Emitir señal con el ID del pasajero
-            self.pasajero_registrado.emit(pasajero_id)
-            
+            # Mensaje de confirmación
             QMessageBox.information(
                 self, 
                 "Éxito", 
-                f"Pasajero {self.numero_pasajero} registrado correctamente\n"
+                f"Pasajero {self.numero_pasajero} de {self.total_pasajeros} registrado correctamente\n"
                 f"Nombre: {nombre} {apep}\n"
-                f"Edad: {edad} años"
+                f"Edad: {edad} años\n"
+                f"Asiento: #{self.asiento_id}"
             )
             
+            # Emitir señal con el ID del pasajero registrado
+            self.pasajero_registrado.emit(pasajero_id)
+            
+            # Cerrar esta ventana
             self.close()
 
         except Exception as e:
             QMessageBox.critical(self, "Error", f"No se pudo registrar el pasajero:\n{e}")
+    
+    def cancelar_registro(self):
+        """Cancela el registro y cierra todo el flujo"""
+        respuesta = QMessageBox.question(
+            self,
+            "Cancelar registro",
+            "¿Estás seguro de que deseas cancelar el registro?\n"
+            "Se perderán todos los datos ingresados hasta ahora.",
+            QMessageBox.Yes | QMessageBox.No
+        )
+        
+        if respuesta == QMessageBox.Yes:
+            self.close()
 
 
 if __name__ == "__main__":
@@ -306,7 +321,7 @@ if __name__ == "__main__":
     import sys
 
     app = QApplication(sys.argv)
-    ventana = VentanaRegistroPasajero(numero_pasajero=1, asiento_id=12, tipo_pasajero=1, total_pasajeros=3)
+    ventana = VentanaRegistroPasajero(numero_pasajero=1, asiento_id=12, total_pasajeros=3)
     ventana.pasajero_registrado.connect(lambda id: print(f"Pasajero registrado con ID: {id}"))
     ventana.show()
     sys.exit(app.exec())
