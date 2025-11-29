@@ -1,4 +1,6 @@
--- Active: 1760978807635@@127.0.0.1@3306@mysql
+=======
+-- Active: 1760982247071@@127.0.0.1@3306@mysql
+>>>>>>> e0c639a001de06f662462def0937b1524fdbc537
 DROP DATABASE IF EXISTS rbe;
 CREATE DATABASE rbe;
 USE rbe;
