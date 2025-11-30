@@ -10,6 +10,7 @@ from PySide6.QtWidgets import QHeaderView
 from conexion import crear_conexion
 from viajes_programados import ProgramacionWindow
 from PySide6.QtWidgets import QApplication
+from kpi import KPIWindow
 
 def actualizar_taquillero_bd(registro, nombre, ap1, ap2, usuario, contrasena):
     try:
@@ -124,16 +125,21 @@ class PanelAdministrador(QMainWindow):
             """)
             return btn
 
-        self.btn_dashboard = make_nav("Dashboard")
+        self.btn_dashboard = make_nav("KPI'S")
         sa_layout.addWidget(self.btn_dashboard)
+        
+        self.btn_salidas = make_nav("Salidas")      
+        sa_layout.addWidget(self.btn_salidas)
+        
         self.btn_historial = make_nav("Historial de Viajes")
         sa_layout.addWidget(self.btn_historial)
 
-        self.btn_salidas = make_nav("Salidas")      
-        sa_layout.addWidget(self.btn_salidas)
+        
 
         self.btn_gestion = make_nav("Gestión ▾")
         sa_layout.addWidget(self.btn_gestion)
+        
+        
         
         
 
@@ -277,6 +283,15 @@ class PanelAdministrador(QMainWindow):
 
         self.stacked.addWidget(self.page_historial)
 
+        self.page_kpis = QWidget()
+        kpi_layout = QVBoxLayout(self.page_kpis)
+
+        self.kpi_widget = KPIWindow()
+        self.kpi_widget.setWindowFlags(Qt.Widget)  # importante para incrustarlo
+
+        kpi_layout.addWidget(self.kpi_widget)
+
+        self.stacked.addWidget(self.page_kpis)
 
 
         # config page
@@ -326,7 +341,7 @@ class PanelAdministrador(QMainWindow):
         # -- connections --
         self.toggle_btn.clicked.connect(self.toggle_menu)
         self.btn_gestion.clicked.connect(self._toggle_gestion)
-        self.btn_dashboard.clicked.connect(lambda: self.stacked.setCurrentWidget(self.page_dashboard))
+        self.btn_dashboard.clicked.connect(lambda: self.stacked.setCurrentWidget(self.page_kpis))
         self.btn_historial.clicked.connect(lambda: self.stacked.setCurrentWidget(self.page_historial))
         self.btn_config.clicked.connect(lambda: self.stacked.setCurrentWidget(self.page_config))
         btn_back.clicked.connect(lambda: self.stacked.setCurrentWidget(self.page_dashboard))
