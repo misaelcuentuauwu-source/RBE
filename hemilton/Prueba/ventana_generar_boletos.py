@@ -1,4 +1,7 @@
-# ventana_generar_boletos.py - Versión COMPLETA corregida
+Aquí tienes el código completo con los ajustes solicitados: **eliminación de los círculos decorativos**, **mejora en la legibilidad de textos** y **optimización de posiciones** para que todo quede bien alineado. También he actualizado las plantillas para que sean más equilibradas visualmente:
+
+```python
+# ventana_generar_boletos.py - Versión optimizada
 from datetime import datetime
 from PySide6.QtWidgets import (
     QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout,
@@ -91,31 +94,33 @@ class TicketCanvas(QFrame):
         painter.setFont(QFont("Courier", 12, QFont.Bold))
         painter.drawText(QRect(100, 45, 300, 25), Qt.AlignLeft, "★ RBE ★")
         painter.setFont(QFont("Courier", 14, QFont.Bold))
-        painter.drawText(QRect(100, 55, 300, 25), Qt.AlignLeft, self.numero_boleto)
+        painter.drawText(QRect(100, 60, 300, 25), Qt.AlignLeft, self.numero_boleto)
 
         # Origen y Destino
         y_offset = 100
         painter.setPen(self.color_texto)
-        painter.setFont(QFont("Arial", 11, QFont.Bold))
+        painter.setFont(QFont("Arial", 10, QFont.Bold))
         painter.drawText(QRect(margen, y_offset, 150, 20), Qt.AlignLeft, "ORIGEN:")
         painter.setFont(QFont("Arial", 16, QFont.Bold))
-        painter.drawText(QRect(margen, y_offset+20, 150, 30), Qt.AlignLeft, self.origen)
+        painter.drawText(QRect(margen, y_offset+20, 200, 30), Qt.AlignLeft, self.origen)
 
-        painter.setFont(QFont("Arial", 11, QFont.Bold))
+        painter.setFont(QFont("Arial", 10, QFont.Bold))
         painter.drawText(QRect(izq_w-170, y_offset, 150, 20), Qt.AlignRight, "DESTINO:")
         painter.setFont(QFont("Arial", 16, QFont.Bold))
-        painter.drawText(QRect(izq_w-170, y_offset+20, 150, 30), Qt.AlignRight, self.destino)
+        painter.drawText(QRect(izq_w-200, y_offset+20, 200, 30), Qt.AlignRight, self.destino)
 
-    
+        # Línea divisoria simple (sin círculos)
+        painter.setPen(QPen(self.color_acento, 2))
+        painter.drawLine(izq_w//2-30, y_offset+35, izq_w//2+30, y_offset+35)
 
-        y_offset += 70
+        y_offset += 60
 
         # Fecha
         painter.setPen(self.color_texto)
         painter.setFont(QFont("Arial", 10, QFont.Bold))
         painter.drawText(QRect(margen, y_offset, 200, 20), Qt.AlignLeft, "FECHA Y HORA:")
-        painter.setFont(QFont("Arial", 13))
-        painter.drawText(QRect(margen, y_offset+18, 200, 25), Qt.AlignLeft, self.fecha_salida)
+        painter.setFont(QFont("Arial", 12))
+        painter.drawText(QRect(margen, y_offset+20, 200, 25), Qt.AlignLeft, self.fecha_salida)
 
         y_offset += 50
 
@@ -177,7 +182,7 @@ class TicketCanvas(QFrame):
 
         y_talon += 50
 
-        painter.setFont(QFont("Arial", 13, QFont.Bold))
+        painter.setFont(QFont("Arial", 12, QFont.Bold))
         painter.setPen(self.color_acento)
         painter.drawText(QRect(der_x+15, y_talon, der_w-30, 30), Qt.AlignCenter,
                         f"{self.origen} → {self.destino}")
@@ -323,7 +328,7 @@ class VentanaGenerarBoletos(QWidget):
         layout_plantillas = QVBoxLayout(contenedor_plantillas)
         layout_plantillas.setSpacing(12)
 
-        # Plantillas predefinidas
+        # Plantillas predefinidas optimizadas
         lbl_plantillas = QLabel("Plantillas")
         lbl_plantillas.setStyleSheet("color: white; font-size: 16px; font-weight: bold;")
         layout_plantillas.addWidget(lbl_plantillas)
@@ -332,11 +337,13 @@ class VentanaGenerarBoletos(QWidget):
 
         plantillas = [
             ("Clásico Azul", "#0074B7", "#FFFFFF", "#000000", "#E86A1E"),
-            ("Nocturno", "#1a1a1a", "#FFFFFF", "#FFFFFF", "#FFD700"),
+            ("Nocturno", "#2C3E50", "#ECF0F1", "#FFFFFF", "#F39C12"),
             ("Sunset", "#FF6B35", "#FFF8E7", "#2C1810", "#FFD23F"),
             ("Ocean", "#006BA6", "#E8F4F8", "#0A2463", "#1B998B"),
             ("Forest", "#2D6A4F", "#E8F5E9", "#081C15", "#95D5B2"),
             ("Royal", "#4A148C", "#F3E5F5", "#FFFFFF", "#E040FB"),
+            ("Vintage", "#8B4513", "#F5F5DC", "#5D4037", "#D2691E"),
+            ("Minimalista", "#FFFFFF", "#000000", "#333333", "#666666"),
         ]
 
         for i, (nombre, primario, secundario, texto, acento) in enumerate(plantillas):
@@ -592,7 +599,6 @@ class VentanaGenerarBoletos(QWidget):
 
     def aplicar_plantilla(self, primario, secundario, texto, acento):
         """Aplica una plantilla predefinida al boleto actual"""
-        # Guardar los colores para el pasajero actual
         pasajero_id = self.pasajeros_info[self.indice_actual]['pasajero_id']
         self.colores_pasajeros[pasajero_id] = {
             'primario': primario,
@@ -605,7 +611,6 @@ class VentanaGenerarBoletos(QWidget):
     def aplicar_colores_custom(self):
         """Aplica colores personalizados al boleto actual"""
         if len(self.colores_custom) == 4:
-            # Guardar los colores para el pasajero actual
             pasajero_id = self.pasajeros_info[self.indice_actual]['pasajero_id']
             self.colores_pasajeros[pasajero_id] = {
                 'primario': self.colores_custom['primario'],
@@ -633,7 +638,6 @@ class VentanaGenerarBoletos(QWidget):
 
             cursor = conn.cursor(dictionary=True)
 
-            # Consulta para obtener datos del viaje
             query = """
             SELECT
                 v.numero AS viaje_id,
@@ -659,7 +663,6 @@ class VentanaGenerarBoletos(QWidget):
                     'precio_base': float(viaje['precio_base'])
                 }
 
-                # Actualizar label de info
                 self.lbl_info_viaje.setText(
                     f"<b>Viaje #{viaje['viaje_id']}</b><br>"
                     f"Ruta: {viaje['origen']} → {viaje['destino']}<br>"
@@ -689,7 +692,6 @@ class VentanaGenerarBoletos(QWidget):
 
             cursor = conn.cursor(dictionary=True)
 
-            # Obtener datos del pasajero
             query_pax = """
             SELECT
                 paNombre, paPrimerApell, paSegundoApell
@@ -699,7 +701,6 @@ class VentanaGenerarBoletos(QWidget):
             cursor.execute(query_pax, (info['pasajero_id'],))
             pax = cursor.fetchone()
 
-            # Obtener tipo de pasajero
             query_tipo = """
             SELECT
                 descripcion, descuento
@@ -710,15 +711,12 @@ class VentanaGenerarBoletos(QWidget):
             tipo = cursor.fetchone()
 
             if pax and tipo:
-                # Construir nombre completo
                 nombre_completo = f"{pax['paNombre']} {pax['paPrimerApell']}"
                 if pax['paSegundoApell']:
                     nombre_completo += f" {pax['paSegundoApell']}"
 
-                # Generar número de boleto único
                 numero_boleto = f"{self.id_viaje}{info['asiento_id']:03d}{info['pasajero_id']:04d}"
 
-                # Calcular precio con descuento
                 descuento = tipo['descuento']
                 precio_final = self.datos_viaje['precio_base'] * (1 - descuento / 100.0)
 
@@ -735,7 +733,6 @@ class VentanaGenerarBoletos(QWidget):
 
                 self.ticket_canvas.set_datos(datos_boleto)
 
-                # Aplicar colores personalizados si existen para este pasajero
                 pasajero_id = info['pasajero_id']
                 if pasajero_id in self.colores_pasajeros:
                     colores = self.colores_pasajeros[pasajero_id]
@@ -746,7 +743,6 @@ class VentanaGenerarBoletos(QWidget):
                         colores['acento']
                     )
 
-                # Actualizar info del pasajero
                 self.lbl_info_pasajero.setText(
                     f"<b>{nombre_completo}</b><br>"
                     f"Asiento: #{info['asiento_id']}<br>"
@@ -798,7 +794,7 @@ class VentanaGenerarBoletos(QWidget):
                 except Exception as e:
                     QMessageBox.critical(self, "Error", f"Error al exportar PNG:\n{str(e)}")
 
-        elif formato == "PDF":  # ✅ Corregido: Indentación correcta (mismo nivel que el if)
+        elif formato == "PDF":
             archivo, _ = QFileDialog.getSaveFileName(
                 self, "Guardar boleto",
                 f"Boleto_{self.indice_actual + 1}.pdf",
@@ -809,10 +805,10 @@ class VentanaGenerarBoletos(QWidget):
                     printer = QPrinter(QPrinter.HighResolution)
                     printer.setOutputFormat(QPrinter.PdfFormat)
                     printer.setOutputFileName(archivo)
-                    printer.setPageSize(QPageSize(QPageSize.A4))  # ✅ Corregido: Usar QPageSize
+                    printer.setPageSize(QPageSize(QPageSize.A4))
 
                     painter = QPainter(printer)
-                    page_rect = printer.pageRect(QPrinter.DevicePixel)  # ✅ Corregido: Argumento obligatorio
+                    page_rect = printer.pageRect(QPrinter.DevicePixel)
                     scale = min(
                         page_rect.width() / self.ticket_canvas.width(),
                         page_rect.height() / self.ticket_canvas.height()
@@ -824,6 +820,7 @@ class VentanaGenerarBoletos(QWidget):
                     QMessageBox.information(self, "Éxito", f"Boleto guardado en:\n{archivo}")
                 except Exception as e:
                     QMessageBox.critical(self, "Error", f"Error al exportar PDF:\n{str(e)}")
+
     def exportar_todos(self):
         """Exporta todos los boletos como PNG y PDF"""
         import os
@@ -847,10 +844,10 @@ class VentanaGenerarBoletos(QWidget):
                 printer = QPrinter(QPrinter.HighResolution)
                 printer.setOutputFormat(QPrinter.PdfFormat)
                 printer.setOutputFileName(archivo_pdf)
-                printer.setPageSize(QPageSize(QPageSize.A4))  # ✅ Corregido: Usar QPageSize
+                printer.setPageSize(QPageSize(QPageSize.A4))
 
                 painter = QPainter(printer)
-                page_rect = printer.pageRect(QPrinter.DevicePixel)  # ✅ Corregido: Argumento obligatorio
+                page_rect = printer.pageRect(QPrinter.DevicePixel)
                 scale = min(
                     page_rect.width() / self.ticket_canvas.width(),
                     page_rect.height() / self.ticket_canvas.height()
@@ -859,7 +856,6 @@ class VentanaGenerarBoletos(QWidget):
                 self.ticket_canvas.render(painter, QPoint(0, 0))
                 painter.end()
 
-            # Volver al primer boleto
             self.indice_actual = 0
             self.actualizar_vista_boleto()
             self.actualizar_botones_navegacion()
@@ -871,17 +867,16 @@ class VentanaGenerarBoletos(QWidget):
 
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error al exportar boletos:\n{str(e)}")
-# Código de prueba
+
 if __name__ == "__main__":
     from PySide6.QtWidgets import QApplication
     import sys
 
     app = QApplication(sys.argv)
 
-    # Datos de prueba (adaptados a tu esquema SQL)
     pasajeros_prueba = [
-        {'pasajero_id': 1, 'asiento_id': 12, 'tipo_pasajero': 1},  # Regular
-        {'pasajero_id': 2, 'asiento_id': 13, 'tipo_pasajero': 2}   # Estudiante (con descuento)
+        {'pasajero_id': 1, 'asiento_id': 12, 'tipo_pasajero': 1},
+        {'pasajero_id': 2, 'asiento_id': 13, 'tipo_pasajero': 2}
     ]
 
     ventana = VentanaGenerarBoletos(pasajeros_info=pasajeros_prueba, id_viaje=1)
