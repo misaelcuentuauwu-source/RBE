@@ -1,0 +1,27 @@
+[33m4a9db83[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m HEAD@{0}: reset: moving to origin/main
+[33mc277233[m HEAD@{1}: commit: Solo es una prueba
+[33ma398e6c[m HEAD@{2}: pull origin main --rebase (finish): returning to refs/heads/main
+[33ma398e6c[m HEAD@{3}: pull origin main --rebase (pick): Solo es una prueba
+[33m875bcd2[m HEAD@{4}: pull origin main --rebase (start): checkout 875bcd2dc1b816b065305ce0af65955ccb4c6dcc
+[33me0bbf7e[m HEAD@{5}: commit: Solo es una prueba
+[33meb9e65a[m HEAD@{6}: pull origin main: Fast-forward
+[33m4ec0306[m HEAD@{7}: pull origin main: Fast-forward
+[33m7a945e0[m HEAD@{8}: commit: Solo es una prueba
+[33me5d7442[m HEAD@{9}: pull origin main: Fast-forward
+[33me0c639a[m HEAD@{10}: commit: Solo es una prueba
+[33m299b332[m HEAD@{11}: pull origin main: Fast-forward
+[33m66c0314[m HEAD@{12}: commit: Solo es una prueba
+[33ma019fcb[m HEAD@{13}: commit: Solo es una prueba
+[33m070e3d7[m HEAD@{14}: commit: Solo es una prueba
+[33m526c328[m HEAD@{15}: commit: Solo es una prueba
+[33m135949d[m HEAD@{16}: pull origin main: Fast-forward
+[33m6bc681c[m HEAD@{17}: commit: nose
+[33m7a3e672[m HEAD@{18}: pull origin main: Fast-forward
+[33m94011ec[m HEAD@{19}: commit: Solo es una prueba
+[33m628f52e[m HEAD@{20}: pull origin main: Fast-forward
+[33m3041d7d[m HEAD@{21}: commit: Solo es una prueba
+[33m5670414[m HEAD@{22}: pull origin main: Fast-forward
+[33mc826cc0[m HEAD@{23}: commit: El archivo se llama rutas_baja_express_ui.py
+[33m2944690[m HEAD@{24}: reset: moving to origin/main
+[33m2e845f0[m HEAD@{25}: pull origin main: Fast-forward
+[33m2cecec9[m HEAD@{26}: clone: from https://github.com/misaelcuentuauwu-source/RBE.git
