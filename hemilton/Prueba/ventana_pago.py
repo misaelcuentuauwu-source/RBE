@@ -9,6 +9,8 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QFont, QPixmap
 from conexion import crear_conexion
+# Al inicio de ventana_pago.py, agregar:
+from ventana_generar_boletos import VentanaGenerarBoletos
 import recursos_rc
 
 
@@ -449,25 +451,41 @@ class VentanaPago(QWidget):
                     pago_id
                 ))
             
+            # 3. Marcar asientos como ocupados
+            for info in self.pasajeros_info:
+                update_query = """
+                UPDATE viaje_asiento SET ocupado = TRUE 
+                WHERE viaje = %s AND asiento = %s
+                """
+                cursor.execute(update_query, (self.id_viaje, info['asiento_id']))
+            
             conn.commit()
             cursor.close()
             conn.close()
             
+            # AQUÍ VIENE LA INTEGRACIÓN NUEVA ⬇️
             QMessageBox.information(
                 self, "¡Pago exitoso!",
                 f"Se procesó el pago correctamente.\n\n"
                 f"Total: ${self.total_pagar:.2f}\n"
                 f"Boletos: {len(self.pasajeros_info)}\n"
-                f"Método: {metodo_texto}"
+                f"Método: {metodo_texto}\n\n"
+                f"A continuación podrás personalizar y exportar tus boletos."
             )
             
-            # Emitir señal para que se marquen los asientos
+            # ⭐ ABRIR VENTANA DE GENERACIÓN DE BOLETOS
+            self.ventana_boletos = VentanaGenerarBoletos(
+                pasajeros_info=self.pasajeros_info,
+                id_viaje=self.id_viaje
+            )
+            self.ventana_boletos.show()
+            
+            # Emitir señal y cerrar ventana de pago
             self.pago_confirmado.emit()
             self.close()
             
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error al procesar pago:\n{e}")
-
     def resizeEvent(self, event):
         for lbl in [self.img, self.logo, self.icono]:
             pix = lbl.original_pixmap
