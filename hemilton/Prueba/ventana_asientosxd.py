@@ -1,5 +1,5 @@
 # ventana_asientosxd.py
-# Interfaz DINÁMICA de selección de asientos con flujo completo de registro
+# Interfaz DINÁMICA de selección de asientos con PASILLO CENTRAL HORIZONTAL
 
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QLabel, QPushButton, QVBoxLayout,
@@ -47,16 +47,16 @@ class VentanaAsientos(QMainWindow):
 
         self.total_asientos = 0
         self.rows = 0
-        self.cols = 0
+        self.cols_left = 0
+        self.cols_right = 0
         self.special_positions = set()
         self.occupied = set()
         self.selected = []
         self.autobus_numero = None
         
-        # Variables para el flujo completo de registro
         self.asientos_para_registrar = []
-        self.tipos_pasajeros = []  # Lista de tipos seleccionados
-        self.pasajeros_registrados = []  # Lista de objetos con toda la info
+        self.tipos_pasajeros = []
+        self.pasajeros_registrados = []
         self.indice_actual = 0
         self.precio_base = 0.0
 
@@ -165,7 +165,6 @@ class VentanaAsientos(QMainWindow):
         info_layout.setContentsMargins(10,6,10,6)
         info_layout.setSpacing(20)
 
-        # ORDEN REORGANIZADO: Viaje → Origen → Destino → Salida → Bus
         self.lbl_viaje  = QLabel("Viaje: -")
         self.lbl_origen = QLabel("Origen: -")
         self.lbl_dest   = QLabel("Destino: -")
@@ -234,7 +233,6 @@ class VentanaAsientos(QMainWindow):
                 self.total_asientos = viaje['numasientos'] or 36
                 self.precio_base = float(viaje['precio'])
                 
-                # ACTUALIZAR EN EL NUEVO ORDEN
                 self.lbl_viaje.setText(f"Viaje: #{viaje['viaje_num']}")
                 self.lbl_origen.setText(f"Origen: {viaje['origen']}")
                 self.lbl_dest.setText(f"Destino: {viaje['destino']}")
@@ -246,34 +244,55 @@ class VentanaAsientos(QMainWindow):
             QMessageBox.critical(self, "Error", f"Error al cargar datos del viaje:\n{e}")
     
     def cargar_configuracion_asientos(self):
-        if self.total_asientos <= 20:
-            self.cols = 4
-        elif self.total_asientos <= 30:
-            self.cols = 5
-        elif self.total_asientos <= 40:
-            self.cols = 9
-        elif self.total_asientos <= 50:
-            self.cols = 10
+        """Configura la distribución de asientos CON PASILLO CENTRAL VERTICAL"""
+        # rows = columnas verticales (de arriba hacia abajo)
+        # cols = filas de asientos uno al lado del otro
+        if self.total_asientos <= 24:
+            # 2 asientos arriba del pasillo, 2 abajo
+            self.cols_left = 2  # Asientos arriba del pasillo
+            self.cols_right = 2  # Asientos abajo del pasillo
+            self.rows = math.ceil(self.total_asientos / 4)  # Columnas verticales
+        elif self.total_asientos <= 44:
+            self.cols_left = 2
+            self.cols_right = 2
+            self.rows = math.ceil(self.total_asientos / 4)
         else:
-            self.cols = 11
-        self.rows = math.ceil(self.total_asientos / self.cols)
-        self.special_positions = {(1, 1), (1, 2)}
+            self.cols_left = 2
+            self.cols_right = 2
+            self.rows = math.ceil(self.total_asientos / 4)
+        
+        # Asientos especiales (primera columna, cerca del conductor)
+        self.special_positions = {('L', 1, 1), ('R', 1, 1)}
     
     def crear_botones_asientos(self):
+        """Crea los botones con distribución HORIZONTAL de pasillo central"""
         counter = 1
+        
         for r in range(1, self.rows + 1):
-            for c in range(1, self.cols + 1):
+            for c in range(1, self.cols_left + 1):
                 if counter > self.total_asientos:
                     break
                 btn = QPushButton(str(counter), self.overlay)
                 btn.setCheckable(True)
                 btn.setStyleSheet("border:none; background:transparent;")
                 btn.clicked.connect(lambda checked, rr=r, cc=c, num=counter, b=btn: 
-                                  self.on_seat_clicked(rr, cc, num, b))
-                self.seat_buttons[(r, c)] = btn
+                                  self.on_seat_clicked('L', rr, cc, num, b))
+                self.seat_buttons[('L', r, c)] = btn
+                counter += 1
+            
+            for c in range(1, self.cols_right + 1):
+                if counter > self.total_asientos:
+                    break
+                btn = QPushButton(str(counter), self.overlay)
+                btn.setCheckable(True)
+                btn.setStyleSheet("border:none; background:transparent;")
+                btn.clicked.connect(lambda checked, rr=r, cc=c, num=counter, b=btn: 
+                                  self.on_seat_clicked('R', rr, cc, num, b))
+                self.seat_buttons[('R', r, c)] = btn
                 counter += 1
     
     def cargar_asientos_ocupados(self):
+        """Carga los asientos ocupados desde la BD"""
         try:
             conn = crear_conexion()
             if not conn:
@@ -285,12 +304,23 @@ class VentanaAsientos(QMainWindow):
             """
             cursor.execute(query_ocupados, (self.id_viaje,))
             ocupados = cursor.fetchall()
+            
             for row in ocupados:
                 num_asiento = row['asiento']
                 if num_asiento <= self.total_asientos:
-                    fila = ((num_asiento - 1) // self.cols) + 1
-                    col = ((num_asiento - 1) % self.cols) + 1
-                    self.occupied.add((fila, col))
+                    asientos_por_fila = self.cols_left + self.cols_right
+                    fila = ((num_asiento - 1) // asientos_por_fila) + 1
+                    pos_en_fila = ((num_asiento - 1) % asientos_por_fila) + 1
+                    
+                    if pos_en_fila <= self.cols_left:
+                        lado = 'L'
+                        col = pos_en_fila
+                    else:
+                        lado = 'R'
+                        col = pos_en_fila - self.cols_left
+                    
+                    self.occupied.add((lado, fila, col))
+            
             disponibles = self.total_asientos - len(ocupados)
             self.info_label.setText(f"Disponibles: {disponibles}/{self.total_asientos} | Seleccionados: 0")
             cursor.close()
@@ -299,9 +329,11 @@ class VentanaAsientos(QMainWindow):
             QMessageBox.warning(self, "Aviso", f"No se pudieron cargar asientos ocupados:\n{e}")
 
     def _update_camion_and_overlay(self):
+        """Actualiza la posición de los asientos VERTICALMENTE con pasillo HORIZONTAL en medio"""
         target_w = int(self.width() * 0.80)
         if target_w < 480:
             target_w = 480
+        
         if not self.pm_camion.isNull():
             orig_w = self.pm_camion.width()
             orig_h = self.pm_camion.height()
@@ -311,52 +343,111 @@ class VentanaAsientos(QMainWindow):
         else:
             target_w, target_h = 661, 191
             self.camion_label.setFixedSize(target_w, target_h)
+        
         cw = self.camion_label.width()
         ch = self.camion_label.height()
         self.overlay.setGeometry(0, 0, cw, ch)
+        
         sx = cw / self.ref_camion_w
         sy = ch / self.ref_camion_h
         interior_x = int(self.ref_interior.x() * sx)
         interior_y = int(self.ref_interior.y() * sy)
         interior_w = int(self.ref_interior.width() * sx)
         interior_h = int(self.ref_interior.height() * sy)
-        pad_x, pad_y = 8, 3
+        
+        pad_x, pad_y = 15, 10
         usable_w = max(10, interior_w - 2*pad_x)
         usable_h = max(10, interior_h - 2*pad_y)
-        gap_x = max(8, int(40 - self.cols * 2))
-        gap_y = 8
-        seat_w = int((usable_w - (self.cols-1)*gap_x) / self.cols)
-        seat_h = int((usable_h - (self.rows-1)*gap_y) / self.rows)
-        seat_size = max(24, min(48, min(seat_w, seat_h)))
-        total_seats_width = self.cols * seat_size + (self.cols-1) * gap_x
-        start_x = interior_x + pad_x + max(0, (usable_w - total_seats_width)//2)
+        
+        # Espaciado
+        gap_col = 8  # Espacio horizontal entre columnas
+        gap_row = 6  # Espacio vertical entre asientos de la misma columna
+        pasillo_height = 18  # Altura del pasillo HORIZONTAL en medio
+        
+        # Calcular tamaño de asientos
+        seat_w = (usable_w - (self.rows - 1) * gap_col) // self.rows
+        
+        # Altura disponible para asientos (restando el pasillo horizontal)
+        available_height = usable_h - pasillo_height
+        total_rows_vertical = self.cols_left + self.cols_right
+        seat_h = (available_height - (total_rows_vertical - 1) * gap_row) // total_rows_vertical
+        
+        seat_size = max(28, min(42, min(seat_w, seat_h)))
+        
+        # Posición inicial (arriba a la izquierda)
+        start_x = interior_x + pad_x
         start_y = interior_y + pad_y
-        for (r, c), btn in self.seat_buttons.items():
-            x = start_x + (c-1) * (seat_size + gap_x)
-            y = start_y + (r-1) * (seat_size + gap_y)
-            btn.setGeometry(x, y, seat_size, seat_size)
-            key = (r, c)
-            if key in self.occupied:
-                btn.setEnabled(False)
-                if not self.icon_ocup.isNull():
-                    btn.setIcon(QIcon(self.icon_ocup))
-            else:
-                btn.setEnabled(True)
-                if key in self.special_positions and not self.icon_esp.isNull():
-                    btn.setIcon(QIcon(self.icon_esp))
-                elif not self.icon_disp.isNull():
-                    btn.setIcon(QIcon(self.icon_disp))
-            btn.setIconSize(QSize(int(seat_size*0.7), int(seat_size*0.7)))
-            if key in self.selected:
-                if key in self.special_positions and not self.icon_esp_sel.isNull():
-                    btn.setIcon(QIcon(self.icon_esp_sel))
-                elif not self.icon_sel.isNull():
-                    btn.setIcon(QIcon(self.icon_sel))
+        
+        # Posicionar asientos COLUMNA POR COLUMNA (de izquierda a derecha)
+        for col_num in range(1, self.rows + 1):
+            current_x = start_x + (col_num - 1) * (seat_size + gap_col)
+            
+            # PARTE SUPERIOR (arriba del pasillo)
+            current_y = start_y
+            for row_num in range(1, self.cols_left + 1):
+                key = ('L', col_num, row_num)
+                if key in self.seat_buttons:
+                    btn = self.seat_buttons[key]
+                    btn.setGeometry(current_x, current_y, seat_size, seat_size)
+                    
+                    if key in self.occupied:
+                        btn.setEnabled(False)
+                        if not self.icon_ocup.isNull():
+                            btn.setIcon(QIcon(self.icon_ocup))
+                    else:
+                        btn.setEnabled(True)
+                        if key in self.special_positions and not self.icon_esp.isNull():
+                            btn.setIcon(QIcon(self.icon_esp))
+                        elif not self.icon_disp.isNull():
+                            btn.setIcon(QIcon(self.icon_disp))
+                    
+                    btn.setIconSize(QSize(int(seat_size*0.7), int(seat_size*0.7)))
+                    
+                    if key in [(k[0], k[1], k[2]) for k, _ in self.selected]:
+                        if key in self.special_positions and not self.icon_esp_sel.isNull():
+                            btn.setIcon(QIcon(self.icon_esp_sel))
+                        elif not self.icon_sel.isNull():
+                            btn.setIcon(QIcon(self.icon_sel))
+                    
+                    current_y += seat_size + gap_row
+            
+            # PASILLO HORIZONTAL (saltar el espacio)
+            current_y += pasillo_height
+            
+            # PARTE INFERIOR (abajo del pasillo)
+            for row_num in range(1, self.cols_right + 1):
+                key = ('R', col_num, row_num)
+                if key in self.seat_buttons:
+                    btn = self.seat_buttons[key]
+                    btn.setGeometry(current_x, current_y, seat_size, seat_size)
+                    
+                    if key in self.occupied:
+                        btn.setEnabled(False)
+                        if not self.icon_ocup.isNull():
+                            btn.setIcon(QIcon(self.icon_ocup))
+                    else:
+                        btn.setEnabled(True)
+                        if key in self.special_positions and not self.icon_esp.isNull():
+                            btn.setIcon(QIcon(self.icon_esp))
+                        elif not self.icon_disp.isNull():
+                            btn.setIcon(QIcon(self.icon_disp))
+                    
+                    btn.setIconSize(QSize(int(seat_size*0.7), int(seat_size*0.7)))
+                    
+                    if key in [(k[0], k[1], k[2]) for k, _ in self.selected]:
+                        if key in self.special_positions and not self.icon_esp_sel.isNull():
+                            btn.setIcon(QIcon(self.icon_esp_sel))
+                        elif not self.icon_sel.isNull():
+                            btn.setIcon(QIcon(self.icon_sel))
+                    
+                    current_y += seat_size + gap_row
 
-    def on_seat_clicked(self, row, col, num_asiento, btn):
-        key = (row, col)
+    def on_seat_clicked(self, lado, row, col, num_asiento, btn):
+        """Maneja el click en un asiento"""
+        key = (lado, row, col)
         if key in self.occupied:
             return
+        
         if btn.isChecked():
             self.selected.append((key, num_asiento))
             if key in self.special_positions and not self.icon_esp_sel.isNull():
@@ -369,6 +460,7 @@ class VentanaAsientos(QMainWindow):
                 btn.setIcon(QIcon(self.icon_esp))
             elif not self.icon_disp.isNull():
                 btn.setIcon(QIcon(self.icon_disp))
+        
         disponibles = self.total_asientos - len(self.occupied)
         self.info_label.setText(f"Disponibles: {disponibles}/{self.total_asientos} | Seleccionados: {len(self.selected)}")
 
