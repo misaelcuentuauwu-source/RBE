@@ -1,4 +1,4 @@
-# ventana_generar_boletos.py - Versión final optimizada
+# ventana_generar_boletos.py - Versión final con todos los cambios solicitados
 from datetime import datetime
 from PySide6.QtWidgets import (
     QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout,
@@ -11,7 +11,7 @@ from PySide6.QtPrintSupport import QPrinter
 from conexion import crear_conexion
 
 class TicketCanvas(QFrame):
-    """Widget que dibuja el boleto personalizado"""
+    """Widget que dibuja el boleto personalizado con los cambios solicitados"""
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -19,10 +19,13 @@ class TicketCanvas(QFrame):
         self.setMaximumSize(760, 280)
 
         # Datos del boleto (valores por defecto)
-        self.numero_boleto = "000000000"
-        self.origen = "Origen"
-        self.destino = "Destino"
+        self.numero_boleto = "000000"  # Solo número de viaje (6 dígitos)
+        self.terminal_origen = "Terminal Origen"
+        self.terminal_destino = "Terminal Destino"
+        self.ciudad_origen = "Ciudad Origen"
+        self.ciudad_destino = "Ciudad Destino"
         self.fecha_salida = "01/01/2025 00:00"
+        self.fecha_llegada = "01/01/2025 00:00"
         self.asiento = "00"
         self.pasajero = "Nombre Pasajero"
         self.precio = "$0.00"
@@ -37,11 +40,14 @@ class TicketCanvas(QFrame):
         self.setStyleSheet("background: white; border: 2px solid #ccc; border-radius: 8px;")
 
     def set_datos(self, datos):
-        """Actualiza los datos del boleto"""
-        self.numero_boleto = datos.get('numero_boleto', '000000000')
-        self.origen = datos.get('origen', 'Origen')
-        self.destino = datos.get('destino', 'Destino')
+        """Actualiza los datos del boleto con la nueva estructura"""
+        self.numero_boleto = str(datos.get('numero_viaje', '000000'))  # Solo número de viaje
+        self.terminal_origen = datos.get('terminal_origen', 'Terminal Origen')
+        self.terminal_destino = datos.get('terminal_destino', 'Terminal Destino')
+        self.ciudad_origen = datos.get('ciudad_origen', 'Ciudad Origen')
+        self.ciudad_destino = datos.get('ciudad_destino', 'Ciudad Destino')
         self.fecha_salida = datos.get('fecha_salida', '01/01/2025 00:00')
+        self.fecha_llegada = datos.get('fecha_llegada', '01/01/2025 00:00')
         self.asiento = str(datos.get('asiento', '00'))
         self.pasajero = datos.get('pasajero', 'Nombre Pasajero')
         self.precio = datos.get('precio', '$0.00')
@@ -84,33 +90,48 @@ class TicketCanvas(QFrame):
         painter.drawText(QRect(100, 15, 300, 30), Qt.AlignLeft, "RUTAS BAJA EXPRESS")
 
         painter.setFont(QFont("Courier", 12, QFont.Bold))
-        painter.drawText(QRect(100, 45, 300, 25), Qt.AlignLeft, "★ RBE ★")
+        painter.drawText(QRect(100, 45, 300, 25), Qt.AlignLeft, "RBE")
         painter.setFont(QFont("Courier", 14, QFont.Bold))
         painter.drawText(QRect(100, 60, 300, 25), Qt.AlignLeft, self.numero_boleto)
 
-        # Origen y Destino
+        # Terminales de origen y destino
         y_offset = 100
         painter.setPen(self.color_texto)
-        painter.setFont(QFont("Arial", 10, QFont.Bold))
-        painter.drawText(QRect(margen, y_offset, 150, 20), Qt.AlignLeft, "ORIGEN:")
-        painter.setFont(QFont("Arial", 16, QFont.Bold))
-        painter.drawText(QRect(margen, y_offset+20, 200, 30), Qt.AlignLeft, self.origen)
+        painter.setFont(QFont("Arial", 8, QFont.Bold))
 
-        painter.setFont(QFont("Arial", 10, QFont.Bold))
-        painter.drawText(QRect(izq_w-170, y_offset, 150, 20), Qt.AlignRight, "DESTINO:")
-        painter.setFont(QFont("Arial", 16, QFont.Bold))
-        painter.drawText(QRect(izq_w-200, y_offset+20, 200, 30), Qt.AlignRight, self.destino)
+        # Origen
+        painter.drawText(QRect(margen, y_offset, 100, 20), Qt.AlignLeft, "TERMINAL ORIGEN:")
+        painter.setFont(QFont("Arial", 12, QFont.Bold))
+        painter.drawText(QRect(margen, y_offset+15, 180, 25), Qt.AlignLeft, self.terminal_origen)
 
-        y_offset += 60
+        # Destino
+        painter.setFont(QFont("Arial", 8, QFont.Bold))
+        painter.drawText(QRect(izq_w-180, y_offset, 100, 20), Qt.AlignLeft, "TERMINAL DESTINO:")
+        painter.setFont(QFont("Arial", 12, QFont.Bold))
+        painter.drawText(QRect(izq_w-180, y_offset+15, 180, 25), Qt.AlignLeft, self.terminal_destino)
 
-        # Fecha
+        y_offset += 45
+
+        # Fechas de salida y llegada
         painter.setPen(self.color_texto)
-        painter.setFont(QFont("Arial", 10, QFont.Bold))
-        painter.drawText(QRect(margen, y_offset, 200, 20), Qt.AlignLeft, "FECHA Y HORA:")
-        painter.setFont(QFont("Arial", 12))
-        painter.drawText(QRect(margen, y_offset+20, 200, 25), Qt.AlignLeft, self.fecha_salida)
+        painter.setFont(QFont("Arial", 8, QFont.Bold))
 
-        y_offset += 50
+        # Salida
+        painter.drawText(QRect(margen, y_offset, 80, 20), Qt.AlignLeft, "SALIDA:")
+        painter.setFont(QFont("Arial", 10))
+        fecha_salida = self.fecha_salida.split()
+        painter.drawText(QRect(margen, y_offset+15, 120, 20), Qt.AlignLeft, fecha_salida[0])  # Fecha
+        painter.drawText(QRect(margen, y_offset+30, 120, 20), Qt.AlignLeft, fecha_salida[1])  # Hora
+
+        # Llegada
+        painter.setFont(QFont("Arial", 8, QFont.Bold))
+        painter.drawText(QRect(izq_w-180, y_offset, 80, 20), Qt.AlignLeft, "LLEGADA:")
+        painter.setFont(QFont("Arial", 10))
+        fecha_llegada = self.fecha_llegada.split()
+        painter.drawText(QRect(izq_w-180, y_offset+15, 120, 20), Qt.AlignLeft, fecha_llegada[0])  # Fecha
+        painter.drawText(QRect(izq_w-180, y_offset+30, 120, 20), Qt.AlignLeft, fecha_llegada[1])  # Hora
+
+        y_offset += 55
 
         # Asiento
         painter.setPen(self.color_acento)
@@ -148,7 +169,7 @@ class TicketCanvas(QFrame):
 
         painter.setPen(self.color_secundario)
         painter.setFont(QFont("Courier", 10, QFont.Bold))
-        painter.drawText(QRect(der_x+70, 20, 200, 20), Qt.AlignLeft, "★ RBE ★")
+        painter.drawText(QRect(der_x+70, 20, 200, 20), Qt.AlignLeft, "RBE")
         painter.setFont(QFont("Courier", 12, QFont.Bold))
         painter.drawText(QRect(der_x+70, 40, 200, 25), Qt.AlignLeft, self.numero_boleto)
 
@@ -157,25 +178,25 @@ class TicketCanvas(QFrame):
         painter.setPen(self.color_texto)
 
         painter.setFont(QFont("Arial", 9, QFont.Bold))
-        painter.drawText(QRect(der_x+15, y_talon, der_w-30, 20), Qt.AlignLeft, "PASAJERO:")
-        painter.setFont(QFont("Arial", 11))
+        painter.drawText(QRect(der_x+15, y_talon, der_w-30, 20), Qt.AlignLeft, "NOMBRE PASAJERO:")
+        painter.setFont(QFont("Arial", 10))
         painter.drawText(QRect(der_x+15, y_talon+18, der_w-30, 25), Qt.AlignLeft, self.pasajero)
 
-        y_talon += 50
+        y_talon += 45
 
         painter.setFont(QFont("Arial", 9, QFont.Bold))
         painter.drawText(QRect(der_x+15, y_talon, der_w-30, 20), Qt.AlignLeft, "TIPO:")
-        painter.setFont(QFont("Arial", 11))
+        painter.setFont(QFont("Arial", 10))
         painter.drawText(QRect(der_x+15, y_talon+18, der_w-30, 25), Qt.AlignLeft, self.tipo_pasajero)
 
-        y_talon += 50
+        y_talon += 45
 
-        painter.setFont(QFont("Arial", 12, QFont.Bold))
+        painter.setFont(QFont("Arial", 10, QFont.Bold))
         painter.setPen(self.color_acento)
-        painter.drawText(QRect(der_x+15, y_talon, der_w-30, 30), Qt.AlignCenter,
-                        f"{self.origen} → {self.destino}")
+        painter.drawText(QRect(der_x+15, y_talon, der_w-30, 20), Qt.AlignCenter,
+                        f"{self.ciudad_origen} → {self.ciudad_destino}")
 
-        y_talon += 40
+        y_talon += 30
 
         painter.setPen(self.color_primario)
         painter.setBrush(self.color_primario)
@@ -194,7 +215,6 @@ class TicketCanvas(QFrame):
             painter.drawLine(x, y_talon+5, x, y_talon+altura)
 
         painter.end()
-
     def exportar_imagen(self):
         """Exporta el boleto como imagen (PNG)"""
         image = QImage(self.size(), QImage.Format_ARGB32)
@@ -626,17 +646,23 @@ class VentanaGenerarBoletos(QWidget):
 
             cursor = conn.cursor(dictionary=True)
 
+            # Consulta actualizada para incluir fecha de llegada, terminales y ciudades
             query = """
             SELECT
                 v.numero AS viaje_id,
                 v.fecHoraSalida,
-                t_origen.nombre AS origen,
-                t_destino.nombre AS destino,
+                v.fecHoraEntrada AS fecHoraLlegada,
+                t_origen.nombre AS terminal_origen,
+                t_destino.nombre AS terminal_destino,
+                c_origen.nombre AS ciudad_origen,
+                c_destino.nombre AS ciudad_destino,
                 r.precio AS precio_base
             FROM viaje v
             JOIN ruta r ON v.ruta = r.codigo
             JOIN terminal t_origen ON r.origen = t_origen.numero
             JOIN terminal t_destino ON r.destino = t_destino.numero
+            JOIN ciudad c_origen ON t_origen.ciudad = c_origen.clave
+            JOIN ciudad c_destino ON t_destino.ciudad = c_destino.clave
             WHERE v.numero = %s
             """
             cursor.execute(query, (self.id_viaje,))
@@ -645,16 +671,21 @@ class VentanaGenerarBoletos(QWidget):
             if viaje:
                 self.datos_viaje = {
                     'numero': viaje['viaje_id'],
-                    'origen': viaje['origen'],
-                    'destino': viaje['destino'],
+                    'terminal_origen': viaje['terminal_origen'],
+                    'terminal_destino': viaje['terminal_destino'],
+                    'ciudad_origen': viaje['ciudad_origen'],
+                    'ciudad_destino': viaje['ciudad_destino'],
                     'fecha_salida': viaje['fecHoraSalida'].strftime('%d/%m/%Y %H:%M'),
+                    'fecha_llegada': viaje['fecHoraLlegada'].strftime('%d/%m/%Y %H:%M'),
                     'precio_base': float(viaje['precio_base'])
                 }
 
                 self.lbl_info_viaje.setText(
                     f"<b>Viaje #{viaje['viaje_id']}</b><br>"
-                    f"Ruta: {viaje['origen']} → {viaje['destino']}<br>"
+                    f"Ruta: {viaje['ciudad_origen']} → {viaje['ciudad_destino']}<br>"
+                    f"Terminales: {viaje['terminal_origen']} → {viaje['terminal_destino']}<br>"
                     f"Salida: {viaje['fecHoraSalida'].strftime('%d/%m/%Y %H:%M')}<br>"
+                    f"Llegada: {viaje['fecHoraLlegada'].strftime('%d/%m/%Y %H:%M')}<br>"
                     f"Precio base: ${viaje['precio_base']:.2f}"
                 )
             else:
@@ -680,6 +711,7 @@ class VentanaGenerarBoletos(QWidget):
 
             cursor = conn.cursor(dictionary=True)
 
+            # Obtener datos del pasajero
             query_pax = """
             SELECT
                 paNombre, paPrimerApell, paSegundoApell
@@ -689,6 +721,7 @@ class VentanaGenerarBoletos(QWidget):
             cursor.execute(query_pax, (info['pasajero_id'],))
             pax = cursor.fetchone()
 
+            # Obtener datos del tipo de pasajero
             query_tipo = """
             SELECT
                 descripcion, descuento
@@ -699,20 +732,27 @@ class VentanaGenerarBoletos(QWidget):
             tipo = cursor.fetchone()
 
             if pax and tipo:
+                # Formatear nombre completo
                 nombre_completo = f"{pax['paNombre']} {pax['paPrimerApell']}"
                 if pax['paSegundoApell']:
                     nombre_completo += f" {pax['paSegundoApell']}"
 
-                numero_boleto = f"{self.id_viaje}{info['asiento_id']:03d}{info['pasajero_id']:04d}"
+                # Número de boleto ahora solo incluye el número de viaje
+                numero_boleto = f"{self.datos_viaje['numero']}"
 
+                # Calcular precio con descuento
                 descuento = tipo['descuento']
                 precio_final = self.datos_viaje['precio_base'] * (1 - descuento / 100.0)
 
+                # Preparar datos para el boleto con los cambios solicitados
                 datos_boleto = {
-                    'numero_boleto': numero_boleto,
-                    'origen': self.datos_viaje.get('origen', 'Origen'),
-                    'destino': self.datos_viaje.get('destino', 'Destino'),
+                    'numero_viaje': numero_boleto,  # Solo número de viaje
+                    'terminal_origen': self.datos_viaje.get('terminal_origen', 'Terminal Origen'),
+                    'terminal_destino': self.datos_viaje.get('terminal_destino', 'Terminal Destino'),
+                    'ciudad_origen': self.datos_viaje.get('ciudad_origen', 'Ciudad Origen'),
+                    'ciudad_destino': self.datos_viaje.get('ciudad_destino', 'Ciudad Destino'),
                     'fecha_salida': self.datos_viaje.get('fecha_salida', '01/01/2025 00:00'),
+                    'fecha_llegada': self.datos_viaje.get('fecha_llegada', '01/01/2025 00:00'),
                     'asiento': str(info['asiento_id']),
                     'pasajero': nombre_completo,
                     'precio': f"${precio_final:.2f}",
@@ -769,7 +809,7 @@ class VentanaGenerarBoletos(QWidget):
         if formato == "PNG":
             archivo, _ = QFileDialog.getSaveFileName(
                 self, "Guardar boleto",
-                f"Boleto_{self.indice_actual + 1}.png",
+                f"Boleto_Viaje_{self.datos_viaje['numero']}_Asiento_{self.pasajeros_info[self.indice_actual]['asiento_id']}.png",
                 "PNG (*.png)"
             )
             if archivo:
@@ -785,7 +825,7 @@ class VentanaGenerarBoletos(QWidget):
         elif formato == "PDF":
             archivo, _ = QFileDialog.getSaveFileName(
                 self, "Guardar boleto",
-                f"Boleto_{self.indice_actual + 1}.pdf",
+                f"Boleto_Viaje_{self.datos_viaje['numero']}_Asiento_{self.pasajeros_info[self.indice_actual]['asiento_id']}.pdf",
                 "PDF (*.pdf)"
             )
             if archivo:
@@ -823,12 +863,18 @@ class VentanaGenerarBoletos(QWidget):
                 self.actualizar_vista_boleto()
 
                 # Exportar PNG
-                archivo_png = os.path.join(carpeta, f"Boleto_{i + 1}.png")
+                archivo_png = os.path.join(
+                    carpeta,
+                    f"Boleto_Viaje_{self.datos_viaje['numero']}_Asiento_{self.pasajeros_info[i]['asiento_id']}.png"
+                )
                 image = self.ticket_canvas.exportar_imagen()
                 image.save(archivo_png)
 
                 # Exportar PDF
-                archivo_pdf = os.path.join(carpeta, f"Boleto_{i + 1}.pdf")
+                archivo_pdf = os.path.join(
+                    carpeta,
+                    f"Boleto_Viaje_{self.datos_viaje['numero']}_Asiento_{self.pasajeros_info[i]['asiento_id']}.pdf"
+                )
                 printer = QPrinter(QPrinter.HighResolution)
                 printer.setOutputFormat(QPrinter.PdfFormat)
                 printer.setOutputFileName(archivo_pdf)
@@ -862,9 +908,18 @@ if __name__ == "__main__":
 
     app = QApplication(sys.argv)
 
+    # Datos de prueba que coinciden con los cambios solicitados
     pasajeros_prueba = [
-        {'pasajero_id': 1, 'asiento_id': 12, 'tipo_pasajero': 1},
-        {'pasajero_id': 2, 'asiento_id': 13, 'tipo_pasajero': 2}
+        {
+            'pasajero_id': 1,
+            'asiento_id': 12,
+            'tipo_pasajero': 1  # Regular (0% descuento)
+        },
+        {
+            'pasajero_id': 2,
+            'asiento_id': 13,
+            'tipo_pasajero': 2  # Estudiante (10% descuento)
+        }
     ]
 
     ventana = VentanaGenerarBoletos(pasajeros_info=pasajeros_prueba, id_viaje=1)
