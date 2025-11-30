@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 -- Active: 1764103994512@@127.0.0.1@3306@rbe
 --1. Información de un viaje
 SELECT 
@@ -14,6 +15,39 @@ SELECT
     a.placas,
     m.numasientos,
     COUNT(t.codigo) AS cantidad_pasajeros
+=======
+-- Active: 1762888131509@@127.0.0.1@3306@rbe
+/*
+1. Información de un viaje
+a. Número de viaje
+b. Número de ruta
+c. Fecha y hora de salida, en una columna
+d. Fecha y hora de llegada, en una columna
+e. Nombre de la ciudad de origen
+f. Nombre de la terminal donde salen
+g. Nombre de la ciudad de destino
+h. Nombre de la terminal donde llegan
+i. Nombre completo del operador, en una columna
+j. Número del autobús asignado
+k. Matrícula del autobús asignado
+l. Cantidad de asientos del autobús
+m. Cantidad de pasajeros
+*/
+SELECT
+  v.numero AS numero_viaje,
+  r.codigo AS numero_ruta,
+  v.fecHoraSalida AS fecha_hora_salida,
+  v.fecHoraEntrada AS fecha_hora_llegada,
+  torig.nombre AS ciudad_origen,
+  torg.nombre AS terminal_origen,         -- nombre de la terminal donde salen
+  tdest_ci.nombre AS ciudad_destino,
+  tdest.nombre AS terminal_destino,       -- nombre de la terminal donde llegan
+  CONCAT(c.conNombre, ' ', c.conPrimerApell, ' ', IFNULL(c.conSegundoApell,'')) AS operador,
+  v.autobus AS numero_autobus,
+  a.placas AS matricula_autobus,
+  m.numasientos AS cantidad_asientos,
+  (SELECT COUNT(*) FROM ticket t WHERE t.viaje = v.numero) AS cantidad_pasajeros
+>>>>>>> bc149e17906daa166184479fd8bb3fede8be4e0a
 FROM viaje v
 JOIN ruta r ON v.ruta = r.codigo
 JOIN terminal to2 ON r.origen = to2.numero
@@ -153,8 +187,13 @@ SELECT
     m.numasientos
 FROM autobus a
 JOIN modelo m ON a.modelo = m.numero
+<<<<<<< HEAD
 JOIN marca m2 ON m.marca = m2.numero
 WHERE a.numero = 1;
+=======
+JOIN marca mk ON m.marca = mk.numero
+WHERE a.numero = 3;
+>>>>>>> bc149e17906daa166184479fd8bb3fede8be4e0a
 
 --9. Cantidad por tipo de asiento en un autobús
 SELECT

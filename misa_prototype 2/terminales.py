@@ -87,13 +87,14 @@ class VentanaTerminales(QWidget):
 
             cur.execute("""
                 SELECT 
-                    nombre,
-                    dirCalle,
-                    dirNumero,
-                    dirColonia,
-                    telefono,
-                    ciudad
-                FROM terminal;
+                    t.nombre as nombre,
+                    t.dirCalle as dirCalle,
+                    t.dirNumero as dirNumero,
+                    t.dirColonia as dirColonia,
+                    t.telefono as telefono,
+                    c.nombre as ciudad
+                FROM terminal as t
+                INNER JOIN ciudad as c on c.clave = t.ciudad ;
             """)
 
             datos = cur.fetchall()
