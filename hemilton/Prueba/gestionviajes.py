@@ -10,6 +10,7 @@ from typing import List, Dict, Optional
 
 from conexion import crear_conexion
 
+from PySide6.QtWidgets import QHeaderView
 from PySide6.QtWidgets import (
     QApplication, QWidget, QMainWindow, QLabel, QComboBox,
     QDateEdit, QHBoxLayout, QVBoxLayout, QPushButton, QDialog,
@@ -192,23 +193,53 @@ class PassengersDialog(QDialog):
         card_layout = QVBoxLayout(card)
         card_layout.setSpacing(12)
 
-        title = QLabel(f"Pasajeros del Viaje {trip.get('trip_id')}")
-        title.setObjectName("title")
-        card_layout.addWidget(title)
+        # ------------------- CABECERA CON INFORMACIÓN -------------------
+        header_layout = QHBoxLayout()
 
-        # Tabla
+        lbl_trip_no = QLabel(f"Número de viaje: {trip.get('trip_id')}")
+        lbl_trip_no.setStyleSheet("font-weight: 600; color: #0b3a66;")
+        header_layout.addWidget(lbl_trip_no)
+
+        lbl_origin = QLabel(f"Origen: {trip.get('origin_city', '')}")
+        lbl_origin.setStyleSheet("font-weight: 600; color: #0b3a66;")
+        header_layout.addWidget(lbl_origin)
+
+        lbl_dest = QLabel(f"Destino: {trip.get('dest_city', '')}")
+        lbl_dest.setStyleSheet("font-weight: 600; color: #0b3a66;")
+        header_layout.addWidget(lbl_dest)
+
+        lbl_departure = QLabel(f"Salida: {format_dt(trip.get('departure'))}")
+        lbl_departure.setStyleSheet("font-weight: 600; color: #0b3a66;")
+        header_layout.addWidget(lbl_departure)
+
+        header_layout.addStretch()
+        card_layout.addLayout(header_layout)
+
+        # ------------------- TABLA DE PASAJEROS -------------------
         self.table = QTableWidget()
         self.table.setColumnCount(5)
-        self.table.setHorizontalHeaderLabels(["# Ticket", "Nombre", "Edad", "Asiento", "Precio"])
-        self.table.horizontalHeader().setStretchLastSection(True)
-        self.table.setColumnWidth(0, 90)
-        self.table.setColumnWidth(1, 250)
-        self.table.setColumnWidth(2, 60)
-        self.table.setColumnWidth(3, 70)
-        self.table.setColumnWidth(4, 90)
+        self.table.setHorizontalHeaderLabels([
+            "Nombre completo", "Edad", "Número autobús", "Número boleto", "Número asiento"
+        ])
+
+        # Ajustes de ancho
+        self.table.setColumnWidth(0, 250)  # Nombre completo
+        self.table.setColumnWidth(1, 60)   # Edad
+        self.table.setColumnWidth(2, 100)  # Número autobús
+        self.table.setColumnWidth(3, 90)   # Número boleto
+        self.table.setColumnWidth(4, 90)   # Número asiento
+
+        from PySide6.QtWidgets import QHeaderView
+        # Última columna se estira si hay espacio extra
+        self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Fixed)
+        self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.Fixed)
+        self.table.horizontalHeader().setSectionResizeMode(2, QHeaderView.Fixed)
+        self.table.horizontalHeader().setSectionResizeMode(3, QHeaderView.Fixed)
+        self.table.horizontalHeader().setSectionResizeMode(4, QHeaderView.Stretch)
+
         card_layout.addWidget(self.table)
 
-        # Botones
+        # ------------------- BOTONES -------------------
         btn_layout = QHBoxLayout()
         btn_layout.addStretch()
 
@@ -225,29 +256,30 @@ class PassengersDialog(QDialog):
 
         card_layout.addLayout(btn_layout)
         main_layout.addWidget(card)
-        
-        # Carga de datos
+
+        # ------------------- CARGA DE DATOS -------------------
         try:
             self.load_passengers()
         except Exception as e:
+            from PySide6.QtWidgets import QMessageBox
             QMessageBox.critical(self, "Error", f"No se pudieron cargar pasajeros:\n{e}")
 
     def load_passengers(self):
         trip_id = self.trip.get("trip_id")
         cur = self.db_conn.cursor(dictionary=True)
 
-        # --- CONSULTA NUEVA: nombre completo en un solo campo ---
         cur.execute("""
-            SELECT
-                t.codigo AS ticket_no,
-                CONCAT(p.paNombre, ' ', p.paPrimerApell, ' ', COALESCE(p.paSegundoApell, '')) AS nombre_completo,
-                p.edad AS edad,
-                t.asiento AS asiento,
-                t.precio AS precio
-            FROM ticket t
-            INNER JOIN pasajero p ON t.pasajero = p.num
-            WHERE t.viaje = %s
-            ORDER BY t.asiento ASC, p.paNombre ASC
+        SELECT
+            CONCAT(p.paNombre, ' ', p.paPrimerApell, ' ', COALESCE(p.paSegundoApell, '')) AS nombre_completo,
+            p.edad AS edad,
+            a.autobus AS bus_number,
+            t.codigo AS ticket_no,
+            t.asiento AS seat_no
+        FROM ticket t
+        INNER JOIN pasajero p ON t.pasajero = p.num
+        INNER JOIN asiento a ON t.asiento = a.numero
+        WHERE t.viaje = %s
+        ORDER BY t.asiento ASC, p.paNombre ASC;
         """, (trip_id,))
 
         rows = cur.fetchall()
@@ -255,27 +287,99 @@ class PassengersDialog(QDialog):
 
         self.table.setRowCount(len(rows))
 
-        # --- YA SOLO 5 COLUMNAS (sin apellidos) ---
         for r, p in enumerate(rows):
-            ticket_item = QTableWidgetItem(str(p.get("ticket_no", "")))
-            ticket_item.setFlags(ticket_item.flags() & ~Qt.ItemIsEditable)
-            self.table.setItem(r, 0, ticket_item)
-
+            # Nombre completo
             nombre_item = QTableWidgetItem(str(p.get("nombre_completo", "")))
             nombre_item.setFlags(nombre_item.flags() & ~Qt.ItemIsEditable)
-            self.table.setItem(r, 1, nombre_item)
+            self.table.setItem(r, 0, nombre_item)
 
+            # Edad
             edad_item = QTableWidgetItem(str(p.get("edad", "")))
             edad_item.setFlags(edad_item.flags() & ~Qt.ItemIsEditable)
-            self.table.setItem(r, 2, edad_item)
+            self.table.setItem(r, 1, edad_item)
 
-            asiento_item = QTableWidgetItem(str(p.get("asiento", "")))
-            asiento_item.setFlags(asiento_item.flags() & ~Qt.ItemIsEditable)
-            self.table.setItem(r, 3, asiento_item)
+            # Número del autobús
+            bus_item = QTableWidgetItem(str(p.get("bus_number", "")))
+            bus_item.setFlags(bus_item.flags() & ~Qt.ItemIsEditable)
+            self.table.setItem(r, 2, bus_item)
 
-            precio_item = QTableWidgetItem(str(p.get("precio", "")))
-            precio_item.setFlags(precio_item.flags() & ~Qt.ItemIsEditable)
-            self.table.setItem(r, 4, precio_item)
+            # Número del boleto
+            ticket_item = QTableWidgetItem(str(p.get("ticket_no", "")))
+            ticket_item.setFlags(ticket_item.flags() & ~Qt.ItemIsEditable)
+            self.table.setItem(r, 3, ticket_item)
+
+            # Número del asiento
+            seat_item = QTableWidgetItem(str(p.get("seat_no", "")))
+            seat_item.setFlags(seat_item.flags() & ~Qt.ItemIsEditable)
+            self.table.setItem(r, 4, seat_item)
+
+    def export_csv(self):
+        from PySide6.QtWidgets import QFileDialog, QMessageBox
+        path, _ = QFileDialog.getSaveFileName(self, "Guardar CSV", f"pasajeros_viaje_{self.trip.get('trip_id')}.csv", "CSV Files (*.csv)")
+        if not path:
+            return
+        try:
+            with open(path, "w", encoding="utf-8") as f:
+                f.write("ticket,nombre,apellidos,edad,asiento,precio\n")
+                for r in range(self.table.rowCount()):
+                    vals = [
+                        self.table.item(r, c).text() if self.table.item(r, c) else ""
+                        for c in range(self.table.columnCount())
+                    ]
+                    f.write(",".join(vals) + "\n")
+            QMessageBox.information(self, "Listo", "CSV exportado correctamente.")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", str(e))
+
+    def load_passengers(self):
+        trip_id = self.trip.get("trip_id")
+        cur = self.db_conn.cursor(dictionary=True)
+
+        # --- CONSULTA NUEVA: nombre completo en un solo campo ---
+        cur.execute("""
+        SELECT
+            CONCAT(p.paNombre, ' ', p.paPrimerApell, ' ', COALESCE(p.paSegundoApell, '')) AS nombre_completo,
+            p.edad AS edad,
+            a.autobus AS bus_number,
+            t.codigo AS ticket_no,
+            t.asiento AS seat_no
+        FROM ticket t
+        INNER JOIN pasajero p ON t.pasajero = p.num
+        INNER JOIN asiento a ON t.asiento = a.numero
+        WHERE t.viaje = %s
+        ORDER BY t.asiento ASC, p.paNombre ASC;
+        """, (trip_id,))
+
+        rows = cur.fetchall()
+        cur.close()
+
+        self.table.setRowCount(len(rows))
+
+        for r, p in enumerate(rows):
+            # Nombre completo
+            nombre_item = QTableWidgetItem(str(p.get("nombre_completo", "")))
+            nombre_item.setFlags(nombre_item.flags() & ~Qt.ItemIsEditable)
+            self.table.setItem(r, 0, nombre_item)
+
+            # Edad
+            edad_item = QTableWidgetItem(str(p.get("edad", "")))
+            edad_item.setFlags(edad_item.flags() & ~Qt.ItemIsEditable)
+            self.table.setItem(r, 1, edad_item)
+
+            # Número del autobús
+            bus_item = QTableWidgetItem(str(p.get("bus_number", "")))
+            bus_item.setFlags(bus_item.flags() & ~Qt.ItemIsEditable)
+            self.table.setItem(r, 2, bus_item)
+
+            # Número del boleto
+            ticket_item = QTableWidgetItem(str(p.get("ticket_no", "")))
+            ticket_item.setFlags(ticket_item.flags() & ~Qt.ItemIsEditable)
+            self.table.setItem(r, 3, ticket_item)
+
+            # Número del asiento
+            seat_item = QTableWidgetItem(str(p.get("seat_no", "")))
+            seat_item.setFlags(seat_item.flags() & ~Qt.ItemIsEditable)
+            self.table.setItem(r, 4, seat_item)
 
     def export_csv(self):
         path, _ = QFileDialog.getSaveFileName(self, "Guardar CSV", f"pasajeros_viaje_{self.trip.get('trip_id')}.csv", "CSV Files (*.csv)")

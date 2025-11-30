@@ -11,10 +11,12 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 
+from PySide6.QtWidgets import QHeaderView
 from conexion import crear_conexion
 from panel_principal import PanelPrincipal
 from panel_admin import PanelAdministrador
 from animacion import Animador
+from viajes_programados import ProgramacionWindow
 
 # ===========================
 # 🚀 FUNCIONES DE BASE DE DATOS

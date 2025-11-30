@@ -6,7 +6,10 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt
 from gestionviajes import MainWindow
+from PySide6.QtWidgets import QHeaderView
 from conexion import crear_conexion
+from viajes_programados import ProgramacionWindow
+from PySide6.QtWidgets import QApplication
 
 def actualizar_taquillero_bd(registro, nombre, ap1, ap2, usuario, contrasena):
     try:
@@ -40,7 +43,12 @@ class PanelAdministrador(QMainWindow):
         COLOR_TEXT = "#222"
 
         self.setWindowTitle("Rutas Baja Express - Panel Administrador")
-        self.setGeometry(100, 100, 1200, 760)
+        self.resize(1200, 760)
+        self.setMinimumSize(1000, 500)
+        self.move(
+            QApplication.primaryScreen().availableGeometry().center() - self.rect().center()
+        )
+        
         self.setStyleSheet(f"background:{COLOR_BG}; font-family: 'Segoe UI';")
 
         # permisos y tablas
@@ -79,7 +87,8 @@ class PanelAdministrador(QMainWindow):
         # ===== sidebar (scrollable) =====
         sidebar_frame = QFrame()
         sidebar_frame.setStyleSheet(f"background:{COLOR_ACCENT};")
-        sidebar_frame.setFixedWidth(300)
+        sidebar_frame.setMinimumWidth(260)
+        sidebar_frame.setMaximumWidth(320)
         sb_layout = QVBoxLayout(sidebar_frame)
         sb_layout.setContentsMargins(16,16,16,16)
         sb_layout.setSpacing(10)
@@ -120,8 +129,13 @@ class PanelAdministrador(QMainWindow):
         self.btn_historial = make_nav("Historial de Viajes")
         sa_layout.addWidget(self.btn_historial)
 
+        self.btn_salidas = make_nav("Salidas")      
+        sa_layout.addWidget(self.btn_salidas)
+
         self.btn_gestion = make_nav("Gestión ▾")
         sa_layout.addWidget(self.btn_gestion)
+        
+        
 
         # gestión container (compact buttons)
         self.gestion_container = QWidget()
@@ -179,7 +193,7 @@ class PanelAdministrador(QMainWindow):
             QPushButton:hover {{ background: #fff5e6; color: #c96f00; }}
         """)
         config_layout.addWidget(self.btn_config)
-        sb_layout.addWidget(config_container)
+        
         # ------------------------------------------------------------
 
         # spacer to push logout to bottom
@@ -193,6 +207,7 @@ class PanelAdministrador(QMainWindow):
             QPushButton {{ background:{COLOR_PRIMARY}; color:#111; border-radius:10px; font-weight:800; }}
             QPushButton:hover {{ background:#e6de00; }}
         """)
+        sb_layout.addWidget(config_container)
         sb_layout.addWidget(self.btn_logout)
 
         # ===== content area =====
@@ -214,6 +229,21 @@ class PanelAdministrador(QMainWindow):
 
         # stacked pages
         self.stacked = QStackedWidget()
+        # ======= Página inicial: Viajes Programados =======
+        self.page_inicio = QWidget()
+        inicio_layout = QVBoxLayout(self.page_inicio)
+
+        titulo_inicio = QLabel("Salidas")
+        titulo_inicio.setStyleSheet("font-size:26pt; font-weight:800; color:#1181c3;")
+        inicio_layout.addWidget(titulo_inicio)
+
+        # widget integrado
+        self.viajes_programados_widget = ProgramacionWindow()
+        self.viajes_programados_widget.setWindowFlags(Qt.Widget)
+        inicio_layout.addWidget(self.viajes_programados_widget)
+
+        self.stacked.addWidget(self.page_inicio)
+        self.stacked.setCurrentWidget(self.page_inicio)
 
         # dashboard page (we render gestion inside this page)
         self.page_dashboard = QWidget()
@@ -302,6 +332,7 @@ class PanelAdministrador(QMainWindow):
         btn_back.clicked.connect(lambda: self.stacked.setCurrentWidget(self.page_dashboard))
         self.btn_logout.clicked.connect(self.cerrar_sesion)
         btn_save.clicked.connect(self._guardar_config)
+        self.btn_salidas.clicked.connect(lambda: self.stacked.setCurrentWidget(self.page_inicio))
 
         # show
         self.show()
@@ -819,7 +850,7 @@ class PanelAdministrador(QMainWindow):
             form.addRow(key_lbl, val_lbl)
         main.addLayout(form)
         btn_close = QPushButton("Cerrar")
-        btn_close.setStyleSheet("background:#6c757d;color:white;padding:8px;border-radius:6px;")
+        btn_close.setStyleSheet("background:#6c757d;color:ffff;padding:8px;border-radius:6px;")
         btn_close.clicked.connect(dlg.accept)
         main.addWidget(btn_close, alignment=Qt.AlignRight)
         dlg.exec()
