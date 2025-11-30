@@ -7,7 +7,7 @@ import sys
 from datetime import date
 from PySide6.QtWidgets import (
     QApplication, QWidget, QMainWindow, QVBoxLayout, QLabel, QLineEdit,
-    QPushButton, QMessageBox, QComboBox, QCheckBox
+    QPushButton, QMessageBox, QComboBox, QCheckBox, QDialog
 )
 from PySide6.QtCore import Qt
 
@@ -17,6 +17,11 @@ from panel_principal import PanelPrincipal
 from panel_admin import PanelAdministrador
 from animacion import Animador
 from viajes_programados import ProgramacionWindow
+
+# ===========================
+# 🔐 CONFIGURACIÓN DE SEGURIDAD
+# ===========================
+CLAVE_MAESTRA = "RutasBaja2024"  # Cambia esta clave por una segura en producción
 
 # ===========================
 # 🚀 FUNCIONES DE BASE DE DATOS
@@ -57,6 +62,69 @@ def registrar_taquillero_bd(nombre, ap1, ap2, usuario, contrasena, terminal=1, s
         return False, str(e)
 
 # ===========================
+# 🔐 VENTANA DE VERIFICACIÓN DE CLAVE MAESTRA
+# ===========================
+class VerificacionClave(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Verificación de Seguridad")
+        self.setModal(True)
+        self.setFixedSize(350, 180)
+
+        layout = QVBoxLayout()
+
+        self.setStyleSheet("""
+            QDialog {
+                background-color: #f2f2f2;
+                font-family: 'Segoe UI';
+            }
+            QLabel {
+                font-size: 14px;
+                color: #333;
+            }
+            QLineEdit {
+                padding: 8px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+                font-size: 14px;
+            }
+            QPushButton {
+                background-color: #1181c3;
+                color: white;
+                border: none;
+                padding: 10px;
+                border-radius: 4px;
+                font-size: 14px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #0d6aa0;
+            }
+        """)
+
+        label = QLabel("Ingrese la clave maestra para continuar:")
+        label.setAlignment(Qt.AlignCenter)
+        layout.addWidget(label)
+
+        self.clave_input = QLineEdit()
+        self.clave_input.setEchoMode(QLineEdit.Password)
+        self.clave_input.setPlaceholderText("Clave maestra")
+        layout.addWidget(self.clave_input)
+
+        self.btn_verificar = QPushButton("Verificar")
+        self.btn_verificar.clicked.connect(self.verificar_clave)
+        layout.addWidget(self.btn_verificar)
+
+        self.setLayout(layout)
+
+    def verificar_clave(self):
+        if self.clave_input.text() == CLAVE_MAESTRA:
+            self.accept()
+        else:
+            QMessageBox.warning(self, "Error", "Clave incorrecta. Intente nuevamente.")
+            self.clave_input.clear()
+
+# ===========================
 # 🚀 INTERFAZ GRÁFICA
 # ===========================
 
@@ -95,15 +163,22 @@ class App:
 
         # Conectar botones a funciones
         self.login_ui.pushButton_5.clicked.connect(self.intentar_login)  # Acceder
-        self.login_ui.pushButton_6.clicked.connect(self.abrir_registro_taquillero)  # Registrarse
+        self.login_ui.pushButton_6.clicked.connect(self.verificar_antes_de_registrar)  # Registrarse
 
         self.win_login.show()
+
+    # ===========================
+    # VERIFICACIÓN ANTES DE REGISTRAR
+    # ===========================
+    def verificar_antes_de_registrar(self):
+        dialog = VerificacionClave(self.win_login)
+        if dialog.exec() == QDialog.Accepted:
+            self.abrir_registro_taquillero()
 
     # ===========================
     # LOGIN
     # ===========================
     def intentar_login(self):
-        # Usar los nombres correctos de los QLineEdit en tu login.ui
         usuario = self.login_ui.lineEdit_4.text().strip()
         contrasena = self.login_ui.lineEdit_5.text().strip()
 
@@ -181,7 +256,7 @@ class App:
 
         btn_registrar = QPushButton("Registrar")
         btn_registrar.setStyleSheet("background-color: #ed7237; color: white; font-weight: bold; height: 30px;")
-        btn_registrar.clicked.connect(lambda: self.registrar(w))
+        btn_registrar.clicked.connect(lambda: self.verificar_antes_de_registrar_bd(w))
         layout.addWidget(btn_registrar)
 
         btn_volver = QPushButton("Volver")
@@ -194,6 +269,14 @@ class App:
             return w
         else:
             w.show()
+
+    # ===========================
+    # VERIFICACIÓN ANTES DE REGISTRAR EN BD
+    # ===========================
+    def verificar_antes_de_registrar_bd(self, ventana):
+        dialog = VerificacionClave(ventana)
+        if dialog.exec() == QDialog.Accepted:
+            self.registrar(ventana)
 
     # ===========================
     # VOLVER A LOGIN (CON ANIMACIÓN)

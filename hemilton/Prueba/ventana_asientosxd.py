@@ -165,13 +165,14 @@ class VentanaAsientos(QMainWindow):
         info_layout.setContentsMargins(10,6,10,6)
         info_layout.setSpacing(20)
 
-        self.lbl_viaje  = QLabel("Número de viaje: -")
-        self.lbl_bus    = QLabel("Número de autobús: -")
-        self.lbl_fecha  = QLabel("Fecha y hora de salida: -")
-        self.lbl_origen = QLabel("Ciudad origen: -")
-        self.lbl_dest   = QLabel("Ciudad destino: -")
+        # ORDEN REORGANIZADO: Viaje → Origen → Destino → Salida → Bus
+        self.lbl_viaje  = QLabel("Viaje: -")
+        self.lbl_origen = QLabel("Origen: -")
+        self.lbl_dest   = QLabel("Destino: -")
+        self.lbl_fecha  = QLabel("Salida: -")
+        self.lbl_bus    = QLabel("Bus: -")
 
-        for w in (self.lbl_viaje, self.lbl_bus, self.lbl_fecha, self.lbl_origen, self.lbl_dest):
+        for w in (self.lbl_viaje, self.lbl_origen, self.lbl_dest, self.lbl_fecha, self.lbl_bus):
             w.setStyleSheet("font-size:14px; color:#333;")
             w.setMinimumWidth(140)
             info_layout.addWidget(w)
@@ -232,11 +233,13 @@ class VentanaAsientos(QMainWindow):
                 self.autobus_numero = viaje['autobus_num']
                 self.total_asientos = viaje['numasientos'] or 36
                 self.precio_base = float(viaje['precio'])
+                
+                # ACTUALIZAR EN EL NUEVO ORDEN
                 self.lbl_viaje.setText(f"Viaje: #{viaje['viaje_num']}")
-                self.lbl_bus.setText(f"Bus: {viaje['autobus_num']} ({viaje['placas']})")
-                self.lbl_fecha.setText(f"Salida: {viaje['fecHoraSalida'].strftime('%d/%m/%Y %H:%M')}")
                 self.lbl_origen.setText(f"Origen: {viaje['origen']}")
                 self.lbl_dest.setText(f"Destino: {viaje['destino']}")
+                self.lbl_fecha.setText(f"Salida: {viaje['fecHoraSalida'].strftime('%d/%m/%Y %H:%M')}")
+                self.lbl_bus.setText(f"Bus: {viaje['autobus_num']} ({viaje['placas']})")
             cursor.close()
             conn.close()
         except Exception as e:

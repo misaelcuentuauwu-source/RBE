@@ -127,15 +127,17 @@ class PanelPrincipal(QMainWindow):
             """)
             return btn
 
+        # NUEVO: Botón Dashboard
+        self.btn_dashboard = nav_button("🏠 Dashboard", "🏠")
         self.btn_terminales = nav_button("🏢 Terminales", "🏢")
         self.btn_vender = nav_button("🎫 Vender boletos", "🎫")
         self.btn_config = nav_button("⚙️ Configuración", "⚙️")
-        self.btn_epilepsia = nav_button("🎮 Epilepsia", "🎮")
+        # ELIMINADO: self.btn_epilepsia (ahora es Easter Egg)
 
+        self.buttons_layout.addWidget(self.btn_dashboard)
         self.buttons_layout.addWidget(self.btn_terminales)
         self.buttons_layout.addWidget(self.btn_vender)
         self.buttons_layout.addWidget(self.btn_config)
-        self.buttons_layout.addWidget(self.btn_epilepsia)
         
         self.layout_sidebar.addWidget(buttons_container)
         self.layout_sidebar.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
@@ -202,9 +204,10 @@ class PanelPrincipal(QMainWindow):
         layout_topbar.addWidget(self.welcome)
         layout_topbar.addStretch()
 
-        search = QLineEdit()
-        search.setPlaceholderText("🔍 Buscar...")
-        search.setStyleSheet("""
+        # MEJORADO: Caja de búsqueda funcional
+        self.search = QLineEdit()
+        self.search.setPlaceholderText("🔍 Buscar...")
+        self.search.setStyleSheet("""
             QLineEdit {
                 background-color: #f5f5f5;
                 border: 1px solid #d0d0d0;
@@ -218,7 +221,8 @@ class PanelPrincipal(QMainWindow):
                 background-color: white;
             }
         """)
-        layout_topbar.addWidget(search)
+        self.search.returnPressed.connect(self.buscar_accion)
+        layout_topbar.addWidget(self.search)
 
         # ========================= STACKED PAGES =========================
         self.stacked = QStackedWidget()
@@ -397,14 +401,81 @@ class PanelPrincipal(QMainWindow):
 
         # ========================= EVENTOS =========================
         self.card_registro.clicked.connect(self.abrir_registro_pasajero)
+        self.btn_dashboard.clicked.connect(lambda: self.stacked.setCurrentWidget(self.page_dashboard))
         self.btn_terminales.clicked.connect(self.abrir_terminales)
         self.btn_vender.clicked.connect(self.abrir_venta)
-        self.btn_epilepsia.clicked.connect(self.abrir_epilepsia)
         self.btn_logout.clicked.connect(self.cerrar_sesion)
         self.btn_toggle.clicked.connect(self.toggle_menu)
         self.btn_config.clicked.connect(lambda: self.stacked.setCurrentWidget(self.page_config))
 
     # ========================= FUNCIONES =========================
+    def buscar_accion(self):
+        """Busca acciones basadas en palabras clave"""
+        texto = self.search.text().strip().lower()
+        
+        if not texto:
+            return
+        
+        # Diccionario de palabras clave
+        acciones = {
+            # Vender boletos
+            'boleto': self.abrir_venta,
+            'boletos': self.abrir_venta,
+            'vender': self.abrir_venta,
+            'venta': self.abrir_venta,
+            'ticket': self.abrir_venta,
+            'tickets': self.abrir_venta,
+            
+            # Terminales
+            'terminal': self.abrir_terminales,
+            'terminales': self.abrir_terminales,
+            'estacion': self.abrir_terminales,
+            'estaciones': self.abrir_terminales,
+            
+            # Pasajeros
+            'pasajero': self.abrir_registro_pasajero,
+            'pasajeros': self.abrir_registro_pasajero,
+            'registrar': self.abrir_registro_pasajero,
+            'registro': self.abrir_registro_pasajero,
+            'cliente': self.abrir_registro_pasajero,
+            'clientes': self.abrir_registro_pasajero,
+            
+            # Configuración
+            'config': lambda: self.stacked.setCurrentWidget(self.page_config),
+            'configuracion': lambda: self.stacked.setCurrentWidget(self.page_config),
+            'configuración': lambda: self.stacked.setCurrentWidget(self.page_config),
+            'ajustes': lambda: self.stacked.setCurrentWidget(self.page_config),
+            'perfil': lambda: self.stacked.setCurrentWidget(self.page_config),
+            
+            # Dashboard
+            'inicio': lambda: self.stacked.setCurrentWidget(self.page_dashboard),
+            'dashboard': lambda: self.stacked.setCurrentWidget(self.page_dashboard),
+            'home': lambda: self.stacked.setCurrentWidget(self.page_dashboard),
+            
+            # Easter Egg - Epilepsia
+            'epilepsia': self.abrir_epilepsia,
+            'juego': self.abrir_epilepsia,
+            'game': self.abrir_epilepsia,
+        }
+        
+        # Buscar coincidencia
+        encontrado = False
+        for palabra_clave, accion in acciones.items():
+            if palabra_clave in texto:
+                accion()
+                self.search.clear()
+                encontrado = True
+                break
+        
+        if not encontrado:
+            QMessageBox.information(
+                self, 
+                "Búsqueda", 
+                f"No se encontró ninguna acción para: '{texto}'\n\n"
+                "Prueba con: boleto, terminal, pasajero, config, inicio..."
+            )
+            self.search.clear()
+
     def abrir_registro_pasajero(self):
         self.ventana_registro = VentanaRegistroPasajero()
         self.ventana_registro.show()
@@ -414,6 +485,7 @@ class PanelPrincipal(QMainWindow):
         self.ventana_terminales.show()
 
     def abrir_epilepsia(self):
+        """Easter Egg: Abre el juego de epilepsia"""
         self.ventana_epilepsia = VentanaAnimada()
         self.ventana_epilepsia.show()
         self.close()
@@ -438,7 +510,7 @@ class PanelPrincipal(QMainWindow):
             self.brand.setText("Rutas Baja Express")
             
             # Restaurar texto completo de botones
-            for btn in [self.btn_terminales, self.btn_vender, self.btn_config, self.btn_epilepsia]:
+            for btn in [self.btn_dashboard, self.btn_terminales, self.btn_vender, self.btn_config]:
                 btn.setText(btn.property("full_text"))
             
             self.btn_logout.setText("🚪 Cerrar sesión")
@@ -449,7 +521,7 @@ class PanelPrincipal(QMainWindow):
             self.brand.setText("RBE")
             
             # Cambiar a solo iconos
-            for btn in [self.btn_terminales, self.btn_vender, self.btn_config, self.btn_epilepsia]:
+            for btn in [self.btn_dashboard, self.btn_terminales, self.btn_vender, self.btn_config]:
                 btn.setText(btn.property("icon_text"))
             
             self.btn_logout.setText("🚪")

@@ -451,19 +451,37 @@ class VentanaPago(QWidget):
                     pago_id
                 ))
             
-            # 3. Marcar asientos como ocupados
+            # 3. Marcar asientos como ocupados (CON FIX) ⭐
             for info in self.pasajeros_info:
-                update_query = """
-                UPDATE viaje_asiento SET ocupado = TRUE 
+                # Primero verificar si existe el registro
+                check_query = """
+                SELECT asiento FROM viaje_asiento 
                 WHERE viaje = %s AND asiento = %s
                 """
-                cursor.execute(update_query, (self.id_viaje, info['asiento_id']))
+                cursor.execute(check_query, (self.id_viaje, info['asiento_id']))
+                existe = cursor.fetchone()
+                
+                if existe:
+                    # Si existe, actualizar
+                    update_query = """
+                    UPDATE viaje_asiento 
+                    SET ocupado = TRUE 
+                    WHERE viaje = %s AND asiento = %s
+                    """
+                    cursor.execute(update_query, (self.id_viaje, info['asiento_id']))
+                else:
+                    # Si no existe, insertar
+                    insert_query = """
+                    INSERT INTO viaje_asiento (viaje, asiento, ocupado)
+                    VALUES (%s, %s, TRUE)
+                    """
+                    cursor.execute(insert_query, (self.id_viaje, info['asiento_id']))
             
             conn.commit()
             cursor.close()
             conn.close()
             
-            # AQUÍ VIENE LA INTEGRACIÓN NUEVA ⬇️
+            # Mensaje de éxito
             QMessageBox.information(
                 self, "¡Pago exitoso!",
                 f"Se procesó el pago correctamente.\n\n"
@@ -485,7 +503,10 @@ class VentanaPago(QWidget):
             self.close()
             
         except Exception as e:
+            if conn:
+                conn.rollback()
             QMessageBox.critical(self, "Error", f"Error al procesar pago:\n{e}")
+
     def resizeEvent(self, event):
         for lbl in [self.img, self.logo, self.icono]:
             pix = lbl.original_pixmap
