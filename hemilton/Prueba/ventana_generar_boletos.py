@@ -1,7 +1,4 @@
-Aquí tienes el código completo con los ajustes solicitados: **eliminación de los círculos decorativos**, **mejora en la legibilidad de textos** y **optimización de posiciones** para que todo quede bien alineado. También he actualizado las plantillas para que sean más equilibradas visualmente:
-
-```python
-# ventana_generar_boletos.py - Versión optimizada
+# ventana_generar_boletos.py - Versión final optimizada
 from datetime import datetime
 from PySide6.QtWidgets import (
     QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout,
@@ -67,11 +64,6 @@ class TicketCanvas(QFrame):
         w, h = self.width(), self.height()
         margen = 20
 
-        # Línea divisoria punteada
-        pen = QPen(QColor("#CCCCCC"), 2, Qt.DashLine)
-        painter.setPen(pen)
-        painter.drawLine(w//2, margen, w//2, h-margen)
-
         # PARTE IZQUIERDA
         izq_w = w // 2
 
@@ -108,10 +100,6 @@ class TicketCanvas(QFrame):
         painter.drawText(QRect(izq_w-170, y_offset, 150, 20), Qt.AlignRight, "DESTINO:")
         painter.setFont(QFont("Arial", 16, QFont.Bold))
         painter.drawText(QRect(izq_w-200, y_offset+20, 200, 30), Qt.AlignRight, self.destino)
-
-        # Línea divisoria simple (sin círculos)
-        painter.setPen(QPen(self.color_acento, 2))
-        painter.drawLine(izq_w//2-30, y_offset+35, izq_w//2+30, y_offset+35)
 
         y_offset += 60
 
@@ -328,7 +316,7 @@ class VentanaGenerarBoletos(QWidget):
         layout_plantillas = QVBoxLayout(contenedor_plantillas)
         layout_plantillas.setSpacing(12)
 
-        # Plantillas predefinidas optimizadas
+        # Plantillas predefinidas con buen contraste
         lbl_plantillas = QLabel("Plantillas")
         lbl_plantillas.setStyleSheet("color: white; font-size: 16px; font-weight: bold;")
         layout_plantillas.addWidget(lbl_plantillas)
@@ -337,13 +325,13 @@ class VentanaGenerarBoletos(QWidget):
 
         plantillas = [
             ("Clásico Azul", "#0074B7", "#FFFFFF", "#000000", "#E86A1E"),
-            ("Nocturno", "#2C3E50", "#ECF0F1", "#FFFFFF", "#F39C12"),
-            ("Sunset", "#FF6B35", "#FFF8E7", "#2C1810", "#FFD23F"),
-            ("Ocean", "#006BA6", "#E8F4F8", "#0A2463", "#1B998B"),
-            ("Forest", "#2D6A4F", "#E8F5E9", "#081C15", "#95D5B2"),
-            ("Royal", "#4A148C", "#F3E5F5", "#FFFFFF", "#E040FB"),
-            ("Vintage", "#8B4513", "#F5F5DC", "#5D4037", "#D2691E"),
-            ("Minimalista", "#FFFFFF", "#000000", "#333333", "#666666"),
+            ("Profesional", "#2C3E50", "#ECF0F1", "#2C3E50", "#3498DB"),
+            ("Verde Fresco", "#27AE60", "#FFFFFF", "#2C3E50", "#E74C3C"),
+            ("Morado Elegante", "#8E44AD", "#FFFFFF", "#2C3E50", "#F1C40F"),
+            ("Naranja Vibrante", "#E67E22", "#FFFFFF", "#2C3E50", "#2980B9"),
+            ("Minimalista", "#FFFFFF", "#2C3E50", "#2C3E50", "#3498DB"),
+            ("Oscuro Moderno", "#1A1A1A", "#FFFFFF", "#FFFFFF", "#3498DB"),
+            ("Azul Claro", "#3498DB", "#FFFFFF", "#2C3E50", "#E74C3C"),
         ]
 
         for i, (nombre, primario, secundario, texto, acento) in enumerate(plantillas):
