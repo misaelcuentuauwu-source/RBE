@@ -1,30 +1,3 @@
--- phpMyAdmin SQL Dump
--- version 5.2.1
--- https://www.phpmyadmin.net/
---
--- Host: 127.0.0.1
--- Generation Time: Dec 01, 2025 at 08:55 AM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
-
-SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
-START TRANSACTION;
-SET time_zone = "+00:00";
-
-
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8mb4 */;
-
---
--- Database: `rbe`
---
-
---
--- Dumping data for table `asiento`
---
-
 INSERT INTO `asiento` (`numero`, `tipo`, `autobus`) VALUES
 (1, 'DIS', 1),
 (2, 'PLU', 1),
@@ -517,10 +490,6 @@ INSERT INTO `asiento` (`numero`, `tipo`, `autobus`) VALUES
 (489, 'COM', 10),
 (490, 'COM', 10);
 
---
--- Dumping data for table `autobus`
---
-
 INSERT INTO `autobus` (`numero`, `modelo`, `placas`, `serieVIN`) VALUES
 (1, 1, 'ABC1234', '1HGCM82633A004352'),
 (2, 2, 'BCD2345', '2HGFA16598H392847'),
@@ -533,9 +502,6 @@ INSERT INTO `autobus` (`numero`, `modelo`, `placas`, `serieVIN`) VALUES
 (9, 4, 'IJK9012', 'WDBRF40J43F392167'),
 (10, 5, 'JKL0123', '1FTFW1EG1HFC98325');
 
---
--- Dumping data for table `ciudad`
---
 
 INSERT INTO `ciudad` (`clave`, `nombre`) VALUES
 ('ENS', 'Ensenada'),
@@ -545,10 +511,6 @@ INSERT INTO `ciudad` (`clave`, `nombre`) VALUES
 ('SQN', 'San Quintín'),
 ('TEC', 'Tecate'),
 ('TJ', 'Tijuana');
-
---
--- Dumping data for table `conductor`
---
 
 INSERT INTO `conductor` (`registro`, `conNombre`, `conPrimerApell`, `conSegundoApell`, `licNumero`, `licVencimiento`, `fechaContrato`) VALUES
 (1, 'Marco', 'Hernández', 'Soto', 'BCF-2025-91342', '2028-04-12', '2022-03-10'),
@@ -564,20 +526,12 @@ INSERT INTO `conductor` (`registro`, `conNombre`, `conPrimerApell`, `conSegundoA
 (11, 'Roberto', 'Pérez', 'León', 'BCF-2023-42055', '2027-08-09', '2023-08-03'),
 (12, 'Alejandra', 'Varela', 'Díaz', 'BCF-2026-90021', '2029-03-01', '2025-03-01');
 
---
--- Dumping data for table `edo_viaje`
---
-
 INSERT INTO `edo_viaje` (`numero`, `nombre`, `descripcion`) VALUES
 (1, 'Disponible', 'Se puede vender'),
 (2, 'En Ruta', 'Actualmente en trayecto'),
 (3, 'Finalizado', 'Llegó a destino'),
 (4, 'Cancelado', 'Viaje suspendido'),
 (5, 'Retrasado', 'Salida demorada');
-
---
--- Dumping data for table `marca`
---
 
 INSERT INTO `marca` (`numero`, `nombre`) VALUES
 (1, 'Volvo'),
@@ -586,20 +540,12 @@ INSERT INTO `marca` (`numero`, `nombre`) VALUES
 (4, 'MAN'),
 (5, 'Irizar');
 
---
--- Dumping data for table `modelo`
---
-
 INSERT INTO `modelo` (`numero`, `nombre`, `numasientos`, `año`, `capacidad`, `marca`) VALUES
 (1, 'Irizar i8', 52, 2020, 52, 5),
 (2, 'Volvo 9800', 48, 2021, 48, 1),
 (3, 'Scania K440', 50, 2019, 50, 3),
 (4, 'Mercedes OC500', 46, 2018, 46, 2),
 (5, 'MAN Lion’s Coach', 49, 2022, 49, 4);
-
---
--- Dumping data for table `pago`
---
 
 INSERT INTO `pago` (`numero`, `fechapago`, `monto`, `tipo`, `vendedor`) VALUES
 (1, '2025-01-10 07:00:00', 135.00, 1, 1),
@@ -669,10 +615,6 @@ INSERT INTO `pago` (`numero`, `fechapago`, `monto`, `tipo`, `vendedor`) VALUES
 (65, '2025-11-30 22:52:40', 720.00, 2, 1),
 (66, '2025-11-30 22:57:00', 960.00, 2, 1),
 (67, '2025-11-30 23:49:49', 840.00, 1, 1);
-
---
--- Dumping data for table `pasajero`
---
 
 INSERT INTO `pasajero` (`num`, `paNombre`, `paPrimerApell`, `paSegundoApell`, `fechaNacimiento`, `edad`) VALUES
 (1, 'Alejandro', 'Torres', 'López', '1995-04-12', 30),
@@ -821,10 +763,6 @@ INSERT INTO `pasajero` (`num`, `paNombre`, `paPrimerApell`, `paSegundoApell`, `f
 (144, 'Yzabel', 'Rios', 'Lomas', '1939-06-27', 86),
 (145, 'Ana Maria', 'Antonio', 'Cova', '2006-12-07', 18);
 
---
--- Dumping data for table `ruta`
---
-
 INSERT INTO `ruta` (`codigo`, `duracion`, `origen`, `destino`, `precio`) VALUES
 (1, '0h45m', 1, 5, 90.00),
 (2, '0h45m', 5, 1, 90.00),
@@ -869,10 +807,6 @@ INSERT INTO `ruta` (`codigo`, `duracion`, `origen`, `destino`, `precio`) VALUES
 (41, '5h40m', 5, 2, 690.00),
 (42, '5h40m', 2, 5, 690.00);
 
---
--- Dumping data for table `taquillero`
---
-
 INSERT INTO `taquillero` (`registro`, `taqNombre`, `taqPrimerApell`, `taqSegundoApell`, `fechaContrato`, `usuario`, `contraseña`, `terminal`, `supervisa`) VALUES
 (1, 'Ana', 'Gómez', 'Ruiz', '2023-01-10', 'agomez', 'AG2023', 1, 1),
 (2, 'Mario', 'Sánchez', 'López', '2023-03-22', 'msanchez', 'MS22', 1, 0),
@@ -896,10 +830,6 @@ INSERT INTO `taquillero` (`registro`, `taqNombre`, `taqPrimerApell`, `taqSegundo
 (20, 'Luis', 'Navarro', 'Beltrán', '2024-03-21', 'lnavarro', 'LN24', 7, 0),
 (21, 'Sofía', 'Ávila', 'Torres', '2025-01-13', 'savila', 'SA25', 7, 0);
 
---
--- Dumping data for table `terminal`
---
-
 INSERT INTO `terminal` (`numero`, `nombre`, `dirCalle`, `dirNumero`, `dirColonia`, `telefono`, `ciudad`) VALUES
 (1, 'Central Tijuana', 'Blvd. Insurgentes', '2100', 'El Florido', '6641123344', 'TJ'),
 (2, 'Central Mexicali', 'Calz. Independencia', '501', 'Pueblo Nuevo', '6862219080', 'MXL'),
@@ -908,10 +838,6 @@ INSERT INTO `terminal` (`numero`, `nombre`, `dirCalle`, `dirNumero`, `dirColonia
 (5, 'Terminal Rosarito', 'Blvd. Popotla', '455', 'Centro', '6611238899', 'RSO'),
 (6, 'Terminal San Quintín', 'Carretera Transpeninsular', 'KM 189', 'Lázaro Cárdenas', '6161237700', 'SQN'),
 (7, 'Terminal San Felipe', 'Av. Mar de Cortés', '320', 'Centro', '6861985522', 'SFE');
-
---
--- Dumping data for table `ticket`
---
 
 INSERT INTO `ticket` (`codigo`, `precio`, `fechaEmision`, `asiento`, `viaje`, `pasajero`, `tipopasajero`, `pago`) VALUES
 (1, 90.00, '2025-01-10 07:00:00', 1, 1, 1, 1, 1),
