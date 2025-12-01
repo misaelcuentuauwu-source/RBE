@@ -80,14 +80,13 @@ class BusDetailDialog(QDialog):
         add_row("Matrícula:", trip.get("plate", ""))
         add_row("Marca:", trip.get("brand", ""))
         add_row("Modelo:", trip.get("model", ""))
-        add_row("Año:", trip.get("year", ""))   # ← año desde BD
+        add_row("Año:", trip.get("year", ""))
         add_row("Cantidad de asientos:", trip.get("seats_count", ""))
 
         # Si hay conexión a BD, consultamos asientos por tipo y mostramos
         if self.db_conn is not None:
             try:
                 cur = self.db_conn.cursor(dictionary=True)
-                # Consulta: cuenta de asientos por tipo con la descripción del tipo
                 cur.execute("""
                     SELECT
                         COALESCE(ta.descripcion, a.tipo) AS tipo_desc,
@@ -111,19 +110,15 @@ class BusDetailDialog(QDialog):
                         cnt = int(r.get("cnt") or 0)
                         total += cnt
                         lines.append(f"• {tipo_desc} ({tipo_code}): {cnt}")
-                    # Si la suma difiere de seats_count, mantenemos ambos (informativo)
                     types_text = "\n".join(lines)
                     add_row("Asientos por tipo:", types_text)
-                    # Mostrar total calculado (opcional, informativo)
                     if trip.get("seats_count") and int(trip.get("seats_count") or 0) != total:
                         add_row("Total (asientos tabla):", str(total))
                 else:
                     add_row("Asientos por tipo:", "No se encontraron registros de asientos para este autobús.")
             except Exception as e:
-                # No queremos romper el diálogo si falla la consulta; mostramos la excepción de forma limpia.
                 add_row("Asientos por tipo:", f"Error al consultar BD: {e}")
         else:
-            # Sin conexión BD, se puede mostrar un texto indicando que se requiere conexión para más detalle
             add_row("Asientos por tipo:", "Conexión BD no disponible — no se pueden obtener tipos de asiento.")
 
         main.addWidget(frame)
@@ -139,7 +134,7 @@ class BusDetailDialog(QDialog):
         lbl.setObjectName("labelName")
         val = QLabel(str(value) if value is not None else "")
         val.setObjectName("labelValue")
-        val.setWordWrap(True)  # permitir saltos de línea para descripciones más largas
+        val.setWordWrap(True)
         lbl.setFixedWidth(180)
         row.addWidget(lbl)
         row.addWidget(val)
@@ -212,30 +207,32 @@ class PassengersDialog(QDialog):
         lbl_departure.setStyleSheet("font-weight: 600; color: #0b3a66;")
         header_layout.addWidget(lbl_departure)
 
+        lbl_bus = QLabel(f"Autobús: {trip.get('bus_number', '')}")
+        lbl_bus.setStyleSheet("font-weight: 600; color: #0b3a66;")
+        header_layout.addWidget(lbl_bus)
+
         header_layout.addStretch()
         card_layout.addLayout(header_layout)
 
         # ------------------- TABLA DE PASAJEROS -------------------
         self.table = QTableWidget()
-        self.table.setColumnCount(5)
+        self.table.setColumnCount(4)
         self.table.setHorizontalHeaderLabels([
-            "Nombre completo", "Edad", "Número autobús", "Número boleto", "Número asiento"
+            "Nombre completo", "Edad", "Número boleto", "Número asiento"
         ])
 
         # Ajustes de ancho
-        self.table.setColumnWidth(0, 250)  # Nombre completo
-        self.table.setColumnWidth(1, 60)   # Edad
-        self.table.setColumnWidth(2, 100)  # Número autobús
-        self.table.setColumnWidth(3, 90)   # Número boleto
-        self.table.setColumnWidth(4, 90)   # Número asiento
+        self.table.setColumnWidth(0, 300)  # Nombre completo
+        self.table.setColumnWidth(1, 80)   # Edad
+        self.table.setColumnWidth(2, 120)  # Número boleto
+        self.table.setColumnWidth(3, 120)  # Número asiento
 
         from PySide6.QtWidgets import QHeaderView
         # Última columna se estira si hay espacio extra
         self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.Fixed)
         self.table.horizontalHeader().setSectionResizeMode(1, QHeaderView.Fixed)
         self.table.horizontalHeader().setSectionResizeMode(2, QHeaderView.Fixed)
-        self.table.horizontalHeader().setSectionResizeMode(3, QHeaderView.Fixed)
-        self.table.horizontalHeader().setSectionResizeMode(4, QHeaderView.Stretch)
+        self.table.horizontalHeader().setSectionResizeMode(3, QHeaderView.Stretch)
 
         card_layout.addWidget(self.table)
 
@@ -261,7 +258,6 @@ class PassengersDialog(QDialog):
         try:
             self.load_passengers()
         except Exception as e:
-            from PySide6.QtWidgets import QMessageBox
             QMessageBox.critical(self, "Error", f"No se pudieron cargar pasajeros:\n{e}")
 
     def load_passengers(self):
@@ -272,7 +268,6 @@ class PassengersDialog(QDialog):
         SELECT
             CONCAT(p.paNombre, ' ', p.paPrimerApell, ' ', COALESCE(p.paSegundoApell, '')) AS nombre_completo,
             p.edad AS edad,
-            a.autobus AS bus_number,
             t.codigo AS ticket_no,
             t.asiento AS seat_no
         FROM ticket t
@@ -298,88 +293,15 @@ class PassengersDialog(QDialog):
             edad_item.setFlags(edad_item.flags() & ~Qt.ItemIsEditable)
             self.table.setItem(r, 1, edad_item)
 
-            # Número del autobús
-            bus_item = QTableWidgetItem(str(p.get("bus_number", "")))
-            bus_item.setFlags(bus_item.flags() & ~Qt.ItemIsEditable)
-            self.table.setItem(r, 2, bus_item)
-
             # Número del boleto
             ticket_item = QTableWidgetItem(str(p.get("ticket_no", "")))
             ticket_item.setFlags(ticket_item.flags() & ~Qt.ItemIsEditable)
-            self.table.setItem(r, 3, ticket_item)
+            self.table.setItem(r, 2, ticket_item)
 
             # Número del asiento
             seat_item = QTableWidgetItem(str(p.get("seat_no", "")))
             seat_item.setFlags(seat_item.flags() & ~Qt.ItemIsEditable)
-            self.table.setItem(r, 4, seat_item)
-
-    def export_csv(self):
-        from PySide6.QtWidgets import QFileDialog, QMessageBox
-        path, _ = QFileDialog.getSaveFileName(self, "Guardar CSV", f"pasajeros_viaje_{self.trip.get('trip_id')}.csv", "CSV Files (*.csv)")
-        if not path:
-            return
-        try:
-            with open(path, "w", encoding="utf-8") as f:
-                f.write("ticket,nombre,apellidos,edad,asiento,precio\n")
-                for r in range(self.table.rowCount()):
-                    vals = [
-                        self.table.item(r, c).text() if self.table.item(r, c) else ""
-                        for c in range(self.table.columnCount())
-                    ]
-                    f.write(",".join(vals) + "\n")
-            QMessageBox.information(self, "Listo", "CSV exportado correctamente.")
-        except Exception as e:
-            QMessageBox.critical(self, "Error", str(e))
-
-    def load_passengers(self):
-        trip_id = self.trip.get("trip_id")
-        cur = self.db_conn.cursor(dictionary=True)
-
-        # --- CONSULTA NUEVA: nombre completo en un solo campo ---
-        cur.execute("""
-        SELECT
-            CONCAT(p.paNombre, ' ', p.paPrimerApell, ' ', COALESCE(p.paSegundoApell, '')) AS nombre_completo,
-            p.edad AS edad,
-            a.autobus AS bus_number,
-            t.codigo AS ticket_no,
-            t.asiento AS seat_no
-        FROM ticket t
-        INNER JOIN pasajero p ON t.pasajero = p.num
-        INNER JOIN asiento a ON t.asiento = a.numero
-        WHERE t.viaje = %s
-        ORDER BY t.asiento ASC, p.paNombre ASC;
-        """, (trip_id,))
-
-        rows = cur.fetchall()
-        cur.close()
-
-        self.table.setRowCount(len(rows))
-
-        for r, p in enumerate(rows):
-            # Nombre completo
-            nombre_item = QTableWidgetItem(str(p.get("nombre_completo", "")))
-            nombre_item.setFlags(nombre_item.flags() & ~Qt.ItemIsEditable)
-            self.table.setItem(r, 0, nombre_item)
-
-            # Edad
-            edad_item = QTableWidgetItem(str(p.get("edad", "")))
-            edad_item.setFlags(edad_item.flags() & ~Qt.ItemIsEditable)
-            self.table.setItem(r, 1, edad_item)
-
-            # Número del autobús
-            bus_item = QTableWidgetItem(str(p.get("bus_number", "")))
-            bus_item.setFlags(bus_item.flags() & ~Qt.ItemIsEditable)
-            self.table.setItem(r, 2, bus_item)
-
-            # Número del boleto
-            ticket_item = QTableWidgetItem(str(p.get("ticket_no", "")))
-            ticket_item.setFlags(ticket_item.flags() & ~Qt.ItemIsEditable)
-            self.table.setItem(r, 3, ticket_item)
-
-            # Número del asiento
-            seat_item = QTableWidgetItem(str(p.get("seat_no", "")))
-            seat_item.setFlags(seat_item.flags() & ~Qt.ItemIsEditable)
-            self.table.setItem(r, 4, seat_item)
+            self.table.setItem(r, 3, seat_item)
 
     def export_csv(self):
         path, _ = QFileDialog.getSaveFileName(self, "Guardar CSV", f"pasajeros_viaje_{self.trip.get('trip_id')}.csv", "CSV Files (*.csv)")
@@ -387,7 +309,7 @@ class PassengersDialog(QDialog):
             return
         try:
             with open(path, "w", encoding="utf-8") as f:
-                f.write("ticket,nombre,apellidos,edad,asiento,precio\n")
+                f.write("nombre_completo,edad,numero_boleto,numero_asiento\n")
                 for r in range(self.table.rowCount()):
                     vals = [
                         self.table.item(r, c).text() if self.table.item(r, c) else ""
@@ -500,13 +422,13 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, "Error", f"No se pudieron cargar los viajes:\n{e}")
             self.all_trips = []
 
-        # ---------- HEADER (reemplazado por diseño solicitado) ----------
+        # ---------- HEADER ----------
         header = QFrame()
         header.setStyleSheet("background:#E86A1E;border-radius:12px;")
         h_header = QHBoxLayout(header)
         h_header.setContentsMargins(16, 10, 16, 10)
 
-        # Logo bus (usa recursos compilados)
+        # Logo bus
         bus = QLabel()
         bus.setFixedSize(72, 72)
         try:
@@ -514,18 +436,17 @@ class MainWindow(QMainWindow):
             pixmap = pixmap.scaled(72, 72, Qt.KeepAspectRatio, Qt.SmoothTransformation)
             bus.setPixmap(pixmap)
         except Exception:
-            # si por alguna razón no carga, dejamos el QLabel vacío
             pass
         h_header.addWidget(bus)
 
-        # Título grande centrado
+        # Título
         title = QLabel("Rutas Baja Express")
         title.setFont(QFont("Segoe UI", 26, QFont.Bold))
         title.setStyleSheet("color:white;")
         title.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         h_header.addWidget(title)
 
-        # Imagen mapa a la derecha
+        # Mapa
         map_img = QLabel()
         map_img.setFixedSize(72, 72)
         try:
@@ -535,7 +456,6 @@ class MainWindow(QMainWindow):
         except Exception:
             pass
         h_header.addWidget(map_img)
-        # ----------------------------------------------------------------
 
         # ORIGEN: mostrar solo Tijuana (deshabilitado)
         lbl_o = QLabel("Origen:")
@@ -577,13 +497,10 @@ class MainWindow(QMainWindow):
         self.date_edit.setCalendarPopup(True)
         self.date_edit.setFixedWidth(150)
         self.date_edit.setDate(QDate.currentDate())
-        # Saber si el usuario cambió la fecha manualmente
         self.date_edit.userChanged = False
         self.date_edit.dateChanged.connect(lambda: setattr(self.date_edit, "userChanged", True))
 
-
-        # <<< ADICIÓN CALENDARIO BLANCO >>>
-        # Creamos un QCalendarWidget personalizado y lo asignamos al QDateEdit
+        # Calendario blanco
         cal = QCalendarWidget()
         cal.setStyleSheet("""
             QCalendarWidget {
@@ -605,18 +522,15 @@ class MainWindow(QMainWindow):
                 color: #0b3a66;
             }
         """)
-        # Asignamos el calendario al QDateEdit para asegurar el estilo del popup
         self.date_edit.setCalendarWidget(cal)
-        # <<< FIN ADICIÓN CALENDARIO BLANCO >>>
 
         btn_filter = QPushButton("Filtrar")
         btn_filter.clicked.connect(self.apply_filters)
-        
 
         btn_reset = QPushButton("Borrar")
         btn_reset.clicked.connect(self.reset_filters)
 
-        # Estilo azul para ambos botones
+        # Estilo naranja para ambos botones
         btn_filter.setStyleSheet("""
             QPushButton {
                 background-color: #EF6C33;
@@ -642,7 +556,6 @@ class MainWindow(QMainWindow):
                 background-color: #d85f2c;
             }
         """)
-        
 
         filter_layout = QHBoxLayout()
         filter_layout.setSpacing(12)
@@ -674,7 +587,7 @@ class MainWindow(QMainWindow):
 
         central = QWidget()
         main_layout = QVBoxLayout()
-        main_layout.addWidget(header)             # <-- header con nuevo diseño
+        main_layout.addWidget(header)
         main_layout.addSpacing(8)
         main_layout.addWidget(filters_frame)
         main_layout.addSpacing(6)
@@ -787,13 +700,11 @@ class MainWindow(QMainWindow):
             border: none !important;
         }
 
-        /* Encabezado del calendario (días de la semana) */
         QCalendarWidget QWidget#qt_calendar_navigationbar {
             background-color: #ffffff !important;
             color: #0b3a66 !important;
         }
 
-        /* números de los días */
         QCalendarWidget QAbstractItemView {
             background-color: #ffffff !important;
             color: #0b3a66 !important;
@@ -812,7 +723,6 @@ class MainWindow(QMainWindow):
             color: #cccccc !important;
         }
 
-        /* botones del calendario */
         QCalendarWidget QToolButton {
             background-color: #ffffff !important;
             color: #0b3a66 !important;
@@ -827,14 +737,12 @@ class MainWindow(QMainWindow):
             border-radius: 4px;
         }
 
-        /* Botones de navegación (prev/next month) */
         QCalendarWidget QToolButton#qt_calendar_prevmonth,
         QCalendarWidget QToolButton#qt_calendar_nextmonth {
             background-color: #ffffff !important;
             color: #0b3a66 !important;
         }
 
-        /* encargados de cambiar mes / año */
         QCalendarWidget QSpinBox {
             background-color: #ffffff !important;
             border: 1px solid #cbd7e6 !important;
@@ -849,7 +757,6 @@ class MainWindow(QMainWindow):
             border: 1px solid #cbd7e6 !important;
         }
         
-        /* Headers del mes/año */
         QCalendarWidget QAbstractButton {
             background-color: #ffffff !important;
             color: #0b3a66 !important;
@@ -877,11 +784,9 @@ class MainWindow(QMainWindow):
                     w.setParent(None)
                     w.deleteLater()
                 else:
-                    # puede ser un layout hijo o un spacer
                     child_layout = item.layout()
                     if child_layout is not None:
                         _clear_layout(child_layout)
-                    # si era un spacer, no hay widget ni layout: nothing else to do
 
         _clear_layout(self.cards_layout)
 
@@ -896,7 +801,6 @@ class MainWindow(QMainWindow):
 
         for trip in trips:
             card = TripCard(trip, parent=self)
-            # ahora pasamos la conexión BD al diálogo de detalle
             card.btn_detail.clicked.connect(lambda _, t=trip: self.show_bus_detail(t))
             card.btn_pass.clicked.connect(lambda _, t=trip: self.show_passengers(t))
             self.cards_layout.addWidget(card)
@@ -904,7 +808,6 @@ class MainWindow(QMainWindow):
         self.cards_layout.addStretch()
 
     def show_bus_detail(self, trip: Dict):
-        # pasamos self.db para que el diálogo pueda consultar asientos por tipo
         dlg = BusDetailDialog(trip, self.db, parent=self)
         dlg.exec()
 
@@ -943,9 +846,9 @@ class MainWindow(QMainWindow):
         # Restaurar destino
         self.cmb_dest.setCurrentIndex(0)
 
-        # Restaurar fecha a hoy (o la fecha que tú quieras)
-        self.date_edit.userChanged = False  # <-- IMPORTANTE
-        self.date_edit.blockSignals(True)   # para que no marque como cambiada
+        # Restaurar fecha a hoy
+        self.date_edit.userChanged = False
+        self.date_edit.blockSignals(True)
         self.date_edit.setDate(QDate.currentDate())
         self.date_edit.blockSignals(False)
 

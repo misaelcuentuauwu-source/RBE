@@ -132,6 +132,10 @@ class ProgramacionWindow(QWidget):
         btn_apply = QPushButton("Filtrar")
         btn_apply.clicked.connect(self.apply_filters)
 
+        btn_clear = QPushButton("Limpiar Filtros")
+        btn_clear.setObjectName("clearBtn")
+        btn_clear.clicked.connect(self.clear_filters)
+
         btn_add_trip = QPushButton("Agregar Salida")
         btn_add_trip.clicked.connect(self.open_add_trip_dialog)
 
@@ -164,6 +168,7 @@ class ProgramacionWindow(QWidget):
         buttons_layout.setSpacing(10)
         buttons_layout.addStretch(1)
         buttons_layout.addWidget(btn_apply)
+        buttons_layout.addWidget(btn_clear)
         buttons_layout.addWidget(btn_add_trip)
         buttons_layout.addStretch(1)
 
@@ -237,6 +242,17 @@ class ProgramacionWindow(QWidget):
                 font-weight: bold;
             }
             QPushButton:hover { background: #d85f2c; }
+            
+            QPushButton#clearBtn {
+                background: #6c757d;
+                color: white;
+                border-radius: 8px;
+                padding: 6px 10px;
+                font-weight: bold;
+            }
+            QPushButton#clearBtn:hover { 
+                background: #5a6268; 
+            }
         """)
 
     # ---------- CARDS CONTROL ----------
@@ -329,7 +345,7 @@ class ProgramacionWindow(QWidget):
         content_layout.setSpacing(12)
 
         # SECCIÓN: Horarios
-        lbl_horarios = QLabel(" Horarios")
+        lbl_horarios = QLabel("⏰ Horarios")
         lbl_horarios.setProperty("class", "subtitle")
         content_layout.addWidget(lbl_horarios)
 
@@ -496,6 +512,7 @@ class ProgramacionWindow(QWidget):
         finally:
             cur.close()
             cn.close()
+    
     # ---------- FILTROS ----------
     def populate_filter_boxes(self):
         origenes = set()
@@ -562,6 +579,24 @@ class ProgramacionWindow(QWidget):
             filtered = [t for t in filtered if t["dest_city"].lower() == dest.lower()]
 
         self.load_cards(filtered)
+
+    def clear_filters(self):
+        """Limpia todos los filtros y muestra todos los viajes"""
+        # Restablecer fecha a hoy
+        self.date_edit.setDate(QDate.currentDate())
+        
+        # Restablecer origen a "Tijuana" o "-- Todas --"
+        idx_tijuana = self.cmb_origen.findText("Tijuana")
+        if idx_tijuana >= 0:
+            self.cmb_origen.setCurrentIndex(idx_tijuana)
+        else:
+            self.cmb_origen.setCurrentIndex(0)  # "-- Todas --"
+        
+        # Restablecer destino a "-- Todas --"
+        self.cmb_dest.setCurrentIndex(0)
+        
+        # Mostrar TODOS los viajes
+        self.load_cards(self.all_trips)
 
     # ---------- AGREGAR SALIDA ----------
     def open_add_trip_dialog(self):

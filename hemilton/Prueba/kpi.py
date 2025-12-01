@@ -4,14 +4,12 @@ from datetime import datetime, date, time, timedelta
 from typing import Optional, Dict, List, Tuple
 from PySide6.QtWidgets import (
     QApplication, QWidget, QLabel, QComboBox, QDateEdit, QHBoxLayout, QVBoxLayout,
-    QPushButton, QMessageBox, QFrame, QSizePolicy, QSpinBox, QDialog, QTextEdit,QScrollArea,
-    QLineEdit
+    QPushButton, QMessageBox, QFrame, QSizePolicy, QSpinBox, QDialog, QTextEdit,
+    QScrollArea
 )
 from PySide6.QtCore import Qt, QDate
-from PySide6.QtGui import QFont
 
 from conexion import crear_conexion  # <-- usa tu función existente de conexión MySQL
-
 
 def format_dt(dt: Optional[datetime]) -> str:
     if dt is None:
@@ -19,7 +17,6 @@ def format_dt(dt: Optional[datetime]) -> str:
     if isinstance(dt, str):
         return dt
     return dt.strftime("%Y-%m-%d %H:%M")
-
 
 # ----------------- Tarjetas -----------------
 class TripCardKPI(QFrame):
@@ -111,7 +108,6 @@ class TripCardKPI(QFrame):
 
         main.addStretch()
 
-
 class ConductorCardKPI(QFrame):
     """Tarjeta para KPI de Conductor (incluye matrícula del autobús)."""
     def __init__(self, data: dict, parent=None):
@@ -184,7 +180,6 @@ class ConductorCardKPI(QFrame):
         main.addLayout(r3)
         main.addLayout(r4)
         main.addStretch()
-
 
 class AutobusCardKPI(QFrame):
     """Tarjeta para Autobús con botón Detalles."""
@@ -305,7 +300,6 @@ class AutobusCardKPI(QFrame):
         dlg.setLayout(form)
         dlg.exec()
 
-
 class CiudadCardKPI(QFrame):
     """Tarjeta para Ciudad KPI."""
     def __init__(self, data: dict, parent=None):
@@ -368,7 +362,6 @@ class CiudadCardKPI(QFrame):
         main.addLayout(r3)
         main.addStretch()
 
-
 # ----------------- Ventana Principal -----------------
 class KPIWindow(QWidget):
     def __init__(self):
@@ -420,50 +413,40 @@ class KPIWindow(QWidget):
         self.btn_reload = QPushButton("Actualizar BD")
         self.btn_reload.clicked.connect(self.reload_from_db)
 
-        # --- Filtros específicos por KPI (opción C) ---
-        # Conductor: búsqueda por nombre
-        self.lbl_search_conductor = QLabel("Buscar conductor:")
-        self.edit_search_conductor = QLineEdit()
-        self.edit_search_conductor.setPlaceholderText("Nombre o apellido")
-        self.edit_search_conductor.returnPressed.connect(self.apply_filters)
+        # --- Filtros específicos por KPI ---
+        # Conductor: combobox estándar
+        self.lbl_search_conductor = QLabel("Filtrar conductor:")
+        self.cmb_conductor = QComboBox()
+        self.cmb_conductor.setMinimumWidth(200)
+        self.cmb_conductor.addItem("Todos", None)  # Opción por defecto
 
-        # Autobús: número de autobús exacto (puede ser string)
-        self.lbl_search_bus = QLabel("Número de autobús:")
-        self.edit_search_bus = QLineEdit()
-        self.edit_search_bus.setPlaceholderText("Ej: 501")
-        self.edit_search_bus.returnPressed.connect(self.apply_filters)
+        # Autobús: combobox estándar
+        self.lbl_search_bus = QLabel("Filtrar autobús:")
+        self.cmb_bus = QComboBox()
+        self.cmb_bus.setMinimumWidth(200)
+        self.cmb_bus.addItem("Todos", None)  # Opción por defecto
 
-        # Ciudad: ciudad destino parcial
-        self.lbl_search_city = QLabel("Ciudad destino:")
-        self.edit_search_city = QLineEdit()
-        self.edit_search_city.setPlaceholderText("Ej: Ensenada")
-        self.edit_search_city.returnPressed.connect(self.apply_filters)
-
-        # Contenedor tarjeta con scroll
-       
+        # Ciudad: combobox estándar
+        self.lbl_search_city = QLabel("Filtrar ciudad destino:")
+        self.cmb_city = QComboBox()
+        self.cmb_city.setMinimumWidth(200)
+        self.cmb_city.addItem("Todas", None)  # Opción por defecto
 
         # Contenedor tarjeta con scroll
-
         self.scroll = QScrollArea()
         self.scroll.setWidgetResizable(True)
         self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.scroll.setStyleSheet("border: none;")  # opcional, estético
+        self.scroll.setStyleSheet("border: none;")
 
         self.card_frame = QFrame()
         self.card_layout = QVBoxLayout(self.card_frame)
-
-        self.scroll.setWidget(self.card_frame)
-
-        self.card_frame = QFrame()
-        self.card_layout = QVBoxLayout(self.card_frame)
-
         self.scroll.setWidget(self.card_frame)
 
         # Info adicional (cantidad de resultados)
         self.lbl_info = QLabel("")
         self.lbl_info.setStyleSheet("color: #5a6b78; font-weight:600;")
 
-        # Layout superior de controles (tipo arriba)
+        # Layout superior de controles
         controls = QHBoxLayout()
         controls.addWidget(lbl_tipo)
         controls.addWidget(self.cmb_tipo)
@@ -478,13 +461,13 @@ class KPIWindow(QWidget):
         controls.addWidget(self.cmb_year)
         controls.addSpacing(10)
 
-        # place for KPI-specific filters (we'll manage visibility)
+        # Filtros específicos por KPI
         controls.addWidget(self.lbl_search_conductor)
-        controls.addWidget(self.edit_search_conductor)
+        controls.addWidget(self.cmb_conductor)
         controls.addWidget(self.lbl_search_bus)
-        controls.addWidget(self.edit_search_bus)
+        controls.addWidget(self.cmb_bus)
         controls.addWidget(self.lbl_search_city)
-        controls.addWidget(self.edit_search_city)
+        controls.addWidget(self.cmb_city)
 
         controls.addWidget(self.btn_apply)
         controls.addWidget(self.btn_reload)
@@ -503,18 +486,50 @@ class KPIWindow(QWidget):
         self.load_all_trips_from_db()   # usado por Boletos
         self._on_scope_changed()   # ajusta visibilidad controles
 
+        # Cargar datos para los comboboxes
+        self.load_conductores()
+        self.load_autobuses()
+        self.load_ciudades()
+
         # Ocultar los filtros específicos por defecto
         self._update_filter_visibility()
 
         # primer render
         self.apply_filters()
 
-        # estilos simples
+        # estilos
         self.setStyleSheet("""
             QLabel { color: #0b3a66; font-weight: 600; }
-            QPushButton { background: #EF6C33; color: white; border-radius:8px; padding:6px 10px; font-weight:bold; }
+            QPushButton {
+                background: #EF6C33;
+                color: white;
+                border-radius:8px;
+                padding:6px 10px;
+                font-weight:bold;
+            }
             QPushButton:hover { background:#d85f2c; }
-            QComboBox, QDateEdit, QSpinBox, QLineEdit { padding:6px 8px; border-radius:8px; border:1px solid #cbd7e6; background:#fff; }
+            QComboBox, QDateEdit, QSpinBox {
+                padding:6px 8px;
+                border-radius:4px;
+                border:1px solid #cbd7e6;
+                background:#fff;
+                min-width: 120px;
+            }
+            QComboBox::drop-down {
+                subcontrol-origin: padding;
+                subcontrol-position: top right;
+                width: 20px;
+                border-left-width: 1px;
+                border-left-color: #cbd7e6;
+                border-left-style: solid;
+                border-top-right-radius: 4px;
+                border-bottom-right-radius: 4px;
+            }
+            QComboBox QAbstractItemView {
+                border: 1px solid #cbd7e6;
+                selection-background-color: #EF6C33;
+                background-color: white;
+            }
         """)
 
     # ---------------- DB ----------------
@@ -567,6 +582,78 @@ class KPIWindow(QWidget):
             except:
                 pass
 
+    def load_conductores(self):
+        """Carga los conductores desde la base de datos y los agrega al combobox"""
+        try:
+            cur = self.db.cursor(dictionary=True)
+            cur.execute("""
+                SELECT registro, conNombre, conPrimerApell, conSegundoApell
+                FROM conductor
+                ORDER BY conNombre, conPrimerApell, conSegundoApell
+            """)
+            rows = cur.fetchall()
+
+            for row in rows:
+                fullname = " ".join(filter(None, [
+                    row.get("conNombre", ""),
+                    row.get("conPrimerApell", ""),
+                    row.get("conSegundoApell", "")
+                ])).strip()
+                self.cmb_conductor.addItem(fullname, row.get("registro"))
+
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"No se pudieron cargar los conductores:\n{e}")
+        finally:
+            try:
+                cur.close()
+            except:
+                pass
+
+    def load_autobuses(self):
+        """Carga los autobuses desde la base de datos y los agrega al combobox"""
+        try:
+            cur = self.db.cursor(dictionary=True)
+            cur.execute("""
+                SELECT numero, placas
+                FROM autobus
+                ORDER BY numero
+            """)
+            rows = cur.fetchall()
+
+            for row in rows:
+                display_text = f"{row.get('numero')} ({row.get('placas', '')})"
+                self.cmb_bus.addItem(display_text, row.get("numero"))
+
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"No se pudieron cargar los autobuses:\n{e}")
+        finally:
+            try:
+                cur.close()
+            except:
+                pass
+
+    def load_ciudades(self):
+        """Carga las ciudades desde la base de datos y las agrega al combobox"""
+        try:
+            cur = self.db.cursor(dictionary=True)
+            cur.execute("""
+                SELECT clave, nombre
+                FROM ciudad
+                ORDER BY nombre
+            """)
+            rows = cur.fetchall()
+
+            for row in rows:
+                self.cmb_city.addItem(row.get("nombre", ""), row.get("clave"))
+
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"No se pudieron cargar las ciudades:\n{e}")
+        finally:
+            try:
+                cur.close()
+            except:
+                pass
+
     # ---------------- filtros y helpers ----------------
     def _on_scope_changed(self):
         idx = self.cmb_scope.currentIndex()
@@ -579,29 +666,28 @@ class KPIWindow(QWidget):
         # cada vez que cambia el KPI, actualizamos qué filtros se muestran
         self._update_filter_visibility()
         # reset apply flag so user can filter again if desired
-        # (we keep initial_load logic only for boletos)
         self.apply_filters()
 
     def _update_filter_visibility(self):
         tipo = self.cmb_tipo.currentText()
-        # hide all
+        # Ocultar todos los filtros primero
         self.lbl_search_conductor.setVisible(False)
-        self.edit_search_conductor.setVisible(False)
+        self.cmb_conductor.setVisible(False)
         self.lbl_search_bus.setVisible(False)
-        self.edit_search_bus.setVisible(False)
+        self.cmb_bus.setVisible(False)
         self.lbl_search_city.setVisible(False)
-        self.edit_search_city.setVisible(False)
+        self.cmb_city.setVisible(False)
 
-        # show depending on tipo
+        # Mostrar según el tipo seleccionado
         if tipo == "Conductor":
             self.lbl_search_conductor.setVisible(True)
-            self.edit_search_conductor.setVisible(True)
+            self.cmb_conductor.setVisible(True)
         elif tipo == "Autobús":
             self.lbl_search_bus.setVisible(True)
-            self.edit_search_bus.setVisible(True)
+            self.cmb_bus.setVisible(True)
         elif tipo == "Ciudad":
             self.lbl_search_city.setVisible(True)
-            self.edit_search_city.setVisible(True)
+            self.cmb_city.setVisible(True)
 
     def on_apply_clicked(self):
         # mark that apply was explicitly requested
@@ -630,7 +716,7 @@ class KPIWindow(QWidget):
             self.lbl_info.setText("Tipo desconocido.")
             return
 
-    # ---------------- KPI: Boletos (mantengo tu lógica original con ajuste inicial) ----------------
+    # ---------------- KPI: Boletos ----------------
     def _apply_kpi_boletos(self):
         # if initial_load True -> load ALL trips (past, present, future)
         if self.initial_load:
@@ -674,7 +760,6 @@ class KPIWindow(QWidget):
                 card = TripCardKPI(trip, parent=self)
                 self.card_layout.addWidget(card)
             self.card_layout.addStretch()
-            # after first render, initial_load should be False when user later presses apply
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error al renderizar KPI Boletos: {e}")
 
@@ -702,14 +787,11 @@ class KPIWindow(QWidget):
 
     # ---------------- KPI: Conductor ----------------
     def _apply_kpi_conductor(self):
-        """
-        Consulta los viajes (conductor) y permite filtro por nombre del conductor y por rango de fechas (si apply_pressed True).
-        """
-        # build base query and params
+        """Consulta los viajes (conductor) con los filtros seleccionados"""
         where_clauses = []
         params = []
 
-        # if user pressed apply -> restrict by date range
+        # Filtro por rango de fechas si se presionó Aplicar
         if self.apply_pressed:
             rng = self._compute_date_range()
             if rng is None:
@@ -718,13 +800,11 @@ class KPIWindow(QWidget):
             where_clauses.append("v.fecHoraSalida BETWEEN %s AND %s")
             params.extend([start, end])
 
-        # conductor name filter
-        name_filter = self.edit_search_conductor.text().strip()
-        if name_filter:
-            # search across conNombre, conPrimerApell, conSegundoApell
-            where_clauses.append("(c.conNombre LIKE %s OR c.conPrimerApell LIKE %s OR c.conSegundoApell LIKE %s)")
-            likeval = f"%{name_filter}%"
-            params.extend([likeval, likeval, likeval])
+        # Filtro por conductor seleccionado
+        conductor_id = self.cmb_conductor.currentData()
+        if conductor_id is not None:
+            where_clauses.append("v.conductor = %s")
+            params.append(conductor_id)
 
         where_sql = " AND ".join(where_clauses)
         if where_sql:
@@ -800,13 +880,11 @@ class KPIWindow(QWidget):
 
     # ---------------- KPI: Autobús ----------------
     def _apply_kpi_autobus(self):
-        """
-        Lista autobuses (filtrados por viajes en el rango si apply_pressed True) y por número si se ingresó.
-        """
+        """Lista autobuses con los filtros seleccionados"""
         where_clauses = []
         params = []
 
-        # If apply pressed, limit by date
+        # Filtro por rango de fechas si se presionó Aplicar
         if self.apply_pressed:
             rng = self._compute_date_range()
             if rng is None:
@@ -815,19 +893,11 @@ class KPIWindow(QWidget):
             where_clauses.append("v.fecHoraSalida BETWEEN %s AND %s")
             params.extend([start, end])
 
-        # bus number filter
-        bus_filter = self.edit_search_bus.text().strip()
-        if bus_filter:
-            # try to interpret as int; if not, will match string field a.numero
-            try:
-                bus_num = int(bus_filter)
-                where_clauses.append("a.numero = %s")
-                params.append(bus_num)
-            except:
-                # no conversion: compare as string on placas or number cast
-                where_clauses.append("(a.numero = %s OR a.placas LIKE %s)")
-                params.append(bus_filter)
-                params.append(f"%{bus_filter}%")
+        # Filtro por autobús seleccionado
+        bus_id = self.cmb_bus.currentData()
+        if bus_id is not None:
+            where_clauses.append("v.autobus = %s")
+            params.append(bus_id)
 
         where_sql = " AND ".join(where_clauses)
         if where_sql:
@@ -892,13 +962,11 @@ class KPIWindow(QWidget):
 
     # ---------------- KPI: Ciudad ----------------
     def _apply_kpi_ciudad(self):
-        """
-        Lista viajes agrupados por la ciudad de origen (o cada viaje como tarjeta) con filtro opcional por ciudad destino.
-        """
+        """Lista viajes con los filtros de ciudad seleccionados"""
         where_clauses = []
         params = []
 
-        # date range only if apply pressed
+        # Filtro por rango de fechas si se presionó Aplicar
         if self.apply_pressed:
             rng = self._compute_date_range()
             if rng is None:
@@ -907,11 +975,11 @@ class KPIWindow(QWidget):
             where_clauses.append("v.fecHoraSalida BETWEEN %s AND %s")
             params.extend([start, end])
 
-        # destination city filter
-        city_filter = self.edit_search_city.text().strip()
-        if city_filter:
-            where_clauses.append("cdest.nombre LIKE %s")
-            params.append(f"%{city_filter}%")
+        # Filtro por ciudad destino seleccionada
+        city_id = self.cmb_city.currentData()
+        if city_id is not None:
+            where_clauses.append("tdest.ciudad = %s")
+            params.append(city_id)
 
         where_sql = " AND ".join(where_clauses)
         if where_sql:
@@ -1023,11 +1091,23 @@ class KPIWindow(QWidget):
         try:
             # reload trips and run same view
             self.load_all_trips_from_db()
+            # Recargar también los comboboxes
+            self.cmb_conductor.clear()
+            self.cmb_conductor.addItem("Todos", None)
+            self.load_conductores()
+
+            self.cmb_bus.clear()
+            self.cmb_bus.addItem("Todos", None)
+            self.load_autobuses()
+
+            self.cmb_city.clear()
+            self.cmb_city.addItem("Todas", None)
+            self.load_ciudades()
+
             self.apply_filters()
             QMessageBox.information(self, "Actualizado", f"Datos actualizados.\n{len(self.all_trips)} viajes cargados.")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error al actualizar:\n{e}")
-
 
 # ----------------- Ejecución directa -----------------
 def main():
@@ -1035,7 +1115,6 @@ def main():
     win = KPIWindow()
     win.show()
     sys.exit(app.exec())
-
 
 if __name__ == "__main__":
     main()
