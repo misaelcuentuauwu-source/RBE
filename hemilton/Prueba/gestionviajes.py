@@ -891,6 +891,7 @@ class MainWindow(QMainWindow):
                 LEFT JOIN autobus a ON v.autobus = a.numero
                 LEFT JOIN modelo mo ON a.modelo = mo.numero
                 LEFT JOIN marca ma ON mo.marca = ma.numero
+                WHERE v.fecHoraSalida < NOW()
                 ORDER BY v.fecHoraSalida ASC
             """)
             rows = cur.fetchall()
