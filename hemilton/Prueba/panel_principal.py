@@ -9,6 +9,7 @@ from pasajero import VentanaRegistroPasajero
 from epilepsia import VentanaAnimada
 from terminales import VentanaTerminales
 from rutas_baja_express_ui import MainWindow as VentanaVentaBoletos
+from gestionviajes import MainWindow as VentanaHistorialViajes  # NUEVA IMPORTACIÓN
 from conexion import crear_conexion
 
 # ===============================
@@ -127,16 +128,17 @@ class PanelPrincipal(QMainWindow):
             """)
             return btn
 
-        # NUEVO: Botón Dashboard
+        # Botones de navegación
         self.btn_dashboard = nav_button("🏠 Dashboard", "🏠")
         self.btn_terminales = nav_button("🏢 Terminales", "🏢")
         self.btn_vender = nav_button("🎫 Vender boletos", "🎫")
+        self.btn_historial = nav_button("📋 Historial de Viajes", "📋")  # NUEVO BOTÓN
         self.btn_config = nav_button("⚙️ Configuración", "⚙️")
-        # ELIMINADO: self.btn_epilepsia (ahora es Easter Egg)
 
         self.buttons_layout.addWidget(self.btn_dashboard)
         self.buttons_layout.addWidget(self.btn_terminales)
         self.buttons_layout.addWidget(self.btn_vender)
+        self.buttons_layout.addWidget(self.btn_historial)  # AGREGADO
         self.buttons_layout.addWidget(self.btn_config)
         
         self.layout_sidebar.addWidget(buttons_container)
@@ -204,7 +206,7 @@ class PanelPrincipal(QMainWindow):
         layout_topbar.addWidget(self.welcome)
         layout_topbar.addStretch()
 
-        # MEJORADO: Caja de búsqueda funcional
+        # Caja de búsqueda funcional
         self.search = QLineEdit()
         self.search.setPlaceholderText("🔍 Buscar...")
         self.search.setStyleSheet("""
@@ -282,6 +284,18 @@ class PanelPrincipal(QMainWindow):
         layout_dash.addLayout(cards_layout)
         layout_dash.addStretch()
         self.stacked.addWidget(self.page_dashboard)
+
+        # -------- NUEVA PÁGINA: Historial de Viajes --------
+        self.page_historial = QWidget()
+        self.historial_layout = QVBoxLayout(self.page_historial)
+        self.historial_layout.setContentsMargins(0, 0, 0, 0)
+        
+        # Instancia del widget de historial
+        self.historial_widget = VentanaHistorialViajes()
+        self.historial_widget.setWindowFlags(Qt.Widget)  # Convertir a widget embebido
+        self.historial_layout.addWidget(self.historial_widget)
+        
+        self.stacked.addWidget(self.page_historial)
 
         # -------- Configuración --------
         self.page_config = QWidget()
@@ -404,6 +418,7 @@ class PanelPrincipal(QMainWindow):
         self.btn_dashboard.clicked.connect(lambda: self.stacked.setCurrentWidget(self.page_dashboard))
         self.btn_terminales.clicked.connect(self.abrir_terminales)
         self.btn_vender.clicked.connect(self.abrir_venta)
+        self.btn_historial.clicked.connect(lambda: self.stacked.setCurrentWidget(self.page_historial))  # NUEVO EVENTO
         self.btn_logout.clicked.connect(self.cerrar_sesion)
         self.btn_toggle.clicked.connect(self.toggle_menu)
         self.btn_config.clicked.connect(lambda: self.stacked.setCurrentWidget(self.page_config))
@@ -452,6 +467,11 @@ class PanelPrincipal(QMainWindow):
             'dashboard': lambda: self.stacked.setCurrentWidget(self.page_dashboard),
             'home': lambda: self.stacked.setCurrentWidget(self.page_dashboard),
             
+            # Historial - NUEVO
+            'historial': lambda: self.stacked.setCurrentWidget(self.page_historial),
+            'viajes': lambda: self.stacked.setCurrentWidget(self.page_historial),
+            'history': lambda: self.stacked.setCurrentWidget(self.page_historial),
+            
             # Easter Egg - Epilepsia
             'epilepsia': self.abrir_epilepsia,
             'juego': self.abrir_epilepsia,
@@ -472,7 +492,7 @@ class PanelPrincipal(QMainWindow):
                 self, 
                 "Búsqueda", 
                 f"No se encontró ninguna acción para: '{texto}'\n\n"
-                "Prueba con: boleto, terminal, pasajero, config, inicio..."
+                "Prueba con: boleto, terminal, pasajero, historial, config, inicio..."
             )
             self.search.clear()
 
@@ -510,7 +530,7 @@ class PanelPrincipal(QMainWindow):
             self.brand.setText("Rutas Baja Express")
             
             # Restaurar texto completo de botones
-            for btn in [self.btn_dashboard, self.btn_terminales, self.btn_vender, self.btn_config]:
+            for btn in [self.btn_dashboard, self.btn_terminales, self.btn_vender, self.btn_historial, self.btn_config]:
                 btn.setText(btn.property("full_text"))
             
             self.btn_logout.setText("🚪 Cerrar sesión")
@@ -521,7 +541,7 @@ class PanelPrincipal(QMainWindow):
             self.brand.setText("RBE")
             
             # Cambiar a solo iconos
-            for btn in [self.btn_dashboard, self.btn_terminales, self.btn_vender, self.btn_config]:
+            for btn in [self.btn_dashboard, self.btn_terminales, self.btn_vender, self.btn_historial, self.btn_config]:
                 btn.setText(btn.property("icon_text"))
             
             self.btn_logout.setText("🚪")
