@@ -1,6 +1,7 @@
 # ventana_pago.py
 # Ventana de pago con conexión a BD
 
+from PySide6.QtGui import QIntValidator
 from datetime import datetime
 from PySide6.QtWidgets import (
     QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout,
@@ -344,11 +345,13 @@ class VentanaPago(QWidget):
                 item.widget().deleteLater()
 
         if metodo == "Efectivo":
+
             total = QLabel(f"Total: ${self.total_pagar:.2f}")
             total.setStyleSheet("color: white; font-size: 18px;")
 
             self.recibido = QLineEdit()
             self.recibido.setPlaceholderText("Total recibido")
+            self.recibido.setValidator(QIntValidator())  # Solo números
             self.recibido.setStyleSheet("""
                 background: white;
                 padding: 10px;
@@ -364,17 +367,40 @@ class VentanaPago(QWidget):
             self.area_dinamica.addWidget(self.recibido)
             self.area_dinamica.addWidget(self.cambio)
 
-        else:  # Tarjeta
-            for txt in ["Número de tarjeta", "Mes (MM)", "Año (YY)", "CVV"]:
-                entrada = QLineEdit()
-                entrada.setPlaceholderText(txt)
-                entrada.setStyleSheet("""
+        else:  # TARJETA
+
+            self.input_tarjeta = QLineEdit()
+            self.input_tarjeta.setPlaceholderText("Número de tarjeta")
+            self.input_tarjeta.setMaxLength(16)   # ✅ SOLO limitamos caracteres
+            # ❌ SIN QIntValidator AQUÍ
+
+            self.input_mes = QLineEdit()
+            self.input_mes.setPlaceholderText("Mes (MM)")
+            self.input_mes.setMaxLength(2)
+            self.input_mes.setValidator(QIntValidator(1, 12))   # ✅ rango mes correcto
+
+            self.input_year = QLineEdit()
+            self.input_year.setPlaceholderText("Año (YY)")
+            self.input_year.setMaxLength(2)
+            self.input_year.setValidator(QIntValidator(0, 99))  # ✅ limita 00–99
+
+            self.input_cvv = QLineEdit()
+            self.input_cvv.setPlaceholderText("CVV")
+            self.input_cvv.setMaxLength(4)
+            self.input_cvv.setEchoMode(QLineEdit.Password)
+            self.input_cvv.setValidator(QIntValidator(0, 9999))  # ✅ CVV correcto
+
+            for campo in [self.input_tarjeta, self.input_mes, self.input_year, self.input_cvv]:
+                campo.setStyleSheet("""
                     background: white;
                     padding: 10px;
                     border-radius: 15px;
                     color: black;
                 """)
-                self.area_dinamica.addWidget(entrada)
+                self.area_dinamica.addWidget(campo)
+
+
+
 
     def calcular_cambio(self):
         """Calcula el cambio en efectivo"""
@@ -384,6 +410,61 @@ class VentanaPago(QWidget):
             self.cambio.setText(f"Cambio: ${cambio:.2f}")
         except:
             self.cambio.setText("Cambio: $0.00")
+
+    def validar_tarjeta(self):
+        try:
+            tarjeta = self.input_tarjeta.text().replace(" ", "")
+            mes = self.input_mes.text()
+            year = self.input_year.text()
+            cvv = self.input_cvv.text()
+
+            # Campos vacíos
+            if not tarjeta or not mes or not year or not cvv:
+                QMessageBox.warning(self, "Error", "Todos los campos de tarjeta son obligatorios")
+                return False
+
+            # Número de tarjeta
+            if not tarjeta.isdigit() or len(tarjeta) not in [13, 15, 16]:
+                QMessageBox.warning(self, "Error", "Número de tarjeta inválido")
+                return False
+
+            # Mes
+            if not mes.isdigit() or not (1 <= int(mes) <= 12):
+                QMessageBox.warning(self, "Error", "Mes inválido")
+                return False
+
+            # Año
+            if not year.isdigit() or len(year) != 2:
+                QMessageBox.warning(self, "Error", "Año inválido (usar formato YY)")
+                return False
+
+            # CVV
+            if not cvv.isdigit() or len(cvv) not in [3, 4]:
+                QMessageBox.warning(self, "Error", "CVV inválido")
+                return False
+
+            # ✅ VALIDACIÓN REAL DE CADUCIDAD
+            ahora = datetime.now()
+            mes = int(mes)
+            year = int("20" + year)
+
+            # Último día del mes de caducidad
+            if mes == 12:
+                fin_mes = datetime(year + 1, 1, 1)
+            else:
+                fin_mes = datetime(year, mes + 1, 1)
+
+            if ahora >= fin_mes:
+                QMessageBox.warning(self, "Error", "La tarjeta está vencida")
+                return False
+
+            return True
+
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Error validando tarjeta:\n{e}")
+            return False
+
+
 
     def confirmar_pago(self):
         """Guarda pago, tickets y marca asientos como ocupados"""
@@ -405,7 +486,11 @@ class VentanaPago(QWidget):
             except:
                 QMessageBox.warning(self, "Error", "Ingresa el monto recibido")
                 return
-        
+        # Validar TARJETA
+        if metodo_texto != "Efectivo":
+            if not self.validar_tarjeta():
+                return
+
         try:
             conn = crear_conexion()
             if not conn:
