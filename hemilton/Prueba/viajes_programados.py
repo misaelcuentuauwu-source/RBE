@@ -614,8 +614,7 @@ class ProgramacionWindow(QWidget):
         origen = self.cmb_origen.currentText().strip()
         dest = self.cmb_dest.currentText().strip()
 
-        if selected_date != QDate.currentDate().toPython():
-            filtered = [t for t in filtered if t["departure"].date() == selected_date]
+        filtered = [t for t in filtered if t["departure"].date() == selected_date]
 
         if origen and origen != "-- Todas --":
             filtered = [t for t in filtered if t["origin_city"].lower() == origen.lower()]
