@@ -426,7 +426,7 @@ class ProgramacionWindow(QWidget):
 
     # ---------- DB METHODS ----------
     def load_all_trips_from_db(self):
-        """Carga SOLO los viajes futuros (después de HOY)"""
+        """Carga TODOS los viajes (sin filtro de fecha)"""
         try:
             cn = crear_conexion()
         except Exception as e:
@@ -436,29 +436,33 @@ class ProgramacionWindow(QWidget):
         cur = cn.cursor(dictionary=True)
 
         try:
-            # Calcular fecha límite (2 meses adelante desde HOY)
-            fecha_limite = datetime.now() + timedelta(days=60)
-            
             cur.execute("""
                 SELECT
                     v.numero AS trip_id,
                     v.ruta AS route_id,
                     v.fecHoraSalida AS departure,
                     v.fecHoraEntrada AS arrival,
+
                     r.origen AS origin_terminal_num,
                     tor.nombre AS origin_terminal,
                     corig.nombre AS origin_city,
+
                     r.destino AS dest_terminal_num,
                     tdest.nombre AS dest_terminal,
                     cdest.nombre AS dest_city,
+
                     v.autobus AS bus_number,
-                    COALESCE(a.placas, 'N/A') AS plate,
-                    COALESCE(mo.nombre, 'N/A') AS model,
-                    COALESCE(ma.nombre, 'N/A') AS brand,
-                    COALESCE(mo.numasientos, 0) AS seats_count,
-                    COALESCE(CONCAT(c.conNombre, ' ', c.conPrimerApell, ' ',
-                        COALESCE(c.conSegundoApell, '')), 'Sin asignar') AS operator,
+                    a.placas AS plate,
+                    mo.nombre AS model,
+                    ma.nombre AS brand,
+                    mo.numasientos AS seats_count,
+                    mo.`año` AS year,
+
+                    CONCAT(c.conNombre, ' ', c.conPrimerApell, ' ',
+                        COALESCE(c.conSegundoApell, '')) AS operator,
+
                     (SELECT COUNT(*) FROM ticket t WHERE t.viaje = v.numero) AS passengers_count,
+
                     v.estado AS estado
                 FROM viaje v
                 LEFT JOIN ruta r ON v.ruta = r.codigo
@@ -470,9 +474,8 @@ class ProgramacionWindow(QWidget):
                 LEFT JOIN autobus a ON v.autobus = a.numero
                 LEFT JOIN modelo mo ON a.modelo = mo.numero
                 LEFT JOIN marca ma ON mo.marca = ma.numero
-                WHERE v.fecHoraSalida > NOW() AND v.fecHoraSalida <= %s
                 ORDER BY v.fecHoraSalida ASC
-            """, (fecha_limite,))
+            """)
 
             rows = cur.fetchall()
             trips = []
@@ -490,30 +493,6 @@ class ProgramacionWindow(QWidget):
         finally:
             cur.close()
             cn.close()
-
-    def reload_from_db(self):
-        """Recarga los viajes y mantiene los filtros"""
-        try:
-            current_date = self.date_edit.date()
-            current_origen = self.cmb_origen.currentText()
-            current_dest = self.cmb_dest.currentText()
-            
-            self.load_all_trips_from_db()
-            self.populate_filter_boxes()
-            
-            self.date_edit.setDate(current_date)
-            idx_origen = self.cmb_origen.findText(current_origen)
-            if idx_origen >= 0:
-                self.cmb_origen.setCurrentIndex(idx_origen)
-            idx_dest = self.cmb_dest.findText(current_dest)
-            if idx_dest >= 0:
-                self.cmb_dest.setCurrentIndex(idx_dest)
-            
-            self.apply_filters()
-            
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Error al actualizar:\n{e}")
-
     # ---------- FILTROS ----------
     def populate_filter_boxes(self):
         origenes = set()
