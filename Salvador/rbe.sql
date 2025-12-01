@@ -1062,26 +1062,14 @@ INSERT INTO `ticket` (`codigo`, `precio`, `fechaEmision`, `asiento`, `viaje`, `p
 (146, 240.00, '2025-11-30 23:49:49', 11, 6, 144, 1, 67),
 (147, 240.00, '2025-11-30 23:49:49', 12, 6, 145, 1, 67);
 
---
--- Dumping data for table `tipo_asiento`
---
-
 INSERT INTO `tipo_asiento` (`codigo`, `descripcion`) VALUES
 ('COM', 'Comun'),
 ('DIS', 'Discapacitado'),
 ('PLU', 'Plus');
 
---
--- Dumping data for table `tipo_pago`
---
-
 INSERT INTO `tipo_pago` (`numero`, `nombre`, `descripcion`) VALUES
 (1, 'Efectivo', 'Efectivo'),
 (2, 'Tarjeta', 'Tarjeta');
-
---
--- Dumping data for table `tipo_pasajero`
---
 
 INSERT INTO `tipo_pasajero` (`num`, `descuento`, `descripcion`) VALUES
 (1, 0, 'Adulto'),
@@ -1089,10 +1077,6 @@ INSERT INTO `tipo_pasajero` (`num`, `descuento`, `descripcion`) VALUES
 (3, 30, 'Adulto Mayor'),
 (4, 25, 'Estudiante'),
 (5, 15, 'Discapacitado');
-
---
--- Dumping data for table `viaje`
---
 
 INSERT INTO `viaje` (`numero`, `fecHoraSalida`, `fecHoraEntrada`, `ruta`, `estado`, `autobus`, `conductor`) VALUES
 (1, '2025-01-10 08:00:00', '2025-01-10 08:45:00', 1, 3, 1, 1),
@@ -1107,10 +1091,6 @@ INSERT INTO `viaje` (`numero`, `fecHoraSalida`, `fecHoraEntrada`, `ruta`, `estad
 (10, '2026-01-01 08:00:00', '2026-01-01 10:00:00', 3, 1, 2, 2),
 (11, '2026-01-05 09:15:00', '2026-01-05 10:30:00', 5, 1, 3, 3),
 (12, '2026-01-10 15:00:00', '2026-01-10 15:45:00', 2, 1, 4, 4);
-
---
--- Dumping data for table `viaje_asiento`
---
 
 INSERT INTO `viaje_asiento` (`asiento`, `viaje`, `ocupado`) VALUES
 (1, 1, 1),
@@ -1723,8 +1703,3 @@ INSERT INTO `viaje_asiento` (`asiento`, `viaje`, `ocupado`) VALUES
 (243, 8, 0),
 (244, 8, 0),
 (245, 8, 0);
-COMMIT;
-
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
