@@ -298,7 +298,7 @@ INSERT INTO autobus (numero, modelo, placas, serieVIN) VALUES
 INSERT INTO asiento (numero, tipo, autobus) VALUES
 (1, 'DIS', 1),
 (2, 'PLU', 1),
-(3, 'PLU', 1),
+(3, 'DIS', 1),
 (4, 'PLU', 1),
 (5, 'PLU', 1),
 (6, 'PLU', 1),
