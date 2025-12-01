@@ -1,4 +1,4 @@
-
+-- Active: 1762888131509@@127.0.0.1@3306@rbe
 INSERT INTO marca (numero, nombre) VALUES
 (1, 'Volvo'),
 (2, 'Mercedes-Benz'),
@@ -24,6 +24,11 @@ INSERT INTO autobus (numero, modelo, placas, serieVIN) VALUES
 (8, 3, 'HIJ8901', 'KMHCT4AE1FU765432'),
 (9, 4, 'IJK9012', 'WDBRF40J43F392167'),
 (10, 5, 'JKL0123', '1FTFW1EG1HFC98325');
+
+INSERT INTO tipo_asiento (codigo, descripcion) VALUES
+('COM', 'Comun'),
+('DIS', 'Discapacitado'),
+('PLU', 'Plus');
 
 INSERT INTO asiento (numero, tipo, autobus) VALUES
 (1, 'DIS', 1),
@@ -769,11 +774,6 @@ INSERT INTO taquillero (registro, taqNombre, taqPrimerApell, taqSegundoApell, fe
 (19, 'Miriam', 'Castillo', 'Pérez', '2023-09-30', 'mcastillo', 'MC23', 7, 1),
 (20, 'Luis', 'Navarro', 'Beltrán', '2024-03-21', 'lnavarro', 'LN24', 7, 0),
 (21, 'Sofía', 'Ávila', 'Torres', '2025-01-13', 'savila', 'SA25', 7, 0);
-
-INSERT INTO tipo_asiento (codigo, descripcion) VALUES
-('COM', 'Comun'),
-('DIS', 'Discapacitado'),
-('PLU', 'Plus');
 
 INSERT INTO tipo_pago (numero, nombre, descripcion) VALUES
 (1, 'Efectivo', 'Efectivo'),
