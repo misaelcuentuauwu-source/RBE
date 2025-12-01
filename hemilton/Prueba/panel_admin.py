@@ -2,9 +2,9 @@
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QLineEdit, QStackedWidget, QFrame, QSizePolicy, QSpacerItem, QMessageBox,
-    QScrollArea, QFormLayout, QDialog, QDialogButtonBox, QComboBox
+    QScrollArea, QFormLayout, QDialog, QDialogButtonBox, QComboBox, QDateTimeEdit
 )
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QDateTime
 from gestionviajes import MainWindow
 from PySide6.QtWidgets import QHeaderView
 from conexion import crear_conexion
@@ -29,7 +29,6 @@ def actualizar_taquillero_bd(registro, nombre, ap1, ap2, usuario, contrasena):
     except Exception as e:
         return False, str(e)
 
-
 class PanelAdministrador(QMainWindow):
     def __init__(self, usuario_actual, volver_callback):
         super().__init__()
@@ -49,7 +48,7 @@ class PanelAdministrador(QMainWindow):
         self.move(
             QApplication.primaryScreen().availableGeometry().center() - self.rect().center()
         )
-        
+
         self.setStyleSheet(f"background:{COLOR_BG}; font-family: 'Segoe UI';")
 
         # permisos y tablas
@@ -127,21 +126,19 @@ class PanelAdministrador(QMainWindow):
 
         self.btn_dashboard = make_nav("KPI'S")
         sa_layout.addWidget(self.btn_dashboard)
-        
-        self.btn_salidas = make_nav("Salidas")      
+
+        self.btn_salidas = make_nav("Salidas")
         sa_layout.addWidget(self.btn_salidas)
-        
+
+        # Nuevo botón para agregar viajes
+        self.btn_agregar_viaje = make_nav("Agregar Viaje")
+        sa_layout.addWidget(self.btn_agregar_viaje)
+
         self.btn_historial = make_nav("Historial de Viajes")
         sa_layout.addWidget(self.btn_historial)
 
-        
-
         self.btn_gestion = make_nav("Gestión ▾")
         sa_layout.addWidget(self.btn_gestion)
-        
-        
-        
-        
 
         # gestión container (compact buttons)
         self.gestion_container = QWidget()
@@ -163,7 +160,6 @@ class PanelAdministrador(QMainWindow):
                 }
                 QPushButton:hover { background:#fff7e0; color:#c96f00; }
             """)
-            # ensure correct capture of t
             b.clicked.connect(lambda checked=False, tt=t: self.on_tab_selected(tt))
             gc_layout.addWidget(b)
             self.tab_buttons[t] = b
@@ -176,17 +172,13 @@ class PanelAdministrador(QMainWindow):
         sa.setWidget(sa_widget)
         sb_layout.addWidget(sa)
 
-        # ------------------------------------------------------------
-        # AQUÍ: colocamos el botón Configuración FUERA del Scroll,
-        # en su propio contenedor, encima del botón Cerrar sesión.
-        # ------------------------------------------------------------
+        # Configuración container
         config_container = QFrame()
         config_container.setStyleSheet("background: transparent;")
         config_layout = QVBoxLayout(config_container)
         config_layout.setContentsMargins(0, 8, 0, 8)
 
         self.btn_config = make_nav("Configuración")
-        # darle estilo un poco distinto para que se vea separado pero consistente
         self.btn_config.setStyleSheet(f"""
             QPushButton {{
                 background: white;
@@ -199,8 +191,6 @@ class PanelAdministrador(QMainWindow):
             QPushButton:hover {{ background: #fff5e6; color: #c96f00; }}
         """)
         config_layout.addWidget(self.btn_config)
-        
-        # ------------------------------------------------------------
 
         # spacer to push logout to bottom
         sb_layout.addSpacerItem(QSpacerItem(10,10,QSizePolicy.Minimum,QSizePolicy.Expanding))
@@ -262,7 +252,7 @@ class PanelAdministrador(QMainWindow):
         self.placeholder_frame = QFrame()
         self.placeholder_frame.setStyleSheet("background:white; border-radius:12px; padding:18px;")
         ph_ly = QVBoxLayout(self.placeholder_frame)
-        ph_lbl = QLabel("Selecciona una tabla desde 'Gestión' para comenzar.")
+        ph_lbl = QLabel("Selecciona una opción del menú para comenzar.")
         ph_lbl.setAlignment(Qt.AlignCenter)
         ph_ly.addWidget(ph_lbl)
         dash_layout.addWidget(self.placeholder_frame)
@@ -287,12 +277,11 @@ class PanelAdministrador(QMainWindow):
         kpi_layout = QVBoxLayout(self.page_kpis)
 
         self.kpi_widget = KPIWindow()
-        self.kpi_widget.setWindowFlags(Qt.Widget)  # importante para incrustarlo
+        self.kpi_widget.setWindowFlags(Qt.Widget)
 
         kpi_layout.addWidget(self.kpi_widget)
 
         self.stacked.addWidget(self.page_kpis)
-
 
         # config page
         self.page_config = QWidget()
@@ -348,11 +337,147 @@ class PanelAdministrador(QMainWindow):
         self.btn_logout.clicked.connect(self.cerrar_sesion)
         btn_save.clicked.connect(self._guardar_config)
         self.btn_salidas.clicked.connect(lambda: self.stacked.setCurrentWidget(self.page_inicio))
+        self.btn_agregar_viaje.clicked.connect(self.open_add_trip_dialog)  # Conexión del nuevo botón
 
         # show
         self.show()
 
-    # ----- sidebar actions -----
+    # Método para abrir el diálogo de agregar viaje
+    def open_add_trip_dialog(self):
+        """Abre un diálogo para agregar un nuevo viaje."""
+        dlg = QDialog(self)
+        dlg.setWindowTitle("Agregar Nuevo Viaje")
+        dlg.setMinimumWidth(500)
+
+        layout = QFormLayout(dlg)
+
+        # Campos del formulario
+        self.departure_edit = QDateTimeEdit()
+        self.departure_edit.setDateTime(QDateTime.currentDateTime().addDays(1))
+        self.departure_edit.setCalendarPopup(True)
+        self.departure_edit.setDisplayFormat("yyyy-MM-dd HH:mm")
+
+        self.arrival_edit = QDateTimeEdit()
+        self.arrival_edit.setDateTime(QDateTime.currentDateTime().addDays(1).addSecs(3600))  # 1 hora después
+        self.arrival_edit.setCalendarPopup(True)
+        self.arrival_edit.setDisplayFormat("yyyy-MM-dd HH:mm")
+
+        self.route_combo = QComboBox()
+        self.bus_combo = QComboBox()
+        self.driver_combo = QComboBox()
+        self.status_combo = QComboBox()
+
+        # Cargar datos para los combos
+        self.load_combo_data()
+
+        layout.addRow("Fecha y Hora de Salida:", self.departure_edit)
+        layout.addRow("Fecha y Hora de Llegada:", self.arrival_edit)
+        layout.addRow("Ruta:", self.route_combo)
+        layout.addRow("Autobús:", self.bus_combo)
+        layout.addRow("Conductor:", self.driver_combo)
+        layout.addRow("Estado:", self.status_combo)
+
+        # Botones
+        buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        buttons.accepted.connect(lambda: self.add_trip(dlg))
+        buttons.rejected.connect(dlg.reject)
+        layout.addWidget(buttons)
+
+        dlg.exec()
+
+    def load_combo_data(self):
+        """Carga los datos para los combos del formulario de viaje."""
+        try:
+            cn = crear_conexion()
+            cur = cn.cursor(dictionary=True)
+
+            # Cargar rutas
+            cur.execute("""
+                SELECT r.codigo, CONCAT(c1.nombre, ' → ', c2.nombre) AS ruta_desc
+                FROM ruta r
+                JOIN terminal t1 ON r.origen = t1.numero
+                JOIN terminal t2 ON r.destino = t2.numero
+                JOIN ciudad c1 ON t1.ciudad = c1.clave
+                JOIN ciudad c2 ON t2.ciudad = c2.clave
+            """)
+            for row in cur.fetchall():
+                self.route_combo.addItem(f"Ruta #{row['codigo']} ({row['ruta_desc']})", row['codigo'])
+
+            # Cargar autobuses
+            cur.execute("SELECT numero, placas FROM autobus")
+            for row in cur.fetchall():
+                self.bus_combo.addItem(f"Autobús #{row['numero']} ({row['placas']})", row['numero'])
+
+            # Cargar conductores
+            cur.execute("SELECT registro, CONCAT(conNombre, ' ', conPrimerApell) AS nombre FROM conductor")
+            for row in cur.fetchall():
+                self.driver_combo.addItem(f"Conductor #{row['registro']} ({row['nombre']})", row['registro'])
+
+            # Cargar estados de viaje
+            cur.execute("SELECT numero, nombre FROM edo_viaje")
+            for row in cur.fetchall():
+                self.status_combo.addItem(row['nombre'], row['numero'])
+
+            cur.close()
+            cn.close()
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"No se pudieron cargar los datos: {e}")
+
+    def add_trip(self, dialog):
+        """Inserta un nuevo viaje en la base de datos."""
+        departure = self.departure_edit.dateTime().toPython()
+        arrival = self.arrival_edit.dateTime().toPython()
+        route = self.route_combo.currentData()
+        bus = self.bus_combo.currentData()
+        driver = self.driver_combo.currentData()
+        status = self.status_combo.currentData()
+
+        if not all([departure, arrival, route, bus, driver, status]):
+            QMessageBox.warning(self, "Advertencia", "Todos los campos son obligatorios")
+            return
+
+        if arrival <= departure:
+            QMessageBox.warning(self, "Advertencia", "La hora de llegada debe ser posterior a la de salida")
+            return
+
+        try:
+            cn = crear_conexion()
+            cur = cn.cursor()
+
+            # Insertar el viaje
+            cur.execute("""
+                INSERT INTO viaje (fecHoraSalida, fecHoraEntrada, ruta, estado, autobus, conductor)
+                VALUES (%s, %s, %s, %s, %s, %s)
+            """, (departure, arrival, route, status, bus, driver))
+
+            # Obtener el ID del viaje recién insertado
+            trip_id = cur.lastrowid
+
+            # Crear los registros en viaje_asiento para todos los asientos del autobús
+            cur.execute("SELECT numero FROM asiento WHERE autobus = %s", (bus,))
+            seats = cur.fetchall()
+
+            for seat in seats:
+                # Aquí estaba el error - seat es una tupla, no un diccionario
+                seat_number = seat[0]  # Accedemos al primer elemento de la tupla
+                cur.execute("""
+                    INSERT INTO viaje_asiento (asiento, viaje, ocupado)
+                    VALUES (%s, %s, %s)
+                """, (seat_number, trip_id, False))
+
+            cn.commit()
+            cur.close()
+            cn.close()
+
+            QMessageBox.information(self, "Éxito", "Viaje agregado correctamente.")
+            dialog.accept()
+
+            # Recargar los viajes en la página de salidas
+            if hasattr(self, 'viajes_programados_widget'):
+                self.viajes_programados_widget.reload_from_db()
+
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"No se pudo agregar el viaje: {e}")    # ----- sidebar actions -----
     def toggle_menu(self):
         if self.menu_collapsed:
             self.centralWidget().layout().itemAt(0).widget().setFixedWidth(300)
@@ -662,72 +787,6 @@ class PanelAdministrador(QMainWindow):
             except Exception as e:
                 QMessageBox.critical(self, "Error BD", f"No se pudo insertar: {e}")
 
-    def _describe_table(self, tabla):
-        try:
-            cn = crear_conexion()
-            try:
-                cur = cn.cursor(dictionary=True)
-            except TypeError:
-                cur = cn.cursor()
-            cur.execute(f"SHOW COLUMNS FROM `{tabla}`")
-            cols = cur.fetchall()
-            if cols and len(cols)>0 and not isinstance(cols[0], dict):
-                cols = [dict(zip([d[0] for d in cur.description], r)) for r in cols]
-            cur.close()
-            cn.close()
-            return cols
-        except Exception as e:
-            print("DESCRIBE ERROR:", e)
-            return None
-
-    def _get_primary_key_value(self, tabla, row):
-        cols = self._describe_table(tabla)
-        pk = None
-        for c in (cols or []):
-            if c.get("Key") == "PRI":
-                pk = c["Field"]
-                break
-        if not pk:
-            pk = list(row.keys())[0]
-        return pk, row.get(pk)
-
-    def _fk_map_for_table(self, tabla):
-        fk = {}
-        try:
-            cn = crear_conexion()
-            cur = cn.cursor()
-            cur.execute("""
-                SELECT COLUMN_NAME, REFERENCED_TABLE_NAME, REFERENCED_COLUMN_NAME
-                FROM information_schema.KEY_COLUMN_USAGE
-                WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = %s AND REFERENCED_TABLE_NAME IS NOT NULL
-            """, (tabla,))
-            rows = cur.fetchall()
-            cur.close()
-            cn.close()
-            for r in rows:
-                if isinstance(r, dict):
-                    col = r["COLUMN_NAME"]; rt = r["REFERENCED_TABLE_NAME"]; rc = r["REFERENCED_COLUMN_NAME"]
-                else:
-                    col, rt, rc = r[0], r[1], r[2]
-                fk[col] = (rt, rc)
-        except Exception:
-            pass
-        return fk
-
-    def _pick_display_column(self, table):
-        cols = self._describe_table(table)
-        if not cols:
-            return None
-        names = [c["Field"].lower() for c in cols]
-        for pref in ("nombre","name","titulo","descripcion","nom","label"):
-            if pref in names:
-                return cols[names.index(pref)]["Field"]
-        for c in cols:
-            t = c["Type"].lower()
-            if "char" in t or "varchar" in t or "text" in t:
-                return c["Field"]
-        return cols[0]["Field"]
-
     def _abrir_form_modificar(self, tabla, pk_name, pk_value):
         cols = self._describe_table(tabla)
         if not cols:
@@ -865,7 +924,7 @@ class PanelAdministrador(QMainWindow):
             form.addRow(key_lbl, val_lbl)
         main.addLayout(form)
         btn_close = QPushButton("Cerrar")
-        btn_close.setStyleSheet("background:#6c757d;color:ffff;padding:8px;border-radius:6px;")
+        btn_close.setStyleSheet("background:#6c757d;color:white;padding:8px;border-radius:6px;")
         btn_close.clicked.connect(dlg.accept)
         main.addWidget(btn_close, alignment=Qt.AlignRight)
         dlg.exec()
