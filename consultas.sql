@@ -1,4 +1,4 @@
--- Active: 1764103994512@@127.0.0.1@3306@rbe
+-- Active: 1762888131509@@127.0.0.1@3306@rbe
 --1. Información de un viaje
 SELECT 
     v.numero AS viaje,
@@ -122,7 +122,7 @@ JOIN ciudad co ON o.ciudad = co.clave
 JOIN terminal d ON r.destino = d.numero
 JOIN ciudad cd ON d.ciudad = cd.clave
 LEFT JOIN ticket t ON t.viaje = v.numero
-WHERE DATE(v.fecHoraSalida) = 1
+WHERE DATE(v.fecHoraSalida) = '2026-01-05'
 GROUP BY v.numero;
 
 --7. Viajes de un conductor
