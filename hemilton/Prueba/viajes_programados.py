@@ -7,10 +7,11 @@ from conexion import crear_conexion
 from PySide6.QtWidgets import QWidget, QApplication, QMessageBox, QDateTimeEdit, QDialogButtonBox
 from PySide6.QtWidgets import (
     QLabel, QComboBox, QDateEdit, QHBoxLayout, QVBoxLayout, QPushButton,
-    QScrollArea, QFrame, QSizePolicy, QDialog, QFormLayout
+    QScrollArea, QFrame, QSizePolicy, QDialog, QFormLayout, QGridLayout, QWidgetItem
 )
 from PySide6.QtCore import Qt, QDate, QDateTime, Signal, QObject
 from PySide6.QtGui import QFont
+from gestionviajes import PassengersDialog
 
 # ------------------------ SIGNAL EMITTER ------------------------
 class SignalEmitter(QObject):
@@ -325,107 +326,152 @@ class ProgramacionWindow(QWidget):
             QPushButton#closeBtn:hover { background: #d85f2c; }
         """)
 
+        # Card container
         card = QFrame()
         card.setObjectName("detailCard")
         card_layout = QVBoxLayout(card)
         card_layout.setSpacing(8)
 
-        # Título principal
+        # Title
         title = QLabel(f"Viaje #{trip.get('trip_id')} — Ruta #{trip.get('route_id')}")
         title.setProperty("class", "title")
         card_layout.addWidget(title)
 
-        # Crear un scroll area para el contenido
+        # Scroll area for content
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setStyleSheet("QScrollArea { border: none; background: transparent; }")
-        
+
         content_widget = QWidget()
+        # We'll use a QVBoxLayout to stack block containers (each block can be a grid)
         content_layout = QVBoxLayout(content_widget)
         content_layout.setSpacing(12)
 
-        # SECCIÓN: Horarios
-        lbl_horarios = QLabel("⏰ Horarios")
-        lbl_horarios.setProperty("class", "subtitle")
-        content_layout.addWidget(lbl_horarios)
+        # -------- BLOQUE 2: Fecha y hora de salida / Fecha y hora de llegada --------
+        block2 = QFrame()
+        b2_layout = QGridLayout(block2)
+        b2_layout.setContentsMargins(0, 0, 0, 0)
+        b2_layout.setHorizontalSpacing(20)
+        b2_layout.setVerticalSpacing(6)
 
-        lbl_salida = QLabel(f"<b>Hora de salida:</b><br>{format_dt(trip.get('departure'))}")
-        lbl_salida.setProperty("class", "data")
-        content_layout.addWidget(lbl_salida)
+        lbl_salida_label = QLabel("Fecha y hora de salida")
+        lbl_salida_label.setProperty("class", "subtitle")
+        lbl_salida_value = QLabel(format_dt(trip.get("departure")))
+        lbl_salida_value.setProperty("class", "data")
 
-        lbl_llegada = QLabel(f"<b>Hora de llegada:</b><br>{format_dt(trip.get('arrival'))}")
-        lbl_llegada.setProperty("class", "data")
-        content_layout.addWidget(lbl_llegada)
+        lbl_llegada_label = QLabel("Fecha y hora de llegada")
+        lbl_llegada_label.setProperty("class", "subtitle")
+        lbl_llegada_value = QLabel(format_dt(trip.get("arrival")))
+        lbl_llegada_value.setProperty("class", "data")
 
-        # SECCIÓN: Origen
-        lbl_origen_sec = QLabel("🚏 Ciudad de origen")
-        lbl_origen_sec.setProperty("class", "subtitle")
-        content_layout.addWidget(lbl_origen_sec)
+        b2_layout.addWidget(lbl_salida_label, 0, 0)
+        b2_layout.addWidget(lbl_llegada_label, 0, 1)
+        b2_layout.addWidget(lbl_salida_value, 1, 0)
+        b2_layout.addWidget(lbl_llegada_value, 1, 1)
 
-        lbl_ciudad_origen = QLabel(f"<b>Ciudad de origen:</b><br>{trip.get('origin_city', 'N/A')}")
-        lbl_ciudad_origen.setProperty("class", "data")
-        content_layout.addWidget(lbl_ciudad_origen)
+        content_layout.addWidget(block2)
 
-        lbl_terminal_salida = QLabel(f"<b>Terminal de salida:</b><br>{trip.get('origin_terminal', 'N/A')}")
-        lbl_terminal_salida.setProperty("class", "data")
-        content_layout.addWidget(lbl_terminal_salida)
+        # -------- BLOQUE 3: Origen / Terminal de salida  AND Destino / Terminal de llegada --------
+        block3 = QFrame()
+        b3_layout = QGridLayout(block3)
+        b3_layout.setContentsMargins(0, 0, 0, 0)
+        b3_layout.setHorizontalSpacing(20)
+        b3_layout.setVerticalSpacing(6)
 
-        # SECCIÓN: Destino
-        lbl_destino_sec = QLabel("📍 Ciudad de destino")
-        lbl_destino_sec.setProperty("class", "subtitle")
-        content_layout.addWidget(lbl_destino_sec)
+        lbl_origen_ciudad_label = QLabel("Nombre de la ciudad de origen")
+        lbl_origen_ciudad_label.setProperty("class", "subtitle")
+        lbl_origen_ciudad_value = QLabel(trip.get("origin_city", "N/A"))
+        lbl_origen_ciudad_value.setProperty("class", "data")
 
-        lbl_ciudad_destino = QLabel(f"<b>Ciudad de destino:</b><br>{trip.get('dest_city', 'N/A')}")
-        lbl_ciudad_destino.setProperty("class", "data")
-        content_layout.addWidget(lbl_ciudad_destino)
+        lbl_origen_terminal_label = QLabel("Nombre de la terminal donde salen")
+        lbl_origen_terminal_label.setProperty("class", "subtitle")
+        lbl_origen_terminal_value = QLabel(trip.get("origin_terminal", "N/A"))
+        lbl_origen_terminal_value.setProperty("class", "data")
 
-        lbl_terminal_llegada = QLabel(f"<b>Terminal de llegada:</b><br>{trip.get('dest_terminal', 'N/A')}")
-        lbl_terminal_llegada.setProperty("class", "data")
-        content_layout.addWidget(lbl_terminal_llegada)
+        lbl_dest_ciudad_label = QLabel("Nombre de la ciudad de destino")
+        lbl_dest_ciudad_label.setProperty("class", "subtitle")
+        lbl_dest_ciudad_value = QLabel(trip.get("dest_city", "N/A"))
+        lbl_dest_ciudad_value.setProperty("class", "data")
 
-        # SECCIÓN: Operador
-        lbl_operador_sec = QLabel("👨‍✈️ Operador")
-        lbl_operador_sec.setProperty("class", "subtitle")
-        content_layout.addWidget(lbl_operador_sec)
+        lbl_dest_terminal_label = QLabel("Nombre de la terminal donde llegan")
+        lbl_dest_terminal_label.setProperty("class", "subtitle")
+        lbl_dest_terminal_value = QLabel(trip.get("dest_terminal", "N/A"))
+        lbl_dest_terminal_value.setProperty("class", "data")
 
-        lbl_operador = QLabel(f"<b>Nombre completo del operador:</b><br>{trip.get('operator', 'Sin asignar')}")
-        lbl_operador.setProperty("class", "data")
-        content_layout.addWidget(lbl_operador)
+        # First row
+        b3_layout.addWidget(lbl_origen_ciudad_label, 0, 0)
+        b3_layout.addWidget(lbl_origen_terminal_label, 0, 1)
+        # Second row: values for first row
+        b3_layout.addWidget(lbl_origen_ciudad_value, 1, 0)
+        b3_layout.addWidget(lbl_origen_terminal_value, 1, 1)
+        # Third row: destination labels
+        b3_layout.addWidget(lbl_dest_ciudad_label, 2, 0)
+        b3_layout.addWidget(lbl_dest_terminal_label, 2, 1)
+        # Fourth row: destination values
+        b3_layout.addWidget(lbl_dest_ciudad_value, 3, 0)
+        b3_layout.addWidget(lbl_dest_terminal_value, 3, 1)
 
-        # SECCIÓN: Autobús
-        lbl_autobus_sec = QLabel("🚌 Número de autobús")
-        lbl_autobus_sec.setProperty("class", "subtitle")
-        content_layout.addWidget(lbl_autobus_sec)
+        content_layout.addWidget(block3)
 
-        lbl_num_autobus = QLabel(f"<b>Número del autobús asignado:</b><br>{trip.get('bus_number', 'N/A')}")
-        lbl_num_autobus.setProperty("class", "data")
-        content_layout.addWidget(lbl_num_autobus)
+        # -------- BLOQUE 4: Nombre completo del operador (full width) --------
+        block4 = QFrame()
+        b4_layout = QVBoxLayout(block4)
+        b4_layout.setContentsMargins(0, 0, 0, 0)
+        b4_layout.setSpacing(6)
 
-        lbl_placas = QLabel(f"<b>Placas:</b><br>{trip.get('plate', 'N/A')}")
-        lbl_placas.setProperty("class", "data")
-        content_layout.addWidget(lbl_placas)
+        lbl_operador_label = QLabel("Nombre completo del operador")
+        lbl_operador_label.setProperty("class", "subtitle")
+        lbl_operador_value = QLabel(trip.get("operator", "Sin asignar"))
+        lbl_operador_value.setProperty("class", "data")
 
-        # SECCIÓN: Asientos y Pasajeros
-        lbl_asientos_sec = QLabel("💺 Asientos")
-        lbl_asientos_sec.setProperty("class", "subtitle")
-        content_layout.addWidget(lbl_asientos_sec)
+        b4_layout.addWidget(lbl_operador_label)
+        b4_layout.addWidget(lbl_operador_value)
 
-        asientos = trip.get("seats_count", 0)
-        pasajeros = trip.get("passengers_count", 0)
-        
-        lbl_asientos_total = QLabel(f"<b>Cantidad de asientos del autobús:</b><br>{asientos}")
-        lbl_asientos_total.setProperty("class", "data")
-        content_layout.addWidget(lbl_asientos_total)
+        content_layout.addWidget(block4)
 
-        lbl_pasajeros = QLabel(f"<b>Cantidad de pasajeros:</b><br>{pasajeros}")
-        lbl_pasajeros.setProperty("class", "data")
-        content_layout.addWidget(lbl_pasajeros)
+        # -------- BLOQUE 5: Número de autobús / Matrícula  AND Cantidad asientos / Cantidad pasajeros --------
+        block5 = QFrame()
+        b5_layout = QGridLayout(block5)
+        b5_layout.setContentsMargins(0, 0, 0, 0)
+        b5_layout.setHorizontalSpacing(20)
+        b5_layout.setVerticalSpacing(6)
 
-        disponibles = asientos - pasajeros
-        lbl_disponibles = QLabel(f"<b>Asientos disponibles:</b><br>{disponibles}")
-        lbl_disponibles.setProperty("class", "data")
-        content_layout.addWidget(lbl_disponibles)
+        lbl_bus_num_label = QLabel("Número del autobús asignado")
+        lbl_bus_num_label.setProperty("class", "subtitle")
+        lbl_bus_num_value = QLabel(str(trip.get("bus_number", "N/A")))
+        lbl_bus_num_value.setProperty("class", "data")
 
+        lbl_plate_label = QLabel("Matrícula del autobús asignado")
+        lbl_plate_label.setProperty("class", "subtitle")
+        lbl_plate_value = QLabel(trip.get("plate", "N/A"))
+        lbl_plate_value.setProperty("class", "data")
+
+        lbl_seats_label = QLabel("Cantidad de asientos del autobús")
+        lbl_seats_label.setProperty("class", "subtitle")
+        lbl_seats_value = QLabel(str(trip.get("seats_count", 0)))
+        lbl_seats_value.setProperty("class", "data")
+
+        lbl_passengers_label = QLabel("Cantidad de pasajeros")
+        lbl_passengers_label.setProperty("class", "subtitle")
+        lbl_passengers_value = QLabel(str(trip.get("passengers_count", 0)))
+        lbl_passengers_value.setProperty("class", "data")
+
+        # First row: bus number and plate labels
+        b5_layout.addWidget(lbl_bus_num_label, 0, 0)
+        b5_layout.addWidget(lbl_plate_label, 0, 1)
+        # Second row: bus number and plate values
+        b5_layout.addWidget(lbl_bus_num_value, 1, 0)
+        b5_layout.addWidget(lbl_plate_value, 1, 1)
+        # Third row: seats and passengers labels
+        b5_layout.addWidget(lbl_seats_label, 2, 0)
+        b5_layout.addWidget(lbl_passengers_label, 2, 1)
+        # Fourth row: seats and passengers values
+        b5_layout.addWidget(lbl_seats_value, 3, 0)
+        b5_layout.addWidget(lbl_passengers_value, 3, 1)
+
+        content_layout.addWidget(block5)
+
+        # stretch at end so content doesn't stick
         content_layout.addStretch()
         scroll.setWidget(content_widget)
         card_layout.addWidget(scroll)
@@ -440,9 +486,8 @@ class ProgramacionWindow(QWidget):
         root.addWidget(btn_close, alignment=Qt.AlignCenter)
         dlg.exec()
 
-    # ---------- DB METHODS ----------
     def load_all_trips_from_db(self):
-        """Carga TODOS los viajes (sin filtro de fecha)"""
+        """Carga TODOS los viajes futuros (sin filtro de fecha pasada)"""
         try:
             cn = crear_conexion()
         except Exception as e:
@@ -452,6 +497,7 @@ class ProgramacionWindow(QWidget):
         cur = cn.cursor(dictionary=True)
 
         try:
+            # Agregamos WHERE v.fecHoraSalida >= NOW() para filtrar solo viajes futuros
             cur.execute("""
     SELECT
         v.numero AS trip_id,
@@ -493,8 +539,9 @@ class ProgramacionWindow(QWidget):
     LEFT JOIN autobus a ON v.autobus = a.numero
     LEFT JOIN modelo mo ON a.modelo = mo.numero
     LEFT JOIN marca ma ON mo.marca = ma.numero
+    WHERE v.fecHoraSalida >= NOW()
     ORDER BY v.fecHoraSalida ASC
-""")
+    """)
 
             rows = cur.fetchall()
             trips = []
@@ -512,7 +559,6 @@ class ProgramacionWindow(QWidget):
         finally:
             cur.close()
             cn.close()
-    
     # ---------- FILTROS ----------
     def populate_filter_boxes(self):
         origenes = set()

@@ -446,41 +446,53 @@ class KPIWindow(QWidget):
         self.lbl_info = QLabel("")
         self.lbl_info.setStyleSheet("color: #5a6b78; font-weight:600;")
 
-        # Layout superior de controles
-        controls = QHBoxLayout()
-        controls.addWidget(lbl_tipo)
-        controls.addWidget(self.cmb_tipo)
-        controls.addSpacing(20)
+        # Layout superior de controles (fila 1)
+        controls_top = QHBoxLayout()
+        controls_top.addWidget(lbl_tipo)
+        controls_top.addWidget(self.cmb_tipo)
+        controls_top.addSpacing(20)
 
-        controls.addWidget(lbl_scope)
-        controls.addWidget(self.cmb_scope)
-        controls.addSpacing(8)
-        controls.addWidget(self.date_edit)
-        controls.addSpacing(6)
-        controls.addWidget(self.cmb_month)
-        controls.addWidget(self.cmb_year)
-        controls.addSpacing(10)
+        controls_top.addWidget(lbl_scope)
+        controls_top.addWidget(self.cmb_scope)
+        controls_top.addSpacing(8)
+        controls_top.addWidget(self.date_edit)
+        controls_top.addSpacing(6)
+        controls_top.addWidget(self.cmb_month)
+        controls_top.addWidget(self.cmb_year)
+        controls_top.addSpacing(10)
 
-        # Filtros específicos por KPI
-        controls.addWidget(self.lbl_search_conductor)
-        controls.addWidget(self.cmb_conductor)
-        controls.addWidget(self.lbl_search_bus)
-        controls.addWidget(self.cmb_bus)
-        controls.addWidget(self.lbl_search_city)
-        controls.addWidget(self.cmb_city)
+        controls_top.addWidget(self.btn_apply)
+        controls_top.addWidget(self.btn_reload)
+        controls_top.addStretch()
 
-        controls.addWidget(self.btn_apply)
-        controls.addWidget(self.btn_reload)
-        controls.addStretch()
+        # Filtros específicos por KPI (fila 2)
+        controls_filters = QHBoxLayout()
+        controls_filters.addWidget(self.lbl_search_conductor)
+        controls_filters.addWidget(self.cmb_conductor)
+        controls_filters.addSpacing(20)
+
+        controls_filters.addWidget(self.lbl_search_bus)
+        controls_filters.addWidget(self.cmb_bus)
+        controls_filters.addSpacing(20)
+
+        controls_filters.addWidget(self.lbl_search_city)
+        controls_filters.addWidget(self.cmb_city)
+        controls_filters.addStretch()
 
         # Root layout
         root = QVBoxLayout(self)
-        root.addLayout(controls)
+        root.addLayout(controls_top)
+        root.addLayout(controls_filters)
         root.addSpacing(8)
         root.addWidget(self.lbl_info)
         root.addWidget(self.scroll)
         root.addStretch()
 
+        self.lbl_total_boletos = QLabel("Boletos vendidos: 0")
+        self.lbl_total_boletos.setStyleSheet("font-size: 14px; font-weight: bold;")
+        root.addWidget(self.lbl_total_boletos)
+        
+        
         # Estado
         self.all_trips = []
         self.load_all_trips_from_db()   # usado por Boletos
@@ -741,14 +753,21 @@ class KPIWindow(QWidget):
             lbl = QLabel("No hay viajes para el filtro seleccionado.")
             lbl.setStyleSheet("color:#5a6b78; font-size:14px;")
             self.card_layout.addWidget(lbl)
+            self.lbl_total_boletos.setText("Boletos vendidos en pantalla: 0")
             return
 
         # Crear una tarjeta por cada viaje (con stats)
+        total_vendidos = 0
+        total_disponibles = 0
+
         try:
             for trip in filtered:
                 stats = self._fetch_ticket_stats(trip["trip_id"], trip.get("seats_count") or 0)
                 trip["sold_count"] = stats["sold"]
                 trip["available_count"] = stats["available"]
+
+                total_vendidos += stats["sold"]
+                total_disponibles += stats["available"]
 
                 # Convertir fecha si viene string
                 if isinstance(trip.get("departure"), str):
@@ -759,7 +778,14 @@ class KPIWindow(QWidget):
 
                 card = TripCardKPI(trip, parent=self)
                 self.card_layout.addWidget(card)
+
             self.card_layout.addStretch()
+
+            # === ACTUALIZAR TEXTO DE TOTALES GLOBAL ===
+            self.lbl_total_boletos.setText(
+                f"Boletos vendidos: {total_vendidos}   |   Disponibles: {total_disponibles}"
+            )
+
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error al renderizar KPI Boletos: {e}")
 

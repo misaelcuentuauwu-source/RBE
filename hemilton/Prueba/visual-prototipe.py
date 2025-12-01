@@ -1,8 +1,3 @@
-#!/usr/bin/env python3
-# visual-prototype.py
-# Sistema: login y registro de taquilleros con PySide6
-# Autor: adaptado para Misael(se subio)
-
 import sys
 from datetime import date
 from PySide6.QtWidgets import (
