@@ -1,7 +1,8 @@
 # panel_principal.py
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
-    QLineEdit, QStackedWidget, QFrame, QSizePolicy, QSpacerItem, QMessageBox
+    QLineEdit, QStackedWidget, QFrame, QSizePolicy, QSpacerItem, QMessageBox,
+    QScrollArea
 )
 from PySide6.QtCore import Qt, QPropertyAnimation, QEasingCurve, Property
 from PySide6.QtGui import QFont
@@ -9,7 +10,7 @@ from pasajero import VentanaRegistroPasajero
 from epilepsia import VentanaAnimada
 from terminales import VentanaTerminales
 from rutas_baja_express_ui import MainWindow as VentanaVentaBoletos
-from gestionviajes import MainWindow as VentanaHistorialViajes  # NUEVA IMPORTACIÓN
+from gestionviajes import MainWindow as VentanaHistorialViajes
 from conexion import crear_conexion
 
 # ===============================
@@ -39,14 +40,14 @@ class SidebarAnimado(QFrame):
         super().__init__(parent)
         self._width = 260
         self.setFixedWidth(self._width)
-        
+
     def get_width(self):
         return self._width
-    
+
     def set_width(self, width):
         self._width = width
         self.setFixedWidth(int(width))
-    
+
     width_prop = Property(int, get_width, set_width)
 
 # ===============================
@@ -66,9 +67,8 @@ class PanelPrincipal(QMainWindow):
         self.COLOR_TEXTO = "#2b2b2b"
 
         self.setWindowTitle("Rutas Baja Express - Panel")
-        # Tamaño inicial más compacto y horizontal
         self.setGeometry(100, 100, 1200, 650)
-        self.setMinimumSize(900, 500)  # Tamaño mínimo para que no se deforme
+        self.setMinimumSize(900, 500)
         self.setStyleSheet(f"background-color: {self.COLOR_FONDO}; font-family: 'Segoe UI';")
 
         # ========================= CONTENEDOR PRINCIPAL =========================
@@ -88,13 +88,13 @@ class PanelPrincipal(QMainWindow):
         brand_container = QWidget()
         brand_layout = QVBoxLayout(brand_container)
         brand_layout.setContentsMargins(12, 16, 12, 16)
-        
+
         self.brand = QLabel("Rutas Baja Express")
         self.brand.setStyleSheet("color: white; font-size: 16pt; font-weight: bold;")
         self.brand.setWordWrap(True)
         self.brand.setAlignment(Qt.AlignCenter)
         brand_layout.addWidget(self.brand)
-        
+
         self.layout_sidebar.addWidget(brand_container)
 
         # Contenedor de botones
@@ -107,8 +107,8 @@ class PanelPrincipal(QMainWindow):
         def nav_button(text, icon_collapsed=""):
             btn = QPushButton(text)
             btn.setObjectName("btn_nav")
-            btn.setProperty("icon_text", icon_collapsed)  # Guardar texto colapsado
-            btn.setProperty("full_text", text)  # Guardar texto completo
+            btn.setProperty("icon_text", icon_collapsed)
+            btn.setProperty("full_text", text)
             btn.setStyleSheet(f"""
                 QPushButton#btn_nav {{
                     background-color: white;
@@ -132,15 +132,15 @@ class PanelPrincipal(QMainWindow):
         self.btn_dashboard = nav_button("🏠 Dashboard", "🏠")
         self.btn_terminales = nav_button("🏢 Terminales", "🏢")
         self.btn_vender = nav_button("🎫 Vender boletos", "🎫")
-        self.btn_historial = nav_button("📋 Historial de Viajes", "📋")  # NUEVO BOTÓN
+        self.btn_historial = nav_button("📋 Historial de Viajes", "📋")
         self.btn_config = nav_button("⚙️ Configuración", "⚙️")
 
         self.buttons_layout.addWidget(self.btn_dashboard)
         self.buttons_layout.addWidget(self.btn_terminales)
         self.buttons_layout.addWidget(self.btn_vender)
-        self.buttons_layout.addWidget(self.btn_historial)  # AGREGADO
+        self.buttons_layout.addWidget(self.btn_historial)
         self.buttons_layout.addWidget(self.btn_config)
-        
+
         self.layout_sidebar.addWidget(buttons_container)
         self.layout_sidebar.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
@@ -148,7 +148,7 @@ class PanelPrincipal(QMainWindow):
         logout_container = QWidget()
         logout_layout = QVBoxLayout(logout_container)
         logout_layout.setContentsMargins(12, 12, 12, 12)
-        
+
         self.btn_logout = QPushButton("🚪 Cerrar sesión")
         self.btn_logout.setStyleSheet(f"""
             QPushButton {{
@@ -176,9 +176,14 @@ class PanelPrincipal(QMainWindow):
         # Topbar
         topbar = QFrame()
         topbar.setMaximumHeight(70)
-        topbar.setStyleSheet("background-color: white; border-bottom: 2px solid #e0e0e0;")
+        topbar.setStyleSheet("""
+            background-color: white;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 0 10px;
+        """)
         layout_topbar = QHBoxLayout(topbar)
-        layout_topbar.setContentsMargins(20, 10, 20, 10)
+        layout_topbar.setContentsMargins(10, 5, 10, 5)
+        layout_topbar.setSpacing(10)
 
         self.btn_toggle = QPushButton("☰")
         self.btn_toggle.setFixedSize(40, 40)
@@ -195,7 +200,7 @@ class PanelPrincipal(QMainWindow):
             }}
         """)
         layout_topbar.addWidget(self.btn_toggle)
-        layout_topbar.addSpacing(20)
+        layout_topbar.addSpacing(10)
 
         # Texto de bienvenida
         taq_nombre = self.usuario_actual.get('taqNombre','')
@@ -215,11 +220,11 @@ class PanelPrincipal(QMainWindow):
                 border: 1px solid #d0d0d0;
                 border-radius: 18px;
                 padding: 8px 16px;
-                min-width: 250px;
+                min-width: 200px;
                 font-size: 10pt;
             }
             QLineEdit:focus {
-                border: 2px solid #1181c3;
+                border: 1px solid #1181c3;
                 background-color: white;
             }
         """)
@@ -233,15 +238,21 @@ class PanelPrincipal(QMainWindow):
         # -------- Dashboard --------
         self.page_dashboard = QWidget()
         layout_dash = QVBoxLayout(self.page_dashboard)
-        layout_dash.setContentsMargins(30, 30, 30, 30)
-        layout_dash.setSpacing(20)
-        
-        # Contenedor central para el logo
+        layout_dash.setContentsMargins(20, 20, 20, 20)
+        layout_dash.setSpacing(15)
+
+        # Contenedor con scroll
+        scroll_dash = QScrollArea()
+        scroll_dash.setWidgetResizable(True)
+        scroll_dash.setStyleSheet("background: transparent; border: none;")
+
         logo_container = QWidget()
         logo_layout = QVBoxLayout(logo_container)
         logo_layout.setAlignment(Qt.AlignCenter)
-        
-        # Logo del autobús con estilo profesional
+        logo_layout.setContentsMargins(0, 0, 0, 0)
+        logo_layout.setSpacing(20)
+
+        # Logo del autobús
         logo_label = QLabel("🚌")
         logo_label.setAlignment(Qt.AlignCenter)
         logo_label.setStyleSheet(f"""
@@ -259,8 +270,8 @@ class PanelPrincipal(QMainWindow):
             }}
         """)
         logo_layout.addWidget(logo_label)
-        
-        # Texto de bienvenida elegante
+
+        # Texto de bienvenida
         welcome_text = QLabel("Bienvenido al Sistema de Gestión")
         welcome_text.setAlignment(Qt.AlignCenter)
         welcome_text.setStyleSheet(f"""
@@ -268,12 +279,12 @@ class PanelPrincipal(QMainWindow):
                 font-size: 28pt;
                 font-weight: 300;
                 color: {self.COLOR_TEXTO};
-                margin-top: 30px;
+                margin-top: 20px;
                 letter-spacing: 2px;
             }}
         """)
         logo_layout.addWidget(welcome_text)
-        
+
         # Subtítulo
         subtitle = QLabel("Rutas Baja Express")
         subtitle.setAlignment(Qt.AlignCenter)
@@ -286,7 +297,7 @@ class PanelPrincipal(QMainWindow):
             }}
         """)
         logo_layout.addWidget(subtitle)
-        
+
         # Mensaje motivacional
         message = QLabel("Selecciona una opción del menú para comenzar")
         message.setAlignment(Qt.AlignCenter)
@@ -299,54 +310,60 @@ class PanelPrincipal(QMainWindow):
             }
         """)
         logo_layout.addWidget(message)
-        
-        layout_dash.addStretch()
-        layout_dash.addWidget(logo_container)
-        layout_dash.addStretch()
-        self.stacked.addWidget(self.page_dashboard)
 
-        # -------- NUEVA PÁGINA: Historial de Viajes --------
-        self.page_historial = QWidget()
-        self.historial_layout = QVBoxLayout(self.page_historial)
-        self.historial_layout.setContentsMargins(0, 0, 0, 0)
-        
-        # Instancia del widget de historial
-        self.historial_widget = VentanaHistorialViajes()
-        self.historial_widget.setWindowFlags(Qt.Widget)  # Convertir a widget embebido
-        self.historial_layout.addWidget(self.historial_widget)
-        
-        self.stacked.addWidget(self.page_historial)
+        scroll_dash.setWidget(logo_container)
+        layout_dash.addWidget(scroll_dash)
+        self.stacked.addWidget(self.page_dashboard)
 
         # -------- Configuración --------
         self.page_config = QWidget()
         layout_config = QVBoxLayout(self.page_config)
         layout_config.setAlignment(Qt.AlignTop)
-        layout_config.setContentsMargins(40, 40, 40, 40)
-        layout_config.setSpacing(16)
+        layout_config.setContentsMargins(20, 20, 20, 20)
+        layout_config.setSpacing(12)
+
+        # Contenedor con scroll
+        scroll_config = QScrollArea()
+        scroll_config.setWidgetResizable(True)
+        scroll_config.setStyleSheet("background: transparent; border: none;")
+
+        config_content = QWidget()
+        config_content_layout = QVBoxLayout(config_content)
+        config_content_layout.setContentsMargins(20, 20, 20, 20)
+        config_content_layout.setSpacing(16)
 
         titulo_config = QLabel("⚙️ Configuración de Usuario")
         titulo_config.setAlignment(Qt.AlignLeft)
-        titulo_config.setStyleSheet(f"font-size: 24pt; font-weight: bold; color: {self.COLOR_PRINCIPAL}; margin-bottom: 20px;")
-        layout_config.addWidget(titulo_config)
+        titulo_config.setStyleSheet(f"font-size: 20pt; font-weight: bold; color: {self.COLOR_PRINCIPAL}; margin-bottom: 10px;")
+        config_content_layout.addWidget(titulo_config)
 
         # Card contenedor
-        config_card = QFrame()
-        config_card.setStyleSheet("""
+        self.config_card = QFrame()
+        self.config_card.setStyleSheet("""
             QFrame {
                 background-color: white;
-                border-radius: 16px;
+                border-radius: 12px;
                 padding: 20px;
+                max-width: 800px;
             }
         """)
-        config_card_layout = QVBoxLayout(config_card)
-        config_card_layout.setSpacing(16)
+        config_card_layout = QVBoxLayout(self.config_card)
+        config_card_layout.setSpacing(14)
 
         # Campos estáticos
         def add_field_readonly(label_text, value):
             lbl = QLabel(label_text)
             lbl.setStyleSheet("font-weight: bold; color: #666; font-size: 10pt;")
             val = QLabel(value)
-            val.setStyleSheet("font-size: 11pt; color: #333; padding: 8px; background: #f5f5f5; border-radius: 8px;")
+            val.setStyleSheet("""
+                font-size: 11pt;
+                color: #333;
+                padding: 10px;
+                background: #f8f8f8;
+                border-radius: 6px;
+                border: 1px solid #e0e0e0;
+                min-height: 40px;
+            """)
             config_card_layout.addWidget(lbl)
             config_card_layout.addWidget(val)
 
@@ -362,12 +379,13 @@ class PanelPrincipal(QMainWindow):
                 QLineEdit {
                     font-size: 11pt;
                     padding: 10px;
-                    border: 2px solid #d0d0d0;
-                    border-radius: 8px;
+                    border: 1px solid #d0d0d0;
+                    border-radius: 6px;
                     background: white;
+                    min-height: 40px;
                 }
                 QLineEdit:focus {
-                    border: 2px solid #1181c3;
+                    border: 1px solid #1181c3;
                 }
             """)
             config_card_layout.addWidget(lbl)
@@ -387,10 +405,10 @@ class PanelPrincipal(QMainWindow):
                 background-color: {self.COLOR_PRINCIPAL};
                 color: white;
                 font-weight: bold;
-                font-size: 12pt;
-                padding: 14px;
-                border-radius: 10px;
-                margin-top: 20px;
+                font-size: 11pt;
+                padding: 12px;
+                border-radius: 8px;
+                min-height: 45px;
             }}
             QPushButton:hover {{
                 background-color: #0d6ca4;
@@ -398,27 +416,29 @@ class PanelPrincipal(QMainWindow):
         """)
         config_card_layout.addWidget(self.btn_guardar)
 
-        layout_config.addWidget(config_card)
-        layout_config.addStretch()
+        config_content_layout.addWidget(self.config_card)
+        config_content_layout.addStretch()
 
-        def guardar_cambios():
-            usuario = self.config_usuario.text().strip()
-            contrasena = self.config_pass.text().strip()
-            if not (usuario and contrasena):
-                QMessageBox.warning(self, "Atención", "Los campos obligatorios no pueden estar vacíos")
-                return
-            ok, err = actualizar_taquillero_bd(
-                self.usuario_actual.get('registro'), usuario, contrasena
-            )
-            if ok:
-                QMessageBox.information(self, "Éxito", "Datos actualizados correctamente")
-                self.usuario_actual.update({'usuario': usuario, 'contraseña': contrasena})
-                self.stacked.setCurrentWidget(self.page_dashboard)
-            else:
-                QMessageBox.critical(self, "Error", f"No se pudo actualizar: {err}")
-
-        self.btn_guardar.clicked.connect(guardar_cambios)
+        scroll_config.setWidget(config_content)
+        layout_config.addWidget(scroll_config)
         self.stacked.addWidget(self.page_config)
+
+        # -------- Historial de Viajes --------
+        self.page_historial = QWidget()
+        self.historial_layout = QVBoxLayout(self.page_historial)
+        self.historial_layout.setContentsMargins(0, 0, 0, 0)
+
+        # Contenedor con scroll
+        scroll_historial = QScrollArea()
+        scroll_historial.setWidgetResizable(True)
+        scroll_historial.setStyleSheet("background: transparent; border: none;")
+
+        self.historial_widget = VentanaHistorialViajes()
+        self.historial_widget.setWindowFlags(Qt.Widget)
+        scroll_historial.setWidget(self.historial_widget)
+        self.historial_layout.addWidget(scroll_historial)
+
+        self.stacked.addWidget(self.page_historial)
 
         # ========================= FIN STACKED =========================
         layout_content.addWidget(topbar)
@@ -437,67 +457,85 @@ class PanelPrincipal(QMainWindow):
         self.btn_dashboard.clicked.connect(lambda: self.stacked.setCurrentWidget(self.page_dashboard))
         self.btn_terminales.clicked.connect(self.abrir_terminales)
         self.btn_vender.clicked.connect(self.abrir_venta)
-        self.btn_historial.clicked.connect(lambda: self.stacked.setCurrentWidget(self.page_historial))  # NUEVO EVENTO
+        self.btn_historial.clicked.connect(lambda: self.stacked.setCurrentWidget(self.page_historial))
         self.btn_logout.clicked.connect(self.cerrar_sesion)
         self.btn_toggle.clicked.connect(self.toggle_menu)
         self.btn_config.clicked.connect(lambda: self.stacked.setCurrentWidget(self.page_config))
+        self.btn_guardar.clicked.connect(self.guardar_cambios)
 
-    # ========================= FUNCIONES =========================
+    def resizeEvent(self, event):
+        """Ajusta el tamaño de los elementos al redimensionar"""
+        super().resizeEvent(event)
+
+        # Ajusta el ancho máximo de la card de configuración
+        if hasattr(self, 'config_card'):
+            ancho_disponible = self.width() - 300  # Considerando el sidebar
+            self.config_card.setMaximumWidth(max(600, ancho_disponible * 0.7))
+
+        # Ajusta el tamaño de fuente en pantallas pequeñas
+        if self.width() < 1000:
+            self.brand.setStyleSheet("color: white; font-size: 12pt; font-weight: bold;")
+            self.welcome.setStyleSheet(f"font-size: 10pt; color: {self.COLOR_TEXTO}; font-weight: 500;")
+        else:
+            self.brand.setStyleSheet("color: white; font-size: 16pt; font-weight: bold;")
+            self.welcome.setStyleSheet(f"font-size: 12pt; color: {self.COLOR_TEXTO}; font-weight: 500;")
+
+    def guardar_cambios(self):
+        usuario = self.config_usuario.text().strip()
+        contrasena = self.config_pass.text().strip()
+        if not (usuario and contrasena):
+            QMessageBox.warning(self, "Atención", "Los campos obligatorios no pueden estar vacíos")
+            return
+        ok, err = actualizar_taquillero_bd(
+            self.usuario_actual.get('registro'), usuario, contrasena
+        )
+        if ok:
+            QMessageBox.information(self, "Éxito", "Datos actualizados correctamente")
+            self.usuario_actual.update({'usuario': usuario, 'contraseña': contrasena})
+            self.stacked.setCurrentWidget(self.page_dashboard)
+        else:
+            QMessageBox.critical(self, "Error", f"No se pudo actualizar: {err}")
+
     def buscar_accion(self):
         """Busca acciones basadas en palabras clave"""
         texto = self.search.text().strip().lower()
-        
+
         if not texto:
             return
-        
-        # Diccionario de palabras clave
+
         acciones = {
-            # Vender boletos
             'boleto': self.abrir_venta,
             'boletos': self.abrir_venta,
             'vender': self.abrir_venta,
             'venta': self.abrir_venta,
             'ticket': self.abrir_venta,
             'tickets': self.abrir_venta,
-            
-            # Terminales
             'terminal': self.abrir_terminales,
             'terminales': self.abrir_terminales,
             'estacion': self.abrir_terminales,
             'estaciones': self.abrir_terminales,
-            
-            # Pasajeros
             'pasajero': self.abrir_registro_pasajero,
             'pasajeros': self.abrir_registro_pasajero,
             'registrar': self.abrir_registro_pasajero,
             'registro': self.abrir_registro_pasajero,
             'cliente': self.abrir_registro_pasajero,
             'clientes': self.abrir_registro_pasajero,
-            
-            # Configuración
             'config': lambda: self.stacked.setCurrentWidget(self.page_config),
             'configuracion': lambda: self.stacked.setCurrentWidget(self.page_config),
             'configuración': lambda: self.stacked.setCurrentWidget(self.page_config),
             'ajustes': lambda: self.stacked.setCurrentWidget(self.page_config),
             'perfil': lambda: self.stacked.setCurrentWidget(self.page_config),
-            
-            # Dashboard
             'inicio': lambda: self.stacked.setCurrentWidget(self.page_dashboard),
             'dashboard': lambda: self.stacked.setCurrentWidget(self.page_dashboard),
             'home': lambda: self.stacked.setCurrentWidget(self.page_dashboard),
-            
-            # Historial - NUEVO
             'historial': lambda: self.stacked.setCurrentWidget(self.page_historial),
             'viajes': lambda: self.stacked.setCurrentWidget(self.page_historial),
             'history': lambda: self.stacked.setCurrentWidget(self.page_historial),
-            
-            # Easter Egg - Epilepsia
             'epilepsia': self.abrir_epilepsia,
             'juego': self.abrir_epilepsia,
             'game': self.abrir_epilepsia,
         }
-        
-        # Buscar coincidencia
+
         encontrado = False
         for palabra_clave, accion in acciones.items():
             if palabra_clave in texto:
@@ -505,11 +543,11 @@ class PanelPrincipal(QMainWindow):
                 self.search.clear()
                 encontrado = True
                 break
-        
+
         if not encontrado:
             QMessageBox.information(
-                self, 
-                "Búsqueda", 
+                self,
+                "Búsqueda",
                 f"No se encontró ninguna acción para: '{texto}'\n\n"
                 "Prueba con: boleto, terminal, pasajero, historial, config, inicio..."
             )
@@ -524,13 +562,11 @@ class PanelPrincipal(QMainWindow):
         self.ventana_terminales.show()
 
     def abrir_epilepsia(self):
-        """Easter Egg: Abre el juego de epilepsia"""
         self.ventana_epilepsia = VentanaAnimada()
         self.ventana_epilepsia.show()
         self.close()
 
     def abrir_venta(self):
-        """Abre la ventana de venta de boletos"""
         try:
             self.ventana_venta = VentanaVentaBoletos()
             self.ventana_venta.show()
@@ -538,39 +574,34 @@ class PanelPrincipal(QMainWindow):
             QMessageBox.critical(self, "Error", f"No se pudo abrir venta de boletos:\n{e}")
 
     def toggle_menu(self):
-        """Anima el menú para colapsar/expandir"""
         if self.animation.state() == QPropertyAnimation.Running:
             return
-        
+
         if self.menu_colapsado:
-            # Expandir
             self.animation.setStartValue(70)
             self.animation.setEndValue(260)
             self.brand.setText("Rutas Baja Express")
-            
-            # Restaurar texto completo de botones
+
             for btn in [self.btn_dashboard, self.btn_terminales, self.btn_vender, self.btn_historial, self.btn_config]:
                 btn.setText(btn.property("full_text"))
-            
+
             self.btn_logout.setText("🚪 Cerrar sesión")
         else:
-            # Colapsar
             self.animation.setStartValue(260)
             self.animation.setEndValue(70)
             self.brand.setText("RBE")
-            
-            # Cambiar a solo iconos
+
             for btn in [self.btn_dashboard, self.btn_terminales, self.btn_vender, self.btn_historial, self.btn_config]:
                 btn.setText(btn.property("icon_text"))
-            
+
             self.btn_logout.setText("🚪")
-        
+
         self.animation.start()
         self.menu_colapsado = not self.menu_colapsado
 
     def cerrar_sesion(self):
         confirm = QMessageBox.question(
-            self, "Confirmar", "¿Cerrar sesión?", 
+            self, "Confirmar", "¿Cerrar sesión?",
             QMessageBox.Yes | QMessageBox.No
         )
         if confirm == QMessageBox.Yes:
