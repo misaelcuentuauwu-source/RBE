@@ -1,3 +1,18 @@
+
+INSERT INTO marca (numero, nombre) VALUES
+(1, 'Volvo'),
+(2, 'Mercedes-Benz'),
+(3, 'Scania'),
+(4, 'MAN'),
+(5, 'Irizar');
+
+INSERT INTO modelo (numero, nombre, numasientos, año, capacidad, marca) VALUES
+(1, 'Irizar i8', 52, 2020, 52, 5),
+(2, 'Volvo 9800', 48, 2021, 48, 1),
+(3, 'Scania K440', 50, 2019, 50, 3),
+(4, 'Mercedes OC500', 46, 2018, 46, 2),
+(5, 'MAN Lion’s Coach', 49, 2022, 49, 4);
+
 INSERT INTO autobus (numero, modelo, placas, serieVIN) VALUES
 (1, 1, 'ABC1234', '1HGCM82633A004352'),
 (2, 2, 'BCD2345', '2HGFA16598H392847'),
@@ -532,20 +547,6 @@ INSERT INTO edo_viaje (numero, nombre, descripcion) VALUES
 (4, 'Cancelado', 'Viaje suspendido'),
 (5, 'Retrasado', 'Salida demorada');
 
-INSERT INTO marca (numero, nombre) VALUES
-(1, 'Volvo'),
-(2, 'Mercedes-Benz'),
-(3, 'Scania'),
-(4, 'MAN'),
-(5, 'Irizar');
-
-INSERT INTO modelo (numero, nombre, numasientos, año, capacidad, marca) VALUES
-(1, 'Irizar i8', 52, 2020, 52, 5),
-(2, 'Volvo 9800', 48, 2021, 48, 1),
-(3, 'Scania K440', 50, 2019, 50, 3),
-(4, 'Mercedes OC500', 46, 2018, 46, 2),
-(5, 'MAN Lion’s Coach', 49, 2022, 49, 4);
-
 INSERT INTO pasajero (num, paNombre, paPrimerApell, paSegundoApell, fechaNacimiento, edad) VALUES
 (1, 'Alejandro', 'Torres', 'López', '1995-04-12', 30),
 (2, 'Mariana', 'Hernández', 'Cruz', '1988-11-03', 37),
@@ -693,6 +694,15 @@ INSERT INTO pasajero (num, paNombre, paPrimerApell, paSegundoApell, fechaNacimie
 (144, 'Yzabel', 'Rios', 'Lomas', '1939-06-27', 86),
 (145, 'Ana Maria', 'Antonio', 'Cova', '2006-12-07', 18);
 
+INSERT INTO terminal (numero, nombre, dirCalle, dirNumero, dirColonia, telefono, ciudad) VALUES
+(1, 'Central Tijuana', 'Blvd. Insurgentes', '2100', 'El Florido', '6641123344', 'TJ'),
+(2, 'Central Mexicali', 'Calz. Independencia', '501', 'Pueblo Nuevo', '6862219080', 'MXL'),
+(3, 'Central Ensenada', 'Av. Reforma', '1245', 'Moderna', '6463317722', 'ENS'),
+(4, 'Terminal Tecate', 'Blvd. Benito Juárez', '780', 'Las Palmas', '6652294433', 'TEC'),
+(5, 'Terminal Rosarito', 'Blvd. Popotla', '455', 'Centro', '6611238899', 'RSO'),
+(6, 'Terminal San Quintín', 'Carretera Transpeninsular', 'KM 189', 'Lázaro Cárdenas', '6161237700', 'SQN'),
+(7, 'Terminal San Felipe', 'Av. Mar de Cortés', '320', 'Centro', '6861985522', 'SFE');
+
 INSERT INTO ruta (codigo, duracion, origen, destino, precio) VALUES
 (1, '0h45m', 1, 5, 90.00),
 (2, '0h45m', 5, 1, 90.00),
@@ -759,15 +769,6 @@ INSERT INTO taquillero (registro, taqNombre, taqPrimerApell, taqSegundoApell, fe
 (19, 'Miriam', 'Castillo', 'Pérez', '2023-09-30', 'mcastillo', 'MC23', 7, 1),
 (20, 'Luis', 'Navarro', 'Beltrán', '2024-03-21', 'lnavarro', 'LN24', 7, 0),
 (21, 'Sofía', 'Ávila', 'Torres', '2025-01-13', 'savila', 'SA25', 7, 0);
-
-INSERT INTO terminal (numero, nombre, dirCalle, dirNumero, dirColonia, telefono, ciudad) VALUES
-(1, 'Central Tijuana', 'Blvd. Insurgentes', '2100', 'El Florido', '6641123344', 'TJ'),
-(2, 'Central Mexicali', 'Calz. Independencia', '501', 'Pueblo Nuevo', '6862219080', 'MXL'),
-(3, 'Central Ensenada', 'Av. Reforma', '1245', 'Moderna', '6463317722', 'ENS'),
-(4, 'Terminal Tecate', 'Blvd. Benito Juárez', '780', 'Las Palmas', '6652294433', 'TEC'),
-(5, 'Terminal Rosarito', 'Blvd. Popotla', '455', 'Centro', '6611238899', 'RSO'),
-(6, 'Terminal San Quintín', 'Carretera Transpeninsular', 'KM 189', 'Lázaro Cárdenas', '6161237700', 'SQN'),
-(7, 'Terminal San Felipe', 'Av. Mar de Cortés', '320', 'Centro', '6861985522', 'SFE');
 
 INSERT INTO tipo_asiento (codigo, descripcion) VALUES
 ('COM', 'Comun'),
