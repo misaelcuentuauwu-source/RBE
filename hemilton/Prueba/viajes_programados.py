@@ -329,7 +329,7 @@ class ProgramacionWindow(QWidget):
         content_layout.setSpacing(12)
 
         # SECCIÓN: Horarios
-        lbl_horarios = QLabel("📅 Horarios")
+        lbl_horarios = QLabel(" Horarios")
         lbl_horarios.setProperty("class", "subtitle")
         content_layout.addWidget(lbl_horarios)
 

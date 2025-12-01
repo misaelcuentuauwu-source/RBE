@@ -491,7 +491,7 @@ class MainWindow(QMainWindow):
         center = QVBoxLayout()
         
         # Fecha del viaje en la parte superior
-        fecha_viaje_top = QLabel(viaje['fecHoraSalida'].strftime("📅 %d/%m/%Y"))
+        fecha_viaje_top = QLabel(viaje['fecHoraSalida'].strftime("%d/%m/%Y"))
         fecha_viaje_top.setStyleSheet("color:#0a79b7;font-weight:bold;font-size:12px;")
         fecha_viaje_top.setAlignment(Qt.AlignCenter)
         center.addWidget(fecha_viaje_top)
