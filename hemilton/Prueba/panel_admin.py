@@ -11,6 +11,7 @@ from conexion import crear_conexion
 from viajes_programados import ProgramacionWindow
 from PySide6.QtWidgets import QApplication
 from kpi import KPIWindow
+import kpi_calculos
 
 def actualizar_taquillero_bd(registro, nombre, ap1, ap2, usuario, contrasena):
     try:
@@ -273,13 +274,40 @@ class PanelAdministrador(QMainWindow):
 
         self.stacked.addWidget(self.page_historial)
 
+        # ----- Página KPIs -----
         self.page_kpis = QWidget()
         kpi_layout = QVBoxLayout(self.page_kpis)
+        kpi_layout.setContentsMargins(0, 0, 0, 0)
+        kpi_layout.setSpacing(10)
 
-        self.kpi_widget = KPIWindow()
-        self.kpi_widget.setWindowFlags(Qt.Widget)
+        # Stacked interno que contendrá las 2 pantallas
+        self.kpi_stacked = QStackedWidget()
 
-        kpi_layout.addWidget(self.kpi_widget)
+        # 1) DATOS ESPECÍFICOS (la ventana original)
+        self.kpi_datos_especificos = KPIWindow()
+        self.kpi_datos_especificos.setWindowFlags(Qt.Widget)
+        self.kpi_stacked.addWidget(self.kpi_datos_especificos)
+
+        # 2) DATOS GENERALES (tu ventana nueva de kpi_calculos.py)
+        self.kpi_datos_generales = kpi_calculos.KPIWindowGenerales()
+        self.kpi_datos_generales.setWindowFlags(Qt.Widget)
+        self.kpi_stacked.addWidget(self.kpi_datos_generales)
+
+        # ----- Barra de botones -----
+        switch_layout = QHBoxLayout()
+        switch_layout.setAlignment(Qt.AlignCenter)
+
+        self.btn_especificos = QPushButton("Datos Específicos")
+        self.btn_generales = QPushButton("Datos Generales")
+
+        switch_layout.addWidget(self.btn_especificos)
+        switch_layout.addWidget(self.btn_generales)
+
+        self.btn_especificos.clicked.connect(lambda: self.kpi_stacked.setCurrentIndex(0))
+        self.btn_generales.clicked.connect(lambda: self.kpi_stacked.setCurrentIndex(1))
+
+        kpi_layout.addWidget(self.kpi_stacked)
+        kpi_layout.addLayout(switch_layout)
 
         self.stacked.addWidget(self.page_kpis)
 
