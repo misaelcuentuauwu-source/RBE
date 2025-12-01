@@ -236,52 +236,72 @@ class PanelPrincipal(QMainWindow):
         layout_dash.setContentsMargins(30, 30, 30, 30)
         layout_dash.setSpacing(20)
         
-        title = QLabel("📊 Dashboard")
-        title.setAlignment(Qt.AlignLeft)
-        title.setStyleSheet(f"font-size: 32pt; font-weight: 600; color: {self.COLOR_PRINCIPAL}; padding: 8px;")
-        layout_dash.addWidget(title)
-
-        cards_layout = QHBoxLayout()
-        cards_layout.setSpacing(20)
+        # Contenedor central para el logo
+        logo_container = QWidget()
+        logo_layout = QVBoxLayout(logo_container)
+        logo_layout.setAlignment(Qt.AlignCenter)
         
-        self.card_registro = QPushButton("👤\nRegistrar\nPasajero")
-        self.card_registro.setFixedSize(240, 160)
-        self.card_registro.setStyleSheet(f"""
-            QPushButton {{
-                background-color: white;
-                color: {self.COLOR_TEXTO};
-                border-radius: 20px;
-                font-size: 15pt;
-                font-weight: bold;
-                padding: 16px;
-                border: 3px solid {self.COLOR_PRINCIPAL};
-            }}
-            QPushButton:hover {{
-                background-color: #e4f3ff;
-                border: 3px solid {self.COLOR_NARANJA};
-            }}
-        """)
-        
-        card_stats = QLabel("📈\n\nEstadísticas\nPróximamente")
-        card_stats.setFixedSize(240, 160)
-        card_stats.setAlignment(Qt.AlignCenter)
-        card_stats.setStyleSheet(f"""
+        # Logo del autobús con estilo profesional
+        logo_label = QLabel("🚌")
+        logo_label.setAlignment(Qt.AlignCenter)
+        logo_label.setStyleSheet(f"""
             QLabel {{
-                background-color: white;
-                color: #999;
-                border-radius: 20px;
-                font-size: 13pt;
-                font-weight: bold;
-                padding: 16px;
-                border: 3px solid #e0e0e0;
+                font-size: 180pt;
+                color: {self.COLOR_PRINCIPAL};
+                opacity: 0.15;
+                padding: 40px;
+                background: qlineargradient(
+                    x1:0, y1:0, x2:1, y2:1,
+                    stop:0 rgba(17, 129, 195, 0.05),
+                    stop:1 rgba(237, 114, 55, 0.05)
+                );
+                border-radius: 30px;
             }}
         """)
+        logo_layout.addWidget(logo_label)
         
-        cards_layout.addWidget(self.card_registro)
-        cards_layout.addWidget(card_stats)
-        cards_layout.addStretch()
+        # Texto de bienvenida elegante
+        welcome_text = QLabel("Bienvenido al Sistema de Gestión")
+        welcome_text.setAlignment(Qt.AlignCenter)
+        welcome_text.setStyleSheet(f"""
+            QLabel {{
+                font-size: 28pt;
+                font-weight: 300;
+                color: {self.COLOR_TEXTO};
+                margin-top: 30px;
+                letter-spacing: 2px;
+            }}
+        """)
+        logo_layout.addWidget(welcome_text)
         
-        layout_dash.addLayout(cards_layout)
+        # Subtítulo
+        subtitle = QLabel("Rutas Baja Express")
+        subtitle.setAlignment(Qt.AlignCenter)
+        subtitle.setStyleSheet(f"""
+            QLabel {{
+                font-size: 42pt;
+                font-weight: bold;
+                color: {self.COLOR_PRINCIPAL};
+                margin-top: 10px;
+            }}
+        """)
+        logo_layout.addWidget(subtitle)
+        
+        # Mensaje motivacional
+        message = QLabel("Selecciona una opción del menú para comenzar")
+        message.setAlignment(Qt.AlignCenter)
+        message.setStyleSheet("""
+            QLabel {
+                font-size: 14pt;
+                color: #666;
+                margin-top: 20px;
+                font-weight: 300;
+            }
+        """)
+        logo_layout.addWidget(message)
+        
+        layout_dash.addStretch()
+        layout_dash.addWidget(logo_container)
         layout_dash.addStretch()
         self.stacked.addWidget(self.page_dashboard)
 
@@ -414,7 +434,6 @@ class PanelPrincipal(QMainWindow):
         self.animation.setEasingCurve(QEasingCurve.InOutQuad)
 
         # ========================= EVENTOS =========================
-        self.card_registro.clicked.connect(self.abrir_registro_pasajero)
         self.btn_dashboard.clicked.connect(lambda: self.stacked.setCurrentWidget(self.page_dashboard))
         self.btn_terminales.clicked.connect(self.abrir_terminales)
         self.btn_vender.clicked.connect(self.abrir_venta)

@@ -161,6 +161,9 @@ class App:
         self.login_ui = Ui_loginWindow()
         self.login_ui.setupUi(self.win_login)
 
+        # 🔒 OCULTAR CONTRASEÑA EN EL LOGIN
+        self.login_ui.lineEdit_5.setEchoMode(QLineEdit.Password)
+
         # Conectar botones a funciones
         self.login_ui.pushButton_5.clicked.connect(self.intentar_login)  # Acceder
         self.login_ui.pushButton_6.clicked.connect(self.verificar_antes_de_registrar)  # Registrarse
