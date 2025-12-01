@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+-- Active: 1764103994512@@127.0.0.1@3306@rbe
+=======
+>>>>>>> bc149e17906daa166184479fd8bb3fede8be4e0a
 DROP DATABASE IF EXISTS rbe;
 CREATE DATABASE rbe;
 USE rbe;
