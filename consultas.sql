@@ -153,13 +153,8 @@ SELECT
     m.numasientos
 FROM autobus a
 JOIN modelo m ON a.modelo = m.numero
-<<<<<<< HEAD
 JOIN marca m2 ON m.marca = m2.numero
 WHERE a.numero = 1;
-=======
-JOIN marca mk ON m.marca = mk.numero
-WHERE a.numero = 3;
->>>>>>> bc149e17906daa166184479fd8bb3fede8be4e0a
 
 --9. Cantidad por tipo de asiento en un autobús
 SELECT
