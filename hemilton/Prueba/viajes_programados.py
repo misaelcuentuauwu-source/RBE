@@ -458,8 +458,7 @@ class ProgramacionWindow(QWidget):
                     mo.numasientos AS seats_count,
                     mo.`año` AS year,
 
-                    CONCAT(c.conNombre, ' ', c.conPrimerApell, ' ',
-                        COALESCE(c.conSegundoApell, '')) AS operator,
+                    CONCAT(CONCAT(c.conNombre, ' ', c.conPrimerApell, ' ', IFNULL(c.conSegundoApell, ''))
 
                     (SELECT COUNT(*) FROM ticket t WHERE t.viaje = v.numero) AS passengers_count,
 
