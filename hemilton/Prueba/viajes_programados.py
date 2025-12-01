@@ -437,45 +437,48 @@ class ProgramacionWindow(QWidget):
 
         try:
             cur.execute("""
-                SELECT
-                    v.numero AS trip_id,
-                    v.ruta AS route_id,
-                    v.fecHoraSalida AS departure,
-                    v.fecHoraEntrada AS arrival,
+    SELECT
+        v.numero AS trip_id,
+        v.ruta AS route_id,
+        v.fecHoraSalida AS departure,
+        v.fecHoraEntrada AS arrival,
 
-                    r.origen AS origin_terminal_num,
-                    tor.nombre AS origin_terminal,
-                    corig.nombre AS origin_city,
+        r.origen AS origin_terminal_num,
+        tor.nombre AS origin_terminal,
+        corig.nombre AS origin_city,
 
-                    r.destino AS dest_terminal_num,
-                    tdest.nombre AS dest_terminal,
-                    cdest.nombre AS dest_city,
+        r.destino AS dest_terminal_num,
+        tdest.nombre AS dest_terminal,
+        cdest.nombre AS dest_city,
 
-                    v.autobus AS bus_number,
-                    a.placas AS plate,
-                    mo.nombre AS model,
-                    ma.nombre AS brand,
-                    mo.numasientos AS seats_count,
-                    mo.`año` AS year,
+        v.autobus AS bus_number,
+        a.placas AS plate,
+        mo.nombre AS model,
+        ma.nombre AS brand,
+        mo.numasientos AS seats_count,
+        mo.`año` AS year,
 
-                    CONCAT(c.conNombre, ' ', c.conPrimerApell, ' ',
-                        COALESCE(c.conSegundoApell, '')) AS operator,
+        CONCAT(
+            c.conNombre, ' ',
+            c.conPrimerApell, ' ',
+            IFNULL(c.conSegundoApell, '')
+        ) AS operator,
 
-                    (SELECT COUNT(*) FROM ticket t WHERE t.viaje = v.numero) AS passengers_count,
+        (SELECT COUNT(*) FROM ticket t WHERE t.viaje = v.numero) AS passengers_count,
 
-                    v.estado AS estado
-                FROM viaje v
-                LEFT JOIN ruta r ON v.ruta = r.codigo
-                LEFT JOIN terminal tor ON r.origen = tor.numero
-                LEFT JOIN terminal tdest ON r.destino = tdest.numero
-                LEFT JOIN ciudad corig ON tor.ciudad = corig.clave
-                LEFT JOIN ciudad cdest ON tdest.ciudad = cdest.clave
-                LEFT JOIN conductor c ON v.conductor = c.registro
-                LEFT JOIN autobus a ON v.autobus = a.numero
-                LEFT JOIN modelo mo ON a.modelo = mo.numero
-                LEFT JOIN marca ma ON mo.marca = ma.numero
-                ORDER BY v.fecHoraSalida ASC
-            """)
+        v.estado AS estado
+    FROM viaje v
+    LEFT JOIN ruta r ON v.ruta = r.codigo
+    LEFT JOIN terminal tor ON r.origen = tor.numero
+    LEFT JOIN terminal tdest ON r.destino = tdest.numero
+    LEFT JOIN ciudad corig ON tor.ciudad = corig.clave
+    LEFT JOIN ciudad cdest ON tdest.ciudad = cdest.clave
+    LEFT JOIN conductor c ON v.conductor = c.registro
+    LEFT JOIN autobus a ON v.autobus = a.numero
+    LEFT JOIN modelo mo ON a.modelo = mo.numero
+    LEFT JOIN marca ma ON mo.marca = ma.numero
+    ORDER BY v.fecHoraSalida ASC
+""")
 
             rows = cur.fetchall()
             trips = []
