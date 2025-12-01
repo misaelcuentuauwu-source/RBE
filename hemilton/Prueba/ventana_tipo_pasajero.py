@@ -1,3 +1,4 @@
+-- Active: 1764103994512@@127.0.0.1@3306
 # ventana_tipo_pasajero.py
 # Ventana para seleccionar tipo de pasajero
 
