@@ -1,5 +1,5 @@
 -- Active: 1762888131509@@127.0.0.1@3306@rbe
-INSERT INTO pasajero (paNombre, paPrimerApell, paSegundoApell, fechaNacimiento, edad) VALUES
+INSERT INTO `pasajero` (`paNombre`, `paPrimerApell`, `paSegundoApell`, `fechaNacimiento`, `edad`) VALUES
 ('Alejandro', 'Torres', 'López', '1995-04-12', 30),
 ('Mariana', 'Hernández', 'Cruz', '1988-11-03', 37),
 ('Luis', 'Aguilar', 'Soto', '2001-06-21', 24),
@@ -99,7 +99,53 @@ INSERT INTO pasajero (paNombre, paPrimerApell, paSegundoApell, fechaNacimiento, 
 ('Jonathan', 'Aguirre', 'Mejía', '1992-05-30', 33),
 ('Isabel', 'Cárdenas', 'Paredes', '2001-01-15', 24),
 ('Luis', 'Morales', 'Ibarra', '1998-07-03', 27),
-('Karla', 'Campos', 'Reyes', '1983-10-20', 42);
+('Karla', 'Campos', 'Reyes', '1983-10-20', 42),
+('Anwar Fernando', 'Estrada', 'Santos', '2006-04-14', 19),
+('Salvador', 'Garcia', 'Bojorquez', '2006-02-17', 19),
+('Elver', 'Ignacio', 'Bernal', '1985-04-25', 40),
+('Jose Manuel', 'Perez', 'Lopez', '1970-08-26', 55),
+('Maria', 'Madrigal', 'Gutierres', '1980-10-23', 45),
+('Misael', 'Urquidez', 'Arredondo', '2006-03-14', 19),
+('Leonardo', 'Castillo', 'Mora', '1998-04-12', 27),
+('Valeria', 'Nuñes', 'Rivas', '2002-09-03', 23),
+('Mateo', 'Alvarado', 'Ruiz', '1993-11-27', 32),
+('Camila', 'Herrera', 'Soto', '2006-06-15', 19),
+('Esteban', 'Paredes', 'Aguilar', '2001-02-08', 24),
+('Daniela', 'Cornejo', 'Roldan', '1995-10-30', 30),
+('Ivan', 'Torres', 'Beltran', '1990-05-19', 35),
+('Renata', 'Jimenez', 'Lopez', '2004-03-07', 21),
+('Ramon', 'Torres', 'Solis', '2002-10-17', 23),
+('Adriana', 'Salgado', 'Mendez', '1999-01-11', 26),
+('Garcia', 'Bojorquez', 'Salvador', '2006-02-17', 19),
+('Francisco', 'Villalpalo', 'Garcia', '1943-02-11', 82),
+('Graciela', 'Rodriguez', 'Santa', '1946-07-28', 79),
+('Hector', 'Sandoval', 'Pineda', '1958-05-04', 67),
+('Rogelio', 'Martinez', 'Castañeda', '1949-12-28', 75),
+('Arturo', 'Benitez', 'Solarzano', '1956-10-18', 69),
+('Salvador', 'Quiroga', 'Mendoza', '1956-03-17', 69),
+('Isaac', 'Ramirez', 'Villaseñor', '1965-08-01', 60),
+('Manuel', 'Ortega', 'Zaldivar', '1954-12-25', 70),
+('Hemilton', 'Orduño', 'Santiago', '2002-11-14', 23),
+('Carlos', 'Hernandez', 'Lopez', '1975-03-12', 50),
+('Laura', 'Garcia', 'Martinez', '1978-09-08', 47),
+('Diego', 'Hernandez', 'Garcia', '2002-01-11', 23),
+('Sofia', 'Hernandez', 'Garcia', '2005-06-19', 20),
+('Mateo', 'Hernandez', 'Garcia', '2009-11-27', 16),
+('Valentina', 'Hernandez', 'Garcia', '2014-04-03', 11),
+('Tobias Alias El Toby', 'Estrada', 'Lopez', '2020-12-15', 4),
+('Andres', 'Molina', 'Perez', '2003-02-26', 22),
+('Karla', 'Torres', 'Ramirez', '2002-08-21', 23),
+('Ivan', 'Castillo', NULL, '2001-05-09', 24),
+('Daniela', 'Cruz', 'Hernandez', '2001-12-07', 23),
+('Kylian', 'Lottin', 'Mbappe', '1998-12-20', 26),
+('Lionel', 'Messi', 'Cuccittini', '1992-06-24', 33),
+('Dwayne', 'Johnson', 'Douglas', '1977-05-02', 48),
+('Selena', 'Gomez', 'Cornet', '1992-07-22', 33),
+('Juan', 'Perez', 'Rios', '1999-06-23', 26),
+('Junior', 'Perez', 'Lopez', '2018-11-30', 7),
+('Yzabel', 'Rios', 'Lomas', '1939-06-27', 86),
+('Ana Maria', 'Antonio', 'Cova', '2006-12-07', 18);
+
 
 INSERT INTO ciudad (clave, nombre) VALUES
 ('TJ',  'Tijuana'),
@@ -755,7 +801,7 @@ INSERT INTO viaje (numero, fecHoraSalida, fecHoraEntrada, ruta, estado, autobus,
 (11, '2026-01-05 09:15:00', '2026-01-05 10:30:00', 5, 1, 3, 3),
 (12, '2026-01-10 15:00:00', '2026-01-10 15:45:00', 2, 1, 4, 4);
 
-INSERT INTO viaje_asiento (asiento, viaje, ocupado) VALUES
+INSERT INTO `viaje_asiento` (`asiento`, `viaje`, `ocupado`) VALUES
 (1, 1, 1),
 (1, 4, 0),
 (1, 9, 0),
@@ -1371,7 +1417,7 @@ INSERT INTO tipo_pago (numero, nombre, descripcion) VALUES
 (1, 'Efectivo', 'Efectivo'),
 (2, 'Tarjeta', 'Tarjeta');
 
-INSERT INTO pago (numero, fechapago, monto, tipo, vendedor) VALUES
+INSERT INTO `pago` (`numero`, `fechapago`, `monto`, `tipo`, `vendedor`) VALUES
 (1, '2025-01-10 07:00:00', 135.00, 1, 1),
 (2, '2025-01-10 07:02:00', 180.00, 1, 2),
 (3, '2025-01-10 07:04:00', 180.00, 2, 1),
