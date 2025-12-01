@@ -485,9 +485,8 @@ class ProgramacionWindow(QWidget):
         root.addWidget(btn_close, alignment=Qt.AlignCenter)
         dlg.exec()
 
-    # ---------- DB METHODS ----------
     def load_all_trips_from_db(self):
-        """Carga TODOS los viajes (sin filtro de fecha)"""
+        """Carga TODOS los viajes futuros (sin filtro de fecha pasada)"""
         try:
             cn = crear_conexion()
         except Exception as e:
@@ -497,6 +496,7 @@ class ProgramacionWindow(QWidget):
         cur = cn.cursor(dictionary=True)
 
         try:
+            # Agregamos WHERE v.fecHoraSalida >= NOW() para filtrar solo viajes futuros
             cur.execute("""
     SELECT
         v.numero AS trip_id,
@@ -538,8 +538,9 @@ class ProgramacionWindow(QWidget):
     LEFT JOIN autobus a ON v.autobus = a.numero
     LEFT JOIN modelo mo ON a.modelo = mo.numero
     LEFT JOIN marca ma ON mo.marca = ma.numero
+    WHERE v.fecHoraSalida >= NOW()
     ORDER BY v.fecHoraSalida ASC
-""")
+    """)
 
             rows = cur.fetchall()
             trips = []
@@ -557,7 +558,6 @@ class ProgramacionWindow(QWidget):
         finally:
             cur.close()
             cn.close()
-    
     # ---------- FILTROS ----------
     def populate_filter_boxes(self):
         origenes = set()
