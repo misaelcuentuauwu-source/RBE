@@ -535,7 +535,6 @@ class VentanaPago(QWidget):
                     info['tipo_pasajero'],
                     pago_id
                 ))
-            
             # 3. Marcar asientos como ocupados (CON FIX) ⭐
             for info in self.pasajeros_info:
                 # Primero verificar si existe el registro

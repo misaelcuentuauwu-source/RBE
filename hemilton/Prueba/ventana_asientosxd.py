@@ -529,15 +529,32 @@ class VentanaAsientos(QMainWindow):
     
     def on_pasajero_registrado(self, pasajero_id, asiento_id, tipo_pasajero):
         """Guarda info del pasajero y continúa con el siguiente"""
+        
+        # ⭐ Determinar si el asiento es especial
+        asientos_por_fila = self.cols_left + self.cols_right
+        fila = ((asiento_id - 1) // asientos_por_fila) + 1
+        pos_en_fila = ((asiento_id - 1) % asientos_por_fila) + 1
+        
+        if pos_en_fila <= self.cols_left:
+            lado = 'L'
+            col = pos_en_fila
+        else:
+            lado = 'R'
+            col = pos_en_fila - self.cols_left
+        
+        # Verificar si es especial
+        es_especial = (lado, fila, col) in self.special_positions
+        tipo_asiento = "Especial" if es_especial else "Regular"
+        
         self.pasajeros_registrados.append({
             'pasajero_id': pasajero_id,
             'asiento_id': asiento_id,
-            'tipo_pasajero': tipo_pasajero
+            'tipo_pasajero': tipo_pasajero,
+            'tipo_asiento': tipo_asiento  # ⭐ NUEVO
         })
         
         self.indice_actual += 1
         self.abrir_ventana_tipo_pasajero()
-    
     def abrir_ventana_pago(self):
         """Abre ventana de pago con resumen"""
         from ventana_pago import VentanaPago

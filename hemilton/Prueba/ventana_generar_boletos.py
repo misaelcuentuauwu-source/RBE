@@ -745,8 +745,9 @@ class VentanaGenerarBoletos(QWidget):
                 precio_final = self.datos_viaje['precio_base'] * (1 - descuento / 100.0)
 
                 # Preparar datos para el boleto con los cambios solicitados
+
                 datos_boleto = {
-                    'numero_viaje': numero_boleto,  # Solo número de viaje
+                    'numero_viaje': numero_boleto,
                     'terminal_origen': self.datos_viaje.get('terminal_origen', 'Terminal Origen'),
                     'terminal_destino': self.datos_viaje.get('terminal_destino', 'Terminal Destino'),
                     'ciudad_origen': self.datos_viaje.get('ciudad_origen', 'Ciudad Origen'),
@@ -756,9 +757,8 @@ class VentanaGenerarBoletos(QWidget):
                     'asiento': str(info['asiento_id']),
                     'pasajero': nombre_completo,
                     'precio': f"${precio_final:.2f}",
-                    'tipo_pasajero': tipo['descripcion']
+                    'tipo_pasajero': info.get('tipo_asiento', 'Regular')  # ⭐ CAMBIO AQUÍ
                 }
-
                 self.ticket_canvas.set_datos(datos_boleto)
 
                 pasajero_id = info['pasajero_id']
@@ -773,11 +773,10 @@ class VentanaGenerarBoletos(QWidget):
 
                 self.lbl_info_pasajero.setText(
                     f"<b>{nombre_completo}</b><br>"
-                    f"Asiento: #{info['asiento_id']}<br>"
-                    f"Tipo: {tipo['descripcion']} (-{descuento}%)<br>"
+                    f"Asiento: #{info['asiento_id']} ({info.get('tipo_asiento', 'Regular')})<br>"  # ⭐ MOSTRAR TIPO
+                    f"Tipo pasajero: {tipo['descripcion']} (-{descuento}%)<br>"
                     f"Precio: ${precio_final:.2f}"
                 )
-
             cursor.close()
             conn.close()
 
