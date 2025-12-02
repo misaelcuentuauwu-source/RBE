@@ -83,7 +83,7 @@ class KPIWindow(QWidget):
         self.cmb_bus.setMinimumWidth(200)
         self.cmb_bus.addItem("Todos", None)
 
-        self.lbl_search_city = QLabel("Filtrar ciudad destino:")
+        self.lbl_search_city = QLabel("Filtrar ciudad origen:")
         self.cmb_city = QComboBox()
         self.cmb_city.setMinimumWidth(200)
         self.cmb_city.addItem("Todas", None)
@@ -633,84 +633,66 @@ class KPIWindow(QWidget):
         self.asientos_column_index = 5
         
     def _apply_kpi_ciudad(self):
-        # columnas: Ciudad | Viaje | Salida | Destino | Autobús | Matrícula | Operador
         headers = ["Ciudad", "Salida", "Viaje", "Destino", "Autobús", "Matrícula", "Operador"]
         self._setup_table_headers(headers)
 
-        where_clauses = []
-        params = []
-
-        if self.apply_pressed:
-            rng = self._compute_date_range()
-            if rng is None:
-                return
-            start, end = rng
-            where_clauses.append("v.fecHoraSalida BETWEEN %s AND %s")
-            params.extend([start, end])
-
-        city_id = self.cmb_city.currentData()
-        if city_id is not None:
-            where_clauses.append("tdest.ciudad = %s")
-            params.append(city_id)
-
-        where_sql = ("WHERE " + " AND ".join(where_clauses)) if where_clauses else ""
-
         try:
             cur = self.db.cursor(dictionary=True)
-            sql = f"""
+            sql = """
                 SELECT
-                    corig.nombre AS city_name,
-                    v.fecHoraSalida AS departure,
-                    v.numero AS trip_id,
-                    cdest.nombre AS dest_city,
-                    v.autobus AS bus_number,
-                    a.placas AS bus_plates,
-                    c.conNombre AS con_nombre,
-                    c.conPrimerApell AS con_ap1,
-                    c.conSegundoApell AS con_ap2
+                    corig.nombre AS ciudad,
+                    v.fecHoraSalida AS salida,
+                    v.numero AS viaje,
+                    cdest.nombre AS destino,
+                    a.numero AS autobus,
+                    a.placas AS matricula,
+                    CONCAT(c.conNombre, ' ', c.conPrimerApell, ' ', c.conSegundoApell) AS operador
                 FROM viaje v
-                LEFT JOIN ruta r ON v.ruta = r.codigo
+                LEFT JOIN ruta r       ON v.ruta = r.codigo
                 LEFT JOIN terminal tor ON r.origen = tor.numero
-                LEFT JOIN terminal tdest ON r.destino = tdest.numero
+                LEFT JOIN terminal tde ON r.destino = tde.numero
                 LEFT JOIN ciudad corig ON tor.ciudad = corig.clave
-                LEFT JOIN ciudad cdest ON tdest.ciudad = cdest.clave
-                LEFT JOIN autobus a ON v.autobus = a.numero
-                LEFT JOIN conductor c ON v.conductor = c.registro
-                {where_sql}
+                LEFT JOIN ciudad cdest ON tde.ciudad = cdest.clave
+                LEFT JOIN autobus a    ON v.autobus = a.numero
+                LEFT JOIN conductor c  ON v.conductor = c.registro
                 ORDER BY v.fecHoraSalida ASC
             """
-            cur.execute(sql, tuple(params) if params else None)
+            cur.execute(sql)
             rows = cur.fetchall()
+            cur.close()
         except Exception as e:
-            QMessageBox.critical(self, "Error BD", f"No se pudo leer ciudades: {e}")
-            try:
-                cur.close()
-            except:
-                pass
-            return
-        finally:
-            try:
-                cur.close()
-            except:
-                pass
-
-        if not rows:
-            self.table.setRowCount(0)
-            self.lbl_info.setText("Resultados: 0 viaje(s).")
+            QMessageBox.critical(self, "Error", f"Error cargando ciudades:\n{e}")
             return
 
         self.table.setRowCount(len(rows))
-        for r, row in enumerate(rows):
-            fullname = " ".join(filter(None, [row.get("con_nombre") or "", row.get("con_ap1") or "", row.get("con_ap2") or ""])).strip()
-            self._set_item(r, 0, str(row.get("city_name") or ""))
-            self._set_item(r, 1, format_dt(row.get("departure")))
-            self._set_item(r, 2, str(row.get("trip_id") or ""))
-            self._set_item(r, 3, str(row.get("dest_city") or ""))
-            self._set_item(r, 4, str(row.get("bus_number") or ""))
-            self._set_item(r, 5, str(row.get("bus_plates") or ""))
-            self._set_item(r, 6, fullname)
 
-        self._stretch_columns()
+        for r, row in enumerate(rows):
+            self._set_item(r, 0, row.get("ciudad", ""))
+            self._set_item(r, 1, format_dt(row.get("salida")))
+            self._set_item(r, 2, str(row.get("viaje") or ""))
+            self._set_item(r, 3, row.get("destino", ""))
+            self._set_item(r, 4, str(row.get("autobus") or ""))
+            self._set_item(r, 5, row.get("matricula", ""))
+            self._set_item(r, 6, row.get("operador", ""))
+
+        # --- Ajustes de columnas ---
+        header = self.table.horizontalHeader()
+
+        # Ciudad
+        header.setSectionResizeMode(0, QHeaderView.Stretch)
+        # Salida
+        header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
+        # Viaje
+        header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
+        # Destino
+        header.setSectionResizeMode(3, QHeaderView.Stretch)
+        # Autobús
+        header.setSectionResizeMode(4, QHeaderView.ResizeToContents)
+        # Matrícula
+        header.setSectionResizeMode(5, QHeaderView.ResizeToContents)
+        # Operador
+        header.setSectionResizeMode(6, QHeaderView.Stretch)
+
         self.lbl_info.setText(f"Resultados: {len(rows)} viaje(s).")
 
     # ---------------- small helpers ----------------

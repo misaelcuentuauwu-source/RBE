@@ -1,4 +1,4 @@
--- Active: 1762888131509@@127.0.0.1@3306@rbe
+-- Active: 1760982247071@@127.0.0.1@3306@rbe
 
 INSERT INTO `marca` (`numero`, `nombre`) VALUES
 (1, 'Volvo'),
