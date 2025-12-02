@@ -636,9 +636,29 @@ class KPIWindow(QWidget):
         headers = ["Ciudad", "Salida", "Viaje", "Destino", "Autobús", "Matrícula", "Operador"]
         self._setup_table_headers(headers)
 
+        where_clauses = []
+        params = []
+
+        # Aplicar filtro de fecha solo si el usuario presionó Aplicar (consistente con otras vistas)
+        if self.apply_pressed:
+            rng = self._compute_date_range()
+            if rng is None:
+                return
+            start, end = rng
+            where_clauses.append("v.fecHoraSalida BETWEEN %s AND %s")
+            params.extend([start, end])
+
+        # Filtro por ciudad (usamos currentData porque load_ciudades agrega clave como data)
+        city_key = self.cmb_city.currentData()
+        if city_key is not None:
+            where_clauses.append("corig.clave = %s")
+            params.append(city_key)
+
+        where_sql = ("WHERE " + " AND ".join(where_clauses)) if where_clauses else ""
+
         try:
             cur = self.db.cursor(dictionary=True)
-            sql = """
+            sql = f"""
                 SELECT
                     corig.nombre AS ciudad,
                     v.fecHoraSalida AS salida,
@@ -655,17 +675,26 @@ class KPIWindow(QWidget):
                 LEFT JOIN ciudad cdest ON tde.ciudad = cdest.clave
                 LEFT JOIN autobus a    ON v.autobus = a.numero
                 LEFT JOIN conductor c  ON v.conductor = c.registro
+                {where_sql}
                 ORDER BY v.fecHoraSalida ASC
             """
-            cur.execute(sql)
+            cur.execute(sql, tuple(params) if params else None)
             rows = cur.fetchall()
-            cur.close()
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error cargando ciudades:\n{e}")
+            try:
+                cur.close()
+            except:
+                pass
             return
+        finally:
+            try:
+                cur.close()
+            except:
+                pass
 
+        # Poblar tabla
         self.table.setRowCount(len(rows))
-
         for r, row in enumerate(rows):
             self._set_item(r, 0, row.get("ciudad", ""))
             self._set_item(r, 1, format_dt(row.get("salida")))
@@ -675,23 +704,15 @@ class KPIWindow(QWidget):
             self._set_item(r, 5, row.get("matricula", ""))
             self._set_item(r, 6, row.get("operador", ""))
 
-        # --- Ajustes de columnas ---
+        # --- Ajustes de columnas (manteniendo tu layout para que no se corte)
         header = self.table.horizontalHeader()
-
-        # Ciudad
-        header.setSectionResizeMode(0, QHeaderView.Stretch)
-        # Salida
-        header.setSectionResizeMode(1, QHeaderView.ResizeToContents)
-        # Viaje
-        header.setSectionResizeMode(2, QHeaderView.ResizeToContents)
-        # Destino
-        header.setSectionResizeMode(3, QHeaderView.Stretch)
-        # Autobús
-        header.setSectionResizeMode(4, QHeaderView.ResizeToContents)
-        # Matrícula
-        header.setSectionResizeMode(5, QHeaderView.ResizeToContents)
-        # Operador
-        header.setSectionResizeMode(6, QHeaderView.Stretch)
+        header.setSectionResizeMode(0, QHeaderView.Stretch)           # Ciudad
+        header.setSectionResizeMode(1, QHeaderView.ResizeToContents) # Salida
+        header.setSectionResizeMode(2, QHeaderView.ResizeToContents) # Viaje
+        header.setSectionResizeMode(3, QHeaderView.Stretch)           # Destino
+        header.setSectionResizeMode(4, QHeaderView.ResizeToContents) # Autobús
+        header.setSectionResizeMode(5, QHeaderView.ResizeToContents) # Matrícula
+        header.setSectionResizeMode(6, QHeaderView.Stretch)           # Operador
 
         self.lbl_info.setText(f"Resultados: {len(rows)} viaje(s).")
 
