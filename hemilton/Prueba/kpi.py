@@ -4,11 +4,11 @@ from datetime import datetime, date, time, timedelta
 from typing import Optional, Dict, List, Tuple
 from PySide6.QtWidgets import (
     QApplication, QWidget, QLabel, QComboBox, QDateEdit, QHBoxLayout, QVBoxLayout,
-    QPushButton, QMessageBox, QFrame, QSizePolicy, QSpinBox, QDialog, QTextEdit,
-    QScrollArea
+    QPushButton, QMessageBox, QFrame, QSizePolicy, QSpinBox, QTableWidget,
+    QTableWidgetItem, QHeaderView, QFileDialog, QDialog
 )
+from PySide6.QtWidgets import QAbstractItemView
 from PySide6.QtCore import Qt, QDate
-
 from conexion import crear_conexion  # <-- usa tu función existente de conexión MySQL
 
 def format_dt(dt: Optional[datetime]) -> str:
@@ -18,356 +18,17 @@ def format_dt(dt: Optional[datetime]) -> str:
         return dt
     return dt.strftime("%Y-%m-%d %H:%M")
 
-# ----------------- Tarjetas -----------------
-class TripCardKPI(QFrame):
-    """Tarjeta original para Boletos (se conserva)."""
-    def __init__(self, trip: dict, parent=None):
-        super().__init__(parent)
-        self.trip = trip
-        self.setObjectName("kpiCard")
 
-        self.setStyleSheet("""
-            QFrame#kpiCard {
-                background: white;
-                border-radius: 16px;
-                border: 1px solid #d9d9d9;
-            }
-            QLabel {
-                color: #2c3e50;
-                font-size: 15px;
-            }
-        """)
-
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
-
-        main = QVBoxLayout(self)
-        main.setContentsMargins(20, 15, 20, 15)
-        main.setSpacing(12)
-
-        # --- Fila 1: Fecha programada y número de viaje ---
-        row1 = QHBoxLayout()
-        row1.setSpacing(25)
-
-        departure = trip.get("departure")
-        if isinstance(departure, datetime):
-            fecha_prog = departure.strftime("%Y-%m-%d")
-            salida_str = departure.strftime("%Y-%m-%d %H:%M")
-        else:
-            fecha_prog = str(departure)
-            salida_str = str(departure)
-
-        lbl_fecha = QLabel(f"Fecha programada: {fecha_prog}")
-        lbl_num_viaje = QLabel(f"Número del viaje: {trip.get('trip_id','')}")
-
-        lbl_fecha.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        lbl_num_viaje.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-
-        row1.addWidget(lbl_fecha)
-        row1.addWidget(lbl_num_viaje)
-
-        # --- Fila 2: Fecha y hora de salida ---
-        row2 = QHBoxLayout()
-        row2.setSpacing(25)
-        lbl_salida = QLabel(f"Fecha y hora de salida: {salida_str}")
-        lbl_salida.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        row2.addWidget(lbl_salida)
-
-        # --- Fila 3: Origen / Destino / Autobús ---
-        row3 = QHBoxLayout()
-        row3.setSpacing(25)
-
-        lbl_origen = QLabel(f"Origen: {trip.get('origin_city','')}")
-        lbl_destino = QLabel(f"Destino: {trip.get('dest_city','')}")
-        lbl_bus = QLabel(f"Autobús: {trip.get('bus_number','')}")
-
-        for lbl in (lbl_origen, lbl_destino, lbl_bus):
-            lbl.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-
-        row3.addWidget(lbl_origen)
-        row3.addWidget(lbl_destino)
-        row3.addWidget(lbl_bus)
-
-        # --- Fila 4: Boletos vendidos / disponibles ---
-        row4 = QHBoxLayout()
-        row4.setSpacing(25)
-
-        lbl_vendidos = QLabel(f"Boletos vendidos: {trip.get('sold_count','')}")
-        lbl_disp = QLabel(f"Boletos disponibles: {trip.get('available_count','')}")
-
-        lbl_vendidos.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        lbl_disp.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-
-        row4.addWidget(lbl_vendidos)
-        row4.addWidget(lbl_disp)
-
-        # Agregar filas al layout principal
-        main.addLayout(row1)
-        main.addLayout(row2)
-        main.addLayout(row3)
-        main.addLayout(row4)
-
-        main.addStretch()
-
-class ConductorCardKPI(QFrame):
-    """Tarjeta para KPI de Conductor (incluye matrícula del autobús)."""
-    def __init__(self, data: dict, parent=None):
-        """
-        data keys expected:
-        - con_fullname
-        - trip_id
-        - departure (datetime)
-        - arrival (datetime)
-        - origin_city
-        - dest_city
-        - bus_number
-        - bus_plates
-        """
-        super().__init__(parent)
-        self.data = data
-        self.setObjectName("kpiCardConductor")
-
-        self.setStyleSheet("""
-            QFrame#kpiCardConductor {
-                background: white;
-                border-radius: 16px;
-                border: 1px solid #d9d9d9;
-            }
-            QLabel { color: #2c3e50; font-size: 14.5px; }
-        """)
-
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
-        main = QVBoxLayout(self)
-        main.setContentsMargins(18, 12, 18, 12)
-        main.setSpacing(10)
-
-        # Row 1: Nombre completo y número de viaje
-        r1 = QHBoxLayout()
-        lbl_name = QLabel(f"Conductor: {data.get('con_fullname','')}")
-        lbl_trip = QLabel(f"Número del viaje: {data.get('trip_id','')}")
-        lbl_name.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        lbl_trip.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        r1.addWidget(lbl_name)
-        r1.addWidget(lbl_trip)
-
-        # Row 2: Salida / Llegada
-        r2 = QHBoxLayout()
-        lbl_salida = QLabel(f"Salida: {format_dt(data.get('departure'))}")
-        lbl_llegada = QLabel(f"Llegada: {format_dt(data.get('arrival'))}")
-        lbl_salida.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        lbl_llegada.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        r2.addWidget(lbl_salida)
-        r2.addWidget(lbl_llegada)
-
-        # Row 3: Origen / Destino / Autobús (número)
-        r3 = QHBoxLayout()
-        lbl_origen = QLabel(f"Origen: {data.get('origin_city','')}")
-        lbl_destino = QLabel(f"Destino: {data.get('dest_city','')}")
-        lbl_bus = QLabel(f"Autobús: {data.get('bus_number','')}")
-        for lbl in (lbl_origen, lbl_destino, lbl_bus):
-            lbl.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        r3.addWidget(lbl_origen)
-        r3.addWidget(lbl_destino)
-        r3.addWidget(lbl_bus)
-
-        # Row 4: Matricula
-        r4 = QHBoxLayout()
-        lbl_placas = QLabel(f"Matrícula: {data.get('bus_plates','')}")
-        lbl_placas.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        r4.addWidget(lbl_placas)
-
-        main.addLayout(r1)
-        main.addLayout(r2)
-        main.addLayout(r3)
-        main.addLayout(r4)
-        main.addStretch()
-
-class AutobusCardKPI(QFrame):
-    """Tarjeta para Autobús con botón Detalles."""
-    def __init__(self, data: dict, parent=None, db_conn=None):
-        """
-        data keys expected:
-        - bus_number
-        - placas
-        - marca_nombre
-        - modelo_nombre
-        - modelo_año
-        - numasientos
-        """
-        super().__init__(parent)
-        self.data = data
-        self.db_conn = db_conn
-        self.setObjectName("kpiCardAutobus")
-
-        self.setStyleSheet("""
-            QFrame#kpiCardAutobus {
-                background: white;
-                border-radius: 16px;
-                border: 1px solid #d9d9d9;
-            }
-            QLabel { color: #2c3e50; font-size: 14.5px; }
-            QPushButton { background: #EF6C33; color: white; border-radius:8px; padding:6px 8px; font-weight:bold; }
-        """)
-
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
-        main = QVBoxLayout(self)
-        main.setContentsMargins(18, 12, 18, 12)
-        main.setSpacing(10)
-
-        # Row 1: Numero / placas
-        r1 = QHBoxLayout()
-        lbl_num = QLabel(f"Autobús: {data.get('bus_number','')}")
-        lbl_placa = QLabel(f"Matrícula: {data.get('placas','')}")
-        lbl_num.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        lbl_placa.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        r1.addWidget(lbl_num)
-        r1.addWidget(lbl_placa)
-
-        # Row 2: Marca / Modelo
-        r2 = QHBoxLayout()
-        lbl_marca = QLabel(f"Marca: {data.get('marca_nombre','')}")
-        lbl_modelo = QLabel(f"Modelo: {data.get('modelo_nombre','')}")
-        lbl_marca.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        lbl_modelo.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        r2.addWidget(lbl_marca)
-        r2.addWidget(lbl_modelo)
-
-        # Row 3: Año / Cantidad de asientos + Detalles label (botón)
-        r3 = QHBoxLayout()
-        lbl_año = QLabel(f"Año: {data.get('modelo_año','')}")
-        lbl_asientos = QLabel(f"Asientos: {data.get('numasientos','')}")
-        lbl_año.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        lbl_asientos.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        btn_detalles = QPushButton("Detalles")
-        btn_detalles.setFixedWidth(110)
-        btn_detalles.clicked.connect(self._on_detalles)
-        r3.addWidget(lbl_año)
-        r3.addWidget(lbl_asientos)
-        r3.addWidget(btn_detalles)
-
-        main.addLayout(r1)
-        main.addLayout(r2)
-        main.addLayout(r3)
-        main.addStretch()
-
-    def _on_detalles(self):
-        """Abre modal con descripción por tipo de asiento y cantidad por tipo para este autobús."""
-        bus_num = self.data.get("bus_number")
-        if not bus_num:
-            QMessageBox.information(self, "Detalles", "No hay información de autobús.")
-            return
-
-        # Query tipos y conteo
-        try:
-            db = self.db_conn
-            try:
-                cur = db.cursor(dictionary=True)
-            except TypeError:
-                cur = db.cursor()
-            cur.execute("""
-                SELECT ta.descripcion AS tipo_desc, COUNT(*) AS cantidad
-                FROM asiento a
-                JOIN tipo_asiento ta ON a.tipo = ta.codigo
-                WHERE a.autobus = %s
-                GROUP BY ta.descripcion
-            """, (bus_num,))
-            rows = cur.fetchall()
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"No se pudieron cargar detalles:\n{e}")
-            return
-        finally:
-            try:
-                cur.close()
-            except:
-                pass
-
-        dlg = QDialog(self)
-        dlg.setWindowTitle(f"Detalles - Autobús {bus_num}")
-        dlg.setModal(True)
-        form = QVBoxLayout(dlg)
-        # Descripción general
-        desc = QTextEdit()
-        desc.setReadOnly(True)
-        lines = []
-        lines.append(f"Autobús: {bus_num}")
-        lines.append(f"Matrícula: {self.data.get('placas','')}")
-        lines.append("")
-        lines.append("Tipos de asiento y cantidades:")
-        for r in rows:
-            lines.append(f" - {r.get('tipo_desc')}: {r.get('cantidad')}")
-        desc.setText("\n".join(lines))
-
-        form.addWidget(desc)
-        dlg.setLayout(form)
-        dlg.exec()
-
-class CiudadCardKPI(QFrame):
-    """Tarjeta para Ciudad KPI."""
-    def __init__(self, data: dict, parent=None):
-        """
-        data keys expected:
-        - city_name
-        - departure
-        - trip_id
-        - dest_city
-        - bus_number
-        - bus_plates
-        - operator_fullname
-        """
-        super().__init__(parent)
-        self.data = data
-        self.setObjectName("kpiCardCiudad")
-
-        self.setStyleSheet("""
-            QFrame#kpiCardCiudad {
-                background: white;
-                border-radius: 16px;
-                border: 1px solid #d9d9d9;
-            }
-            QLabel { color: #2c3e50; font-size: 14.5px; }
-        """)
-
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Minimum)
-        main = QVBoxLayout(self)
-        main.setContentsMargins(18, 12, 18, 12)
-        main.setSpacing(10)
-
-        r1 = QHBoxLayout()
-        lbl_city = QLabel(f"Ciudad: {data.get('city_name','')}")
-        lbl_dest = QLabel(f"Destino: {data.get('dest_city','')}")
-        lbl_city.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        lbl_dest.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        r1.addWidget(lbl_city)
-        r1.addWidget(lbl_dest)
-
-        r2 = QHBoxLayout()
-        lbl_salida = QLabel(f"Salida: {format_dt(data.get('departure'))}")
-        lbl_corrida = QLabel(f"Corrida: {data.get('trip_id','')}")
-        lbl_salida.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        lbl_corrida.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        r2.addWidget(lbl_salida)
-        r2.addWidget(lbl_corrida)
-
-        r3 = QHBoxLayout()
-        lbl_bus = QLabel(f"Autobús: {data.get('bus_number','')}")
-        lbl_placa = QLabel(f"Matrícula: {data.get('bus_plates','')}")
-        lbl_oper = QLabel(f"Operador: {data.get('operator_fullname','')}")
-        for lbl in (lbl_bus, lbl_placa, lbl_oper):
-            lbl.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
-        r3.addWidget(lbl_bus)
-        r3.addWidget(lbl_placa)
-        r3.addWidget(lbl_oper)
-
-        main.addLayout(r1)
-        main.addLayout(r2)
-        main.addLayout(r3)
-        main.addStretch()
-
-# ----------------- Ventana Principal -----------------
 class KPIWindow(QWidget):
+    """
+    Versión de KPI convertida a TABLA (estilo RBE: azul + naranja).
+    Soporta las mismas vistas: Boletos, Conductor, Autobús, Ciudad.
+    """
+
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("KPI - Viajes (Tarjeta única)")
-        self.resize(980, 500)
+        self.setWindowTitle("KPI - Viajes (Tablas)")
+        self.resize(1100, 640)
 
         try:
             self.db = crear_conexion()
@@ -376,28 +37,27 @@ class KPIWindow(QWidget):
             raise
 
         # state flags
-        self.initial_load = True      # para que Boletos muestre todo al inicio
+        self.initial_load = True      # para Boletos mostrar todo al inicio
         self.apply_pressed = False    # indica si el usuario presionó Aplicar alguna vez
 
-        # ---- Filtro maestro: Qué KPI mostrar ----
+        # ---- Controles superiores ----
         lbl_tipo = QLabel("Ver:")
         self.cmb_tipo = QComboBox()
         self.cmb_tipo.addItems(["Boletos", "Conductor", "Autobús", "Ciudad"])
         self.cmb_tipo.currentIndexChanged.connect(self.on_tipo_changed)
 
-        # ---- Filtros (alcance temporal) ----
         lbl_scope = QLabel("Filtro:")
         self.cmb_scope = QComboBox()
-        self.cmb_scope.addItems(["Día", "Semana (actual)", "Mes"])
+        self.cmb_scope.addItems(["Día", "Semana (actual)", "Mes","Cualquiera"])
         self.cmb_scope.currentIndexChanged.connect(self._on_scope_changed)
 
-        # Para Día
+        # Fecha (día)
         self.date_edit = QDateEdit()
         self.date_edit.setCalendarPopup(True)
         self.date_edit.setDate(QDate.currentDate())
         self.date_edit.setMinimumWidth(130)
 
-        # Para Mes (mes + año)
+        # Mes/año
         self.cmb_month = QComboBox()
         months = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"]
         self.cmb_month.addItems(months)
@@ -409,108 +69,93 @@ class KPIWindow(QWidget):
         # Botones
         self.btn_apply = QPushButton("Aplicar")
         self.btn_apply.clicked.connect(self.on_apply_clicked)
-
         self.btn_reload = QPushButton("Actualizar BD")
         self.btn_reload.clicked.connect(self.reload_from_db)
 
-        # --- Filtros específicos por KPI ---
-        # Conductor: combobox estándar
+        # Filtros por KPI
         self.lbl_search_conductor = QLabel("Filtrar conductor:")
         self.cmb_conductor = QComboBox()
         self.cmb_conductor.setMinimumWidth(200)
-        self.cmb_conductor.addItem("Todos", None)  # Opción por defecto
+        self.cmb_conductor.addItem("Todos", None)
 
-        # Autobús: combobox estándar
         self.lbl_search_bus = QLabel("Filtrar autobús:")
         self.cmb_bus = QComboBox()
         self.cmb_bus.setMinimumWidth(200)
-        self.cmb_bus.addItem("Todos", None)  # Opción por defecto
+        self.cmb_bus.addItem("Todos", None)
 
-        # Ciudad: combobox estándar
         self.lbl_search_city = QLabel("Filtrar ciudad destino:")
         self.cmb_city = QComboBox()
         self.cmb_city.setMinimumWidth(200)
-        self.cmb_city.addItem("Todas", None)  # Opción por defecto
+        self.cmb_city.addItem("Todas", None)
 
-        # Contenedor tarjeta con scroll
-        self.scroll = QScrollArea()
-        self.scroll.setWidgetResizable(True)
-        self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.scroll.setStyleSheet("border: none;")
+        # Tabla central que mostrará los datos
+        self.table = QTableWidget()
+        self.table.setAlternatingRowColors(True)
+        self.table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        
+        self.table.cellClicked.connect(self.on_cell_clicked)
+        # Preferencias del usuario (según tus respuestas):
+        # 1) Ordenar columnas -> NO
+        self.table.setSortingEnabled(False)
+        # 2) Scroll horizontal -> NO (preferimos estirar columnas)
+        self.table.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        # 3) Columnas se estiren automáticamente -> SÍ
+        # 4) Selección de filas completas -> NO (dejamos selección por celdas)
+        self.table.setSelectionBehavior(QAbstractItemView.SelectItems)
 
-        self.card_frame = QFrame()
-        self.card_layout = QVBoxLayout(self.card_frame)
-        self.scroll.setWidget(self.card_frame)
+        # Botón exportar (exporta lo visible)
+        self.btn_export = QPushButton("Exportar CSV")
+        self.btn_export.clicked.connect(self.export_table_csv)
 
-        # Info adicional (cantidad de resultados)
+        # Info adicional
         self.lbl_info = QLabel("")
         self.lbl_info.setStyleSheet("color: #5a6b78; font-weight:600;")
 
-        # Layout superior de controles (fila 1)
-        controls_top = QHBoxLayout()
-        controls_top.addWidget(lbl_tipo)
-        controls_top.addWidget(self.cmb_tipo)
-        controls_top.addSpacing(20)
+        # Layouts
+        top_controls = QHBoxLayout()
+        top_controls.addWidget(lbl_tipo)
+        top_controls.addWidget(self.cmb_tipo)
+        top_controls.addSpacing(16)
+        top_controls.addWidget(lbl_scope)
+        top_controls.addWidget(self.cmb_scope)
+        top_controls.addWidget(self.date_edit)
+        top_controls.addWidget(self.cmb_month)
+        top_controls.addWidget(self.cmb_year)
+        top_controls.addSpacing(8)
+        top_controls.addWidget(self.btn_apply)
+        top_controls.addWidget(self.btn_reload)
+        top_controls.addStretch()
 
-        controls_top.addWidget(lbl_scope)
-        controls_top.addWidget(self.cmb_scope)
-        controls_top.addSpacing(8)
-        controls_top.addWidget(self.date_edit)
-        controls_top.addSpacing(6)
-        controls_top.addWidget(self.cmb_month)
-        controls_top.addWidget(self.cmb_year)
-        controls_top.addSpacing(10)
+        filters_layout = QHBoxLayout()
+        filters_layout.addWidget(self.lbl_search_conductor)
+        filters_layout.addWidget(self.cmb_conductor)
+        filters_layout.addSpacing(12)
+        filters_layout.addWidget(self.lbl_search_bus)
+        filters_layout.addWidget(self.cmb_bus)
+        filters_layout.addSpacing(12)
+        filters_layout.addWidget(self.lbl_search_city)
+        filters_layout.addWidget(self.cmb_city)
+        filters_layout.addStretch()
+        filters_layout.addWidget(self.btn_export)
 
-        controls_top.addWidget(self.btn_apply)
-        controls_top.addWidget(self.btn_reload)
-        controls_top.addStretch()
-
-        # Filtros específicos por KPI (fila 2)
-        controls_filters = QHBoxLayout()
-        controls_filters.addWidget(self.lbl_search_conductor)
-        controls_filters.addWidget(self.cmb_conductor)
-        controls_filters.addSpacing(20)
-
-        controls_filters.addWidget(self.lbl_search_bus)
-        controls_filters.addWidget(self.cmb_bus)
-        controls_filters.addSpacing(20)
-
-        controls_filters.addWidget(self.lbl_search_city)
-        controls_filters.addWidget(self.cmb_city)
-        controls_filters.addStretch()
-
-        # Root layout
         root = QVBoxLayout(self)
-        root.addLayout(controls_top)
-        root.addLayout(controls_filters)
-        root.addSpacing(8)
+        root.addLayout(top_controls)
+        root.addLayout(filters_layout)
         root.addWidget(self.lbl_info)
-        root.addWidget(self.scroll)
-        root.addStretch()
+        root.addWidget(self.table)
 
-        self.lbl_total_boletos = QLabel("Boletos vendidos: 0")
-        self.lbl_total_boletos.setStyleSheet("font-size: 14px; font-weight: bold;")
-        root.addWidget(self.lbl_total_boletos)
-        
-        
-        # Estado
+        # Estado / datos en memoria
         self.all_trips = []
         self.load_all_trips_from_db()   # usado por Boletos
-        self._on_scope_changed()   # ajusta visibilidad controles
-
-        # Cargar datos para los comboboxes
+        self._on_scope_changed()        # ajusta visibilidad controles
         self.load_conductores()
         self.load_autobuses()
         self.load_ciudades()
-
-        # Ocultar los filtros específicos por defecto
         self._update_filter_visibility()
 
-        # primer render
-        self.apply_filters()
-
-        # estilos
+        # estilos (RBE - azul + naranja)
         self.setStyleSheet("""
+            QWidget { background: #eef4fb; color: #0b3a66; font-weight: 600; }
             QLabel { color: #0b3a66; font-weight: 600; }
             QPushButton {
                 background: #EF6C33;
@@ -522,33 +167,100 @@ class KPIWindow(QWidget):
             QPushButton:hover { background:#d85f2c; }
             QComboBox, QDateEdit, QSpinBox {
                 padding:6px 8px;
-                border-radius:4px;
+                border-radius:6px;
                 border:1px solid #cbd7e6;
                 background:#fff;
-                min-width: 120px;
             }
-            QComboBox::drop-down {
-                subcontrol-origin: padding;
-                subcontrol-position: top right;
-                width: 20px;
-                border-left-width: 1px;
-                border-left-color: #cbd7e6;
-                border-left-style: solid;
-                border-top-right-radius: 4px;
-                border-bottom-right-radius: 4px;
+            QTableWidget {
+                background: white;
+                gridline-color: #e6eef8;
+                border: 1px solid #d6e6fb;
+                selection-background-color: #EF6C33; /* naranja RBE */
+                selection-color: white;
             }
-            QComboBox QAbstractItemView {
-                border: 1px solid #cbd7e6;
-                selection-background-color: #EF6C33;
-                background-color: white;
+            QHeaderView::section {
+                background: #1A4A8D; /* azul RBE */
+                color: white;
+                padding: 6px;
+                border: none;
+                font-weight: 700;
+            }
+            QTableWidget::item {
+                padding: 6px;
             }
         """)
 
-    # ---------------- DB ----------------
+        # primer render
+        self.apply_filters()
+
+
+    def on_cell_clicked(self, row, column):
+        # ¿Clic en la columna de Asientos?
+        if hasattr(self, "asientos_column_index") and column == self.asientos_column_index:
+            item = self.table.item(row, column)
+            if not item:
+                return
+
+            # Obtener el numero del autobus desde la tabla (columna 0 normalmente)
+            autobus_num = self.table.item(row, 0).text()
+
+            # ================================
+            #   CONSULTA A LA BASE DE DATOS
+            # ================================
+            try:
+                cn = crear_conexion()
+                cur = cn.cursor(dictionary=True)
+
+                cur.execute("""
+                    SELECT 
+                        a.numero AS autobus_numero,
+                        ta.descripcion AS tipo_asiento,
+                        COUNT(*) AS cantidad
+                    FROM asiento s
+                    JOIN tipo_asiento ta ON s.tipo = ta.codigo
+                    JOIN autobus a ON s.autobus = a.numero
+                    WHERE a.numero = %s
+                    GROUP BY a.numero, ta.descripcion
+                """, (autobus_num,))
+
+                detalles = cur.fetchall()
+
+                cur.close()
+                cn.close()
+            except Exception as e:
+                QMessageBox.critical(self, "Error", f"No se pudo obtener los asientos: {e}")
+                return
+
+            # ================================
+            #     CREAR EL POPUP BONITO
+            # ================================
+            dlg = QDialog(self)
+            dlg.setWindowTitle(f"Detalles de Asientos - Autobús {autobus_num}")
+            dlg.resize(350, 200)
+
+            layout = QVBoxLayout(dlg)
+
+            # Construimos el texto final
+            texto = f"<b>Autobús {autobus_num}</b><br><br>"
+
+            for d in detalles:
+                texto += f"• <b>{d['tipo_asiento']}</b>: {d['cantidad']} asiento(s)<br>"
+
+            lbl = QLabel(texto)
+            lbl.setAlignment(Qt.AlignLeft)
+            lbl.setWordWrap(True)
+
+            btn = QPushButton("Cerrar")
+            btn.clicked.connect(dlg.close)
+
+            layout.addWidget(lbl)
+            layout.addWidget(btn)
+
+            dlg.exec()
+    # ---------------- DB helpers / loaders ----------------
     def load_all_trips_from_db(self):
         """
-        Carga en memoria todos los viajes (futuros y pasados). Filtrado y selección posterior
-        se hace en Python/SQL según el scope.
+        Carga en memoria todos los viajes (futuros y pasados). Usado por Boletos.
         """
         try:
             self.db.ping(reconnect=True)
@@ -559,6 +271,7 @@ class KPIWindow(QWidget):
             cur = self.db.cursor(dictionary=True)
         except TypeError:
             cur = self.db.cursor()
+
         try:
             cur.execute("""
                 SELECT
@@ -595,7 +308,6 @@ class KPIWindow(QWidget):
                 pass
 
     def load_conductores(self):
-        """Carga los conductores desde la base de datos y los agrega al combobox"""
         try:
             cur = self.db.cursor(dictionary=True)
             cur.execute("""
@@ -605,14 +317,14 @@ class KPIWindow(QWidget):
             """)
             rows = cur.fetchall()
 
+            # mantener la primera opción "Todos"
+            self.cmb_conductor.clear()
+            self.cmb_conductor.addItem("Todos", None)
             for row in rows:
                 fullname = " ".join(filter(None, [
-                    row.get("conNombre", ""),
-                    row.get("conPrimerApell", ""),
-                    row.get("conSegundoApell", "")
+                    row.get("conNombre", ""), row.get("conPrimerApell", ""), row.get("conSegundoApell", "")
                 ])).strip()
                 self.cmb_conductor.addItem(fullname, row.get("registro"))
-
         except Exception as e:
             QMessageBox.critical(self, "Error", f"No se pudieron cargar los conductores:\n{e}")
         finally:
@@ -622,20 +334,15 @@ class KPIWindow(QWidget):
                 pass
 
     def load_autobuses(self):
-        """Carga los autobuses desde la base de datos y los agrega al combobox"""
         try:
             cur = self.db.cursor(dictionary=True)
-            cur.execute("""
-                SELECT numero, placas
-                FROM autobus
-                ORDER BY numero
-            """)
+            cur.execute("SELECT numero, placas FROM autobus ORDER BY numero")
             rows = cur.fetchall()
-
-            for row in rows:
-                display_text = f"{row.get('numero')} ({row.get('placas', '')})"
-                self.cmb_bus.addItem(display_text, row.get("numero"))
-
+            self.cmb_bus.clear()
+            self.cmb_bus.addItem("Todos", None)
+            for r in rows:
+                display = f"{r.get('numero')} ({r.get('placas','')})"
+                self.cmb_bus.addItem(display, r.get('numero'))
         except Exception as e:
             QMessageBox.critical(self, "Error", f"No se pudieron cargar los autobuses:\n{e}")
         finally:
@@ -645,19 +352,14 @@ class KPIWindow(QWidget):
                 pass
 
     def load_ciudades(self):
-        """Carga las ciudades desde la base de datos y las agrega al combobox"""
         try:
             cur = self.db.cursor(dictionary=True)
-            cur.execute("""
-                SELECT clave, nombre
-                FROM ciudad
-                ORDER BY nombre
-            """)
+            cur.execute("SELECT clave, nombre FROM ciudad ORDER BY nombre")
             rows = cur.fetchall()
-
-            for row in rows:
-                self.cmb_city.addItem(row.get("nombre", ""), row.get("clave"))
-
+            self.cmb_city.clear()
+            self.cmb_city.addItem("Todas", None)
+            for r in rows:
+                self.cmb_city.addItem(r.get("nombre",""), r.get("clave"))
         except Exception as e:
             QMessageBox.critical(self, "Error", f"No se pudieron cargar las ciudades:\n{e}")
         finally:
@@ -666,23 +368,20 @@ class KPIWindow(QWidget):
             except:
                 pass
 
-    # ---------------- filtros y helpers ----------------
+    # ---------------- filters and UI helpers ----------------
     def _on_scope_changed(self):
         idx = self.cmb_scope.currentIndex()
-        # 0=Día, 1=Semana, 2=Mes
         self.date_edit.setVisible(idx == 0)
         self.cmb_month.setVisible(idx == 2)
         self.cmb_year.setVisible(idx == 2)
 
     def on_tipo_changed(self):
-        # cada vez que cambia el KPI, actualizamos qué filtros se muestran
         self._update_filter_visibility()
-        # reset apply flag so user can filter again if desired
+        # reset apply flag? we keep behaviour consistent: apply_filters will use apply_pressed to determine date filtering
         self.apply_filters()
 
     def _update_filter_visibility(self):
         tipo = self.cmb_tipo.currentText()
-        # Ocultar todos los filtros primero
         self.lbl_search_conductor.setVisible(False)
         self.cmb_conductor.setVisible(False)
         self.lbl_search_bus.setVisible(False)
@@ -690,7 +389,6 @@ class KPIWindow(QWidget):
         self.lbl_search_city.setVisible(False)
         self.cmb_city.setVisible(False)
 
-        # Mostrar según el tipo seleccionado
         if tipo == "Conductor":
             self.lbl_search_conductor.setVisible(True)
             self.cmb_conductor.setVisible(True)
@@ -702,122 +400,79 @@ class KPIWindow(QWidget):
             self.cmb_city.setVisible(True)
 
     def on_apply_clicked(self):
-        # mark that apply was explicitly requested
         self.apply_pressed = True
-        # After first explicit apply, we consider initial load finished
         self.initial_load = False
         self.apply_filters()
 
     def apply_filters(self):
-        """
-        Router: según tipo de KPI seleccionado, llama a la función correspondiente.
-        """
         tipo = self.cmb_tipo.currentText()
-        # limpiar primero
-        self.clear_card()
-
+        # clear current table
+        self._clear_table()
         if tipo == "Boletos":
-            return self._apply_kpi_boletos()
+            self._apply_kpi_boletos()
         elif tipo == "Conductor":
-            return self._apply_kpi_conductor()
+            self._apply_kpi_conductor()
         elif tipo == "Autobús":
-            return self._apply_kpi_autobus()
+            self._apply_kpi_autobus()
         elif tipo == "Ciudad":
-            return self._apply_kpi_ciudad()
+            self._apply_kpi_ciudad()
         else:
             self.lbl_info.setText("Tipo desconocido.")
-            return
 
-    # ---------------- KPI: Boletos ----------------
+    # ---------------- KPI implementations (llenado de tabla) ----------------
     def _apply_kpi_boletos(self):
-        # if initial_load True -> load ALL trips (past, present, future)
+        # columnas: Viaje | Fecha salida | Origen | Destino | Autobús | Vendidos | Disponibles
+        headers = ["Viaje", "Fecha salida", "Origen", "Destino", "Autobús", "Vendidos", "Disponibles"]
+        self._setup_table_headers(headers)
+
         if self.initial_load:
-            filtered = self.all_trips[:]
+            trips = self.all_trips[:]
         else:
-            # compute date range from controls
             rng = self._compute_date_range()
             if rng is None:
                 return
             start, end = rng
-            filtered = [
+            trips = [
                 t for t in self.all_trips
-                if isinstance(t.get("departure"), datetime)
-                and start <= t["departure"] <= end
+                if isinstance(t.get("departure"), datetime) and start <= t["departure"] <= end
             ]
 
-        total = len(filtered)
-        self.lbl_info.setText(f"Resultados: {total} viaje(s).")
+        self.lbl_info.setText(f"Resultados: {len(trips)} viaje(s).")
 
-        # Si no hay viajes
-        if not filtered:
-            lbl = QLabel("No hay viajes para el filtro seleccionado.")
-            lbl.setStyleSheet("color:#5a6b78; font-size:14px;")
-            self.card_layout.addWidget(lbl)
-            self.lbl_total_boletos.setText("Boletos vendidos en pantalla: 0")
-            return
-
-        # Crear una tarjeta por cada viaje (con stats)
         total_vendidos = 0
         total_disponibles = 0
 
-        try:
-            for trip in filtered:
-                stats = self._fetch_ticket_stats(trip["trip_id"], trip.get("seats_count") or 0)
-                trip["sold_count"] = stats["sold"]
-                trip["available_count"] = stats["available"]
-
-                total_vendidos += stats["sold"]
-                total_disponibles += stats["available"]
-
-                # Convertir fecha si viene string
-                if isinstance(trip.get("departure"), str):
-                    try:
-                        trip["departure"] = datetime.fromisoformat(trip["departure"])
-                    except:
-                        pass
-
-                card = TripCardKPI(trip, parent=self)
-                self.card_layout.addWidget(card)
-
-            self.card_layout.addStretch()
-
-            # === ACTUALIZAR TEXTO DE TOTALES GLOBAL ===
-            self.lbl_total_boletos.setText(
-                f"Boletos vendidos: {total_vendidos}   |   Disponibles: {total_disponibles}"
-            )
-
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Error al renderizar KPI Boletos: {e}")
-
-    def _fetch_ticket_stats(self, viaje_id: int, seats_count: int) -> Dict[str,int]:
-        sold = 0
-        try:
-            cur = self.db.cursor()
-        except TypeError:
-            cur = self.db.cursor(dictionary=True)
-        try:
-            cur.execute("SELECT COUNT(*) FROM ticket WHERE viaje = %s", (viaje_id,))
-            res = cur.fetchone()
-            if res:
-                sold = int(res[0]) if isinstance(res, (list, tuple)) else int(list(res.values())[0])
-        except Exception as e:
-            print("Error al obtener tickets:", e)
-        finally:
+        # poblar filas
+        self.table.setRowCount(len(trips))
+        for r, trip in enumerate(trips):
             try:
-                cur.close()
-            except:
-                pass
+                stats = self._fetch_ticket_stats(trip.get("trip_id"), trip.get("seats_count") or 0)
+            except Exception:
+                stats = {"sold": 0, "available": trip.get("seats_count") or 0}
+            total_vendidos += stats["sold"]
+            total_disponibles += stats["available"]
 
-        available = seats_count - sold if seats_count and seats_count >= sold else max(0, seats_count - sold) if seats_count else 0
-        return {"sold": sold, "available": available}
+            self._set_item(r, 0, str(trip.get("trip_id") or ""))
+            self._set_item(r, 1, format_dt(trip.get("departure")))
+            self._set_item(r, 2, str((trip.get("origin_city") or "").strip().title()))
+            self._set_item(r, 3, str((trip.get("dest_city") or "").strip().title()))
+            self._set_item(r, 4, str(trip.get("bus_number") or ""))
+            self._set_item(r, 5, str(stats["sold"]))
+            self._set_item(r, 6, str(stats["available"]))
 
-    # ---------------- KPI: Conductor ----------------
+        # ajustar columnas: estirar
+        self._stretch_columns()
+        # actualizar resumen
+        self.lbl_info.setText(f"Resultados: {len(trips)} viaje(s).  |  Boletos vendidos: {total_vendidos}  |  Disponibles: {total_disponibles}")
+
     def _apply_kpi_conductor(self):
-        """Consulta los viajes (conductor) con los filtros seleccionados"""
+        # columnas: Conductor | Viaje | Salida | Llegada | Origen | Destino | Autobús | Matrícula
+        headers = ["Conductor", "Viaje", "Salida", "Llegada", "Origen", "Destino", "Autobús"]
+        self._setup_table_headers(headers)
+
         where_clauses = []
         params = []
 
-        # Filtro por rango de fechas si se presionó Aplicar
         if self.apply_pressed:
             rng = self._compute_date_range()
             if rng is None:
@@ -826,21 +481,15 @@ class KPIWindow(QWidget):
             where_clauses.append("v.fecHoraSalida BETWEEN %s AND %s")
             params.extend([start, end])
 
-        # Filtro por conductor seleccionado
         conductor_id = self.cmb_conductor.currentData()
         if conductor_id is not None:
             where_clauses.append("v.conductor = %s")
             params.append(conductor_id)
 
-        where_sql = " AND ".join(where_clauses)
-        if where_sql:
-            where_sql = "WHERE " + where_sql
+        where_sql = ("WHERE " + " AND ".join(where_clauses)) if where_clauses else ""
 
         try:
-            try:
-                cur = self.db.cursor(dictionary=True)
-            except TypeError:
-                cur = self.db.cursor()
+            cur = self.db.cursor(dictionary=True)
             sql = f"""
                 SELECT
                     v.numero AS trip_id,
@@ -849,7 +498,6 @@ class KPIWindow(QWidget):
                     corig.nombre AS origin_city,
                     cdest.nombre AS dest_city,
                     v.autobus AS bus_number,
-                    a.placas AS bus_plates,
                     c.conNombre AS con_nombre,
                     c.conPrimerApell AS con_ap1,
                     c.conSegundoApell AS con_ap2
@@ -870,7 +518,7 @@ class KPIWindow(QWidget):
             QMessageBox.critical(self, "Error BD", f"No se pudo leer conductores: {e}")
             try:
                 cur.close()
-            finally:
+            except:
                 pass
             return
         finally:
@@ -880,37 +528,36 @@ class KPIWindow(QWidget):
                 pass
 
         if not rows:
-            lbl = QLabel("No hay viajes para el filtro seleccionado.")
-            lbl.setStyleSheet("color:#5a6b78; font-size:14px;")
-            self.card_layout.addWidget(lbl)
+            self.table.setRowCount(0)
+            self.lbl_info.setText("Resultados: 0 viaje(s).")
             return
 
-        total = len(rows)
-        self.lbl_info.setText(f"Resultados: {total} viaje(s).")
+        self.table.setRowCount(len(rows))
+        for r, row in enumerate(rows):
+            fullname = " ".join(filter(None, [row.get("con_nombre") or "", row.get("con_ap1") or "", row.get("con_ap2") or ""])).strip()
+            self._set_item(r, 0, fullname)
+            self._set_item(r, 1, str(row.get("trip_id") or ""))
+            self._set_item(r, 2, format_dt(row.get("departure")))
+            self._set_item(r, 3, format_dt(row.get("arrival")))
+            self._set_item(r, 4, str(row.get("origin_city") or ""))
+            self._set_item(r, 5, str(row.get("dest_city") or ""))
+            self._set_item(r, 6, str(row.get("bus_number") or ""))
 
-        for r in rows:
-            fullname = " ".join(filter(None, [r.get("con_nombre") or "", r.get("con_ap1") or "", r.get("con_ap2") or ""])).strip()
-            data = {
-                "con_fullname": fullname,
-                "trip_id": r.get("trip_id"),
-                "departure": r.get("departure"),
-                "arrival": r.get("arrival"),
-                "origin_city": r.get("origin_city"),
-                "dest_city": r.get("dest_city"),
-                "bus_number": r.get("bus_number"),
-                "bus_plates": r.get("bus_plates")
-            }
-            card = ConductorCardKPI(data, parent=self)
-            self.card_layout.addWidget(card)
-        self.card_layout.addStretch()
+        self._stretch_columns()
+        self.lbl_info.setText(f"Resultados: {len(rows)} viaje(s).")
 
-    # ---------------- KPI: Autobús ----------------
+        self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+        self.table.horizontalHeader().setStretchLastSection(False)
+        self.table.resizeColumnToContents(0)
+        
     def _apply_kpi_autobus(self):
-        """Lista autobuses con los filtros seleccionados"""
+        # columnas: Número | Matrícula | Marca | Modelo | Año | Asientos
+        headers = ["Número", "Matrícula", "Marca", "Modelo", "Año", "Asientos"]
+        self._setup_table_headers(headers)
+
         where_clauses = []
         params = []
 
-        # Filtro por rango de fechas si se presionó Aplicar
         if self.apply_pressed:
             rng = self._compute_date_range()
             if rng is None:
@@ -919,21 +566,15 @@ class KPIWindow(QWidget):
             where_clauses.append("v.fecHoraSalida BETWEEN %s AND %s")
             params.extend([start, end])
 
-        # Filtro por autobús seleccionado
         bus_id = self.cmb_bus.currentData()
         if bus_id is not None:
             where_clauses.append("v.autobus = %s")
             params.append(bus_id)
 
-        where_sql = " AND ".join(where_clauses)
-        if where_sql:
-            where_sql = "WHERE " + where_sql
+        where_sql = ("WHERE " + " AND ".join(where_clauses)) if where_clauses else ""
 
         try:
-            try:
-                cur = self.db.cursor(dictionary=True)
-            except TypeError:
-                cur = self.db.cursor()
+            cur = self.db.cursor(dictionary=True)
             sql = f"""
                 SELECT DISTINCT
                     a.numero AS bus_number,
@@ -955,7 +596,7 @@ class KPIWindow(QWidget):
             QMessageBox.critical(self, "Error BD", f"No se pudo leer autobuses: {e}")
             try:
                 cur.close()
-            finally:
+            except:
                 pass
             return
         finally:
@@ -965,34 +606,40 @@ class KPIWindow(QWidget):
                 pass
 
         if not rows:
-            lbl = QLabel("No hay autobuses con viajes en el rango (o que cumplan el filtro).")
-            lbl.setStyleSheet("color:#5a6b78; font-size:14px;")
-            self.card_layout.addWidget(lbl)
+            self.table.setRowCount(0)
+            self.lbl_info.setText("Resultados: 0 autobús(es).")
             return
 
-        total = len(rows)
-        self.lbl_info.setText(f"Resultados: {total} autobús(es).")
+        self.table.setRowCount(len(rows))
+        for r, row in enumerate(rows):
+            self._set_item(r, 0, str(row.get("bus_number") or ""))
+            self._set_item(r, 1, str(row.get("placas") or ""))
+            self._set_item(r, 2, str(row.get("marca_nombre") or ""))
+            self._set_item(r, 3, str(row.get("modelo_nombre") or ""))
+            self._set_item(r, 4, str(row.get("modelo_año") or ""))
+            # Columna Asientos (con tooltip)
+            asientos = str(row.get("numasientos") or "")
+            item_asientos = QTableWidgetItem(asientos)
+            item_asientos.setFlags(item_asientos.flags() & ~Qt.ItemIsEditable)
 
-        for r in rows:
-            data = {
-                "bus_number": r.get("bus_number"),
-                "placas": r.get("placas"),
-                "marca_nombre": r.get("marca_nombre"),
-                "modelo_nombre": r.get("modelo_nombre"),
-                "modelo_año": r.get("modelo_año"),
-                "numasientos": r.get("numasientos")
-            }
-            card = AutobusCardKPI(data, parent=self, db_conn=self.db)
-            self.card_layout.addWidget(card)
-        self.card_layout.addStretch()
+            # Tooltip mostrando “X asientos”
+            item_asientos.setToolTip(f"Este autobús tiene {asientos} asientos")
 
-    # ---------------- KPI: Ciudad ----------------
+            self.table.setItem(r, 5, item_asientos)
+
+        self._stretch_columns()
+        self.lbl_info.setText(f"Resultados: {len(rows)} autobús(es).")
+
+        self.asientos_column_index = 5
+        
     def _apply_kpi_ciudad(self):
-        """Lista viajes con los filtros de ciudad seleccionados"""
+        # columnas: Ciudad | Viaje | Salida | Destino | Autobús | Matrícula | Operador
+        headers = ["Ciudad", "Salida", "Viaje", "Destino", "Autobús", "Matrícula", "Operador"]
+        self._setup_table_headers(headers)
+
         where_clauses = []
         params = []
 
-        # Filtro por rango de fechas si se presionó Aplicar
         if self.apply_pressed:
             rng = self._compute_date_range()
             if rng is None:
@@ -1001,21 +648,15 @@ class KPIWindow(QWidget):
             where_clauses.append("v.fecHoraSalida BETWEEN %s AND %s")
             params.extend([start, end])
 
-        # Filtro por ciudad destino seleccionada
         city_id = self.cmb_city.currentData()
         if city_id is not None:
             where_clauses.append("tdest.ciudad = %s")
             params.append(city_id)
 
-        where_sql = " AND ".join(where_clauses)
-        if where_sql:
-            where_sql = "WHERE " + where_sql
+        where_sql = ("WHERE " + " AND ".join(where_clauses)) if where_clauses else ""
 
         try:
-            try:
-                cur = self.db.cursor(dictionary=True)
-            except TypeError:
-                cur = self.db.cursor()
+            cur = self.db.cursor(dictionary=True)
             sql = f"""
                 SELECT
                     corig.nombre AS city_name,
@@ -1044,7 +685,7 @@ class KPIWindow(QWidget):
             QMessageBox.critical(self, "Error BD", f"No se pudo leer ciudades: {e}")
             try:
                 cur.close()
-            finally:
+            except:
                 pass
             return
         finally:
@@ -1054,34 +695,91 @@ class KPIWindow(QWidget):
                 pass
 
         if not rows:
-            lbl = QLabel("No hay viajes para el filtro seleccionado.")
-            lbl.setStyleSheet("color:#5a6b78; font-size:14px;")
-            self.card_layout.addWidget(lbl)
+            self.table.setRowCount(0)
+            self.lbl_info.setText("Resultados: 0 viaje(s).")
             return
 
-        total = len(rows)
-        self.lbl_info.setText(f"Resultados: {total} viaje(s).")
+        self.table.setRowCount(len(rows))
+        for r, row in enumerate(rows):
+            fullname = " ".join(filter(None, [row.get("con_nombre") or "", row.get("con_ap1") or "", row.get("con_ap2") or ""])).strip()
+            self._set_item(r, 0, str(row.get("city_name") or ""))
+            self._set_item(r, 1, format_dt(row.get("departure")))
+            self._set_item(r, 2, str(row.get("trip_id") or ""))
+            self._set_item(r, 3, str(row.get("dest_city") or ""))
+            self._set_item(r, 4, str(row.get("bus_number") or ""))
+            self._set_item(r, 5, str(row.get("bus_plates") or ""))
+            self._set_item(r, 6, fullname)
 
-        for r in rows:
-            fullname = " ".join(filter(None, [r.get("con_nombre") or "", r.get("con_ap1") or "", r.get("con_ap2") or ""])).strip()
-            data = {
-                "city_name": r.get("city_name"),
-                "departure": r.get("departure"),
-                "trip_id": r.get("trip_id"),
-                "dest_city": r.get("dest_city"),
-                "bus_number": r.get("bus_number"),
-                "bus_plates": r.get("bus_plates"),
-                "operator_fullname": fullname
-            }
-            card = CiudadCardKPI(data, parent=self)
-            self.card_layout.addWidget(card)
-        self.card_layout.addStretch()
+        self._stretch_columns()
+        self.lbl_info.setText(f"Resultados: {len(rows)} viaje(s).")
 
-    # ---------------- Helpers ----------------
+    # ---------------- small helpers ----------------
+    def _setup_table_headers(self, headers: List[str]):
+        self.table.clear()
+        self.table.setColumnCount(len(headers))
+        self.table.setHorizontalHeaderLabels(headers)
+        self.table.setRowCount(0)
+        # disable sorting (user requested NO sorting)
+        self.table.setSortingEnabled(False)
+        # header resize: stretch all columns
+        for c in range(len(headers)):
+            self.table.horizontalHeader().setSectionResizeMode(c, QHeaderView.Stretch)
+        # small vertical header hidden
+        self.table.verticalHeader().setVisible(False)
+        # ensure no horizontal scroll
+        self.table.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+    def _set_item(self, row: int, col: int, text: str):
+        item = QTableWidgetItem(text if text is not None else "")
+        # make items non-editable
+        item.setFlags(item.flags() & ~Qt.ItemIsEditable)
+        self.table.setItem(row, col, item)
+
+    def _stretch_columns(self):
+        # Ensure every column uses Stretch mode
+        hdr = self.table.horizontalHeader()
+        for i in range(self.table.columnCount()):
+            hdr.setSectionResizeMode(i, QHeaderView.Stretch)
+
+    def _clear_table(self):
+        self.table.clear()
+        self.table.setRowCount(0)
+        self.table.setColumnCount(0)
+
+    def _fetch_ticket_stats(self, viaje_id: int, seats_count: int) -> Dict[str,int]:
+        sold = 0
+        try:
+            cur = self.db.cursor()
+        except TypeError:
+            cur = self.db.cursor(dictionary=True)
+        try:
+            cur.execute("SELECT COUNT(*) FROM ticket WHERE viaje = %s", (viaje_id,))
+            res = cur.fetchone()
+            if res:
+                # res may be tuple or dict
+                if isinstance(res, (list, tuple)):
+                    sold = int(res[0])
+                elif isinstance(res, dict):
+                    # fetch first value
+                    sold = int(list(res.values())[0])
+                else:
+                    sold = int(res)
+        except Exception as e:
+            print("Error al obtener tickets:", e)
+        finally:
+            try:
+                cur.close()
+            except:
+                pass
+
+        available = seats_count - sold if seats_count and seats_count >= sold else max(0, (seats_count or 0) - sold)
+        return {"sold": sold, "available": available}
+
     def _compute_date_range(self) -> Optional[Tuple[datetime, datetime]]:
-        """Retorna (start, end) según los controles; muestra mensajes si hay problema."""
         scope = self.cmb_scope.currentText()
         try:
+            if scope == "Todos":
+                return None 
             if scope == "Día":
                 qdate = self.date_edit.date().toPython()
                 start = datetime.combine(qdate, time.min)
@@ -1106,34 +804,42 @@ class KPIWindow(QWidget):
             QMessageBox.critical(self, "Error", f"No se pudo calcular el rango de fechas: {e}")
             return None
 
-    def clear_card(self):
-        while self.card_layout.count():
-            item = self.card_layout.takeAt(0)
-            w = item.widget()
-            if w:
-                w.deleteLater()
-
     def reload_from_db(self):
         try:
-            # reload trips and run same view
             self.load_all_trips_from_db()
-            # Recargar también los comboboxes
-            self.cmb_conductor.clear()
-            self.cmb_conductor.addItem("Todos", None)
             self.load_conductores()
-
-            self.cmb_bus.clear()
-            self.cmb_bus.addItem("Todos", None)
             self.load_autobuses()
-
-            self.cmb_city.clear()
-            self.cmb_city.addItem("Todas", None)
             self.load_ciudades()
-
             self.apply_filters()
             QMessageBox.information(self, "Actualizado", f"Datos actualizados.\n{len(self.all_trips)} viajes cargados.")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error al actualizar:\n{e}")
+
+    # ---------------- Export CSV ----------------
+    def export_table_csv(self):
+        if self.table.rowCount() == 0 or self.table.columnCount() == 0:
+            QMessageBox.information(self, "Exportar CSV", "No hay datos para exportar.")
+            return
+        path, _ = QFileDialog.getSaveFileName(self, "Guardar CSV", f"kpi_export_{self.cmb_tipo.currentText().lower()}.csv", "CSV Files (*.csv)")
+        if not path:
+            return
+        try:
+            with open(path, "w", encoding="utf-8") as f:
+                # headers
+                headers = [self.table.horizontalHeaderItem(c).text() if self.table.horizontalHeaderItem(c) else "" for c in range(self.table.columnCount())]
+                f.write(",".join(headers) + "\n")
+                for r in range(self.table.rowCount()):
+                    vals = []
+                    for c in range(self.table.columnCount()):
+                        it = self.table.item(r, c)
+                        vals.append(it.text() if it else "")
+                    # escape commas by wrapping fields in quotes if needed
+                    line = ",".join(['"{}"'.format(v.replace('"', '""')) if ("," in v or '"' in v or "\n" in v) else v for v in vals])
+                    f.write(line + "\n")
+            QMessageBox.information(self, "Exportado", "CSV exportado correctamente.")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"No se pudo exportar CSV:\n{e}")
+
 
 # ----------------- Ejecución directa -----------------
 def main():
@@ -1141,6 +847,7 @@ def main():
     win = KPIWindow()
     win.show()
     sys.exit(app.exec())
+
 
 if __name__ == "__main__":
     main()
