@@ -1,4 +1,3 @@
-# panel_admin.py
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QLineEdit, QStackedWidget, QFrame, QSizePolicy, QSpacerItem, QMessageBox,
@@ -13,6 +12,7 @@ from PySide6.QtWidgets import QApplication
 from kpi import KPIWindow
 import kpi_calculos
 
+## Modificar la info de un taquillero ##
 def actualizar_taquillero_bd(registro, nombre, ap1, ap2, usuario, contrasena):
     try:
         cn = crear_conexion()
@@ -29,6 +29,8 @@ def actualizar_taquillero_bd(registro, nombre, ap1, ap2, usuario, contrasena):
         return True, None
     except Exception as e:
         return False, str(e)
+
+## El dashboard ##
 
 class PanelAdministrador(QMainWindow):
     def __init__(self, usuario_actual, volver_callback):
@@ -80,12 +82,12 @@ class PanelAdministrador(QMainWindow):
             "tipo_pago", "edo_viaje", "ticket", "pasajero", "pago", "terminal"
         ]
 
-        # ===== root layout =====
+        ## Layout ##
         root = QWidget()
         root_layout = QHBoxLayout(root)
         root_layout.setContentsMargins(0,0,0,0)
 
-        # ===== sidebar (scrollable) =====
+        ## Scroolo pal sidebar ##
         sidebar_frame = QFrame()
         sidebar_frame.setStyleSheet(f"background:{COLOR_ACCENT};")
         sidebar_frame.setMinimumWidth(260)
@@ -98,7 +100,7 @@ class PanelAdministrador(QMainWindow):
         brand.setStyleSheet("color: white; font-size:22pt; font-weight:800;")
         sb_layout.addWidget(brand)
 
-        # Scroll area to contain nav buttons so they never overflow
+        ## Scroll par alos botones ##
         sa = QScrollArea()
         sa.setWidgetResizable(True)
         sa.setStyleSheet("background: transparent; border: none;")
@@ -107,6 +109,7 @@ class PanelAdministrador(QMainWindow):
         sa_layout.setContentsMargins(0,8,0,8)
         sa_layout.setSpacing(8)
 
+        ## Style ##
         def make_nav(text):
             btn = QPushButton(text)
             btn.setCursor(Qt.PointingHandCursor)
@@ -131,7 +134,7 @@ class PanelAdministrador(QMainWindow):
         self.btn_salidas = make_nav("Salidas")
         sa_layout.addWidget(self.btn_salidas)
 
-        # Nuevo botón para agregar viajes
+        # Boton para agregar viajes ##
         self.btn_agregar_viaje = make_nav("Agregar Viaje")
         sa_layout.addWidget(self.btn_agregar_viaje)
 
@@ -141,7 +144,7 @@ class PanelAdministrador(QMainWindow):
         self.btn_gestion = make_nav("Gestión ▾")
         sa_layout.addWidget(self.btn_gestion)
 
-        # gestión container (compact buttons)
+        ## Contenedor ##
         self.gestion_container = QWidget()
         gc_layout = QVBoxLayout(self.gestion_container)
         gc_layout.setContentsMargins(6,6,6,6)
@@ -167,13 +170,13 @@ class PanelAdministrador(QMainWindow):
         self.gestion_container.setVisible(False)
         sa_layout.addWidget(self.gestion_container)
 
-        # finish scroll area layout
+        ## Scroll final ##
         sa_layout.addSpacerItem(QSpacerItem(20,20,QSizePolicy.Minimum,QSizePolicy.Expanding))
         sa_widget.setLayout(sa_layout)
         sa.setWidget(sa_widget)
         sb_layout.addWidget(sa)
 
-        # Configuración container
+        ## Configuración de contenedor ##
         config_container = QFrame()
         config_container.setStyleSheet("background: transparent;")
         config_layout = QVBoxLayout(config_container)
@@ -193,10 +196,9 @@ class PanelAdministrador(QMainWindow):
         """)
         config_layout.addWidget(self.btn_config)
 
-        # spacer to push logout to bottom
+
         sb_layout.addSpacerItem(QSpacerItem(10,10,QSizePolicy.Minimum,QSizePolicy.Expanding))
 
-        # logout at bottom of sidebar (outside scroll)
         self.btn_logout = QPushButton("Cerrar sesión")
         self.btn_logout.setCursor(Qt.PointingHandCursor)
         self.btn_logout.setFixedHeight(44)
@@ -207,7 +209,7 @@ class PanelAdministrador(QMainWindow):
         sb_layout.addWidget(config_container)
         sb_layout.addWidget(self.btn_logout)
 
-        # ===== content area =====
+        ## Area del contenedor ##
         content_frame = QFrame()
         content_ly = QVBoxLayout(content_frame)
         content_ly.setContentsMargins(14,14,14,14)
@@ -224,9 +226,9 @@ class PanelAdministrador(QMainWindow):
         top.addWidget(self.lbl_user)
         content_ly.addLayout(top)
 
-        # stacked pages
+        ## El stacked ##
         self.stacked = QStackedWidget()
-        # ======= Página inicial: Viajes Programados =======
+        ## Primera pagina ##
         self.page_inicio = QWidget()
         inicio_layout = QVBoxLayout(self.page_inicio)
 
@@ -234,7 +236,7 @@ class PanelAdministrador(QMainWindow):
         titulo_inicio.setStyleSheet("font-size:26pt; font-weight:800; color:#1181c3;")
         inicio_layout.addWidget(titulo_inicio)
 
-        # widget integrado
+        ## widget integrado ##
         self.viajes_programados_widget = ProgramacionWindow()
         self.viajes_programados_widget.setWindowFlags(Qt.Widget)
         inicio_layout.addWidget(self.viajes_programados_widget)
@@ -242,7 +244,7 @@ class PanelAdministrador(QMainWindow):
         self.stacked.addWidget(self.page_inicio)
         self.stacked.setCurrentWidget(self.page_inicio)
 
-        # dashboard page (we render gestion inside this page)
+        ## Dashboard ##
         self.page_dashboard = QWidget()
         dash_layout = QVBoxLayout(self.page_dashboard)
         hdr = QLabel("Dashboard — Administrador")
@@ -258,42 +260,42 @@ class PanelAdministrador(QMainWindow):
         ph_ly.addWidget(ph_lbl)
         dash_layout.addWidget(self.placeholder_frame)
 
-        # area where gestion content is added (cards, forms ...)
+
         self.dashboard_body = QVBoxLayout()
         dash_layout.addLayout(self.dashboard_body)
 
         self.stacked.addWidget(self.page_dashboard)
 
-        # ---- Página Historial de Viajes ----
+        ## Historial de viajes ##
         self.page_historial = QWidget()
         self.historial_layout = QVBoxLayout(self.page_historial)
 
-        # instancia tu interfaz del archivo externo
+        ## instancia ##
         self.historial_widget = MainWindow()
         self.historial_layout.addWidget(self.historial_widget)
 
         self.stacked.addWidget(self.page_historial)
 
-        # ----- Página KPIs -----
+        ## KPIS ##
         self.page_kpis = QWidget()
         kpi_layout = QVBoxLayout(self.page_kpis)
         kpi_layout.setContentsMargins(0, 0, 0, 0)
         kpi_layout.setSpacing(10)
 
-        # Stacked interno que contendrá las 2 pantallas
+        ## Stacked interno para cambiar de KPIS##
         self.kpi_stacked = QStackedWidget()
 
-        # 1) DATOS ESPECÍFICOS (la ventana original)
+        ## Datos especificos ##
         self.kpi_datos_especificos = KPIWindow()
         self.kpi_datos_especificos.setWindowFlags(Qt.Widget)
         self.kpi_stacked.addWidget(self.kpi_datos_especificos)
 
-        # 2) DATOS GENERALES (tu ventana nueva de kpi_calculos.py)
+        ## Datos generales ##
         self.kpi_datos_generales = kpi_calculos.KPIWindowGenerales()
         self.kpi_datos_generales.setWindowFlags(Qt.Widget)
         self.kpi_stacked.addWidget(self.kpi_datos_generales)
 
-        # ----- Barra de botones -----
+        ## Botones ##
         switch_layout = QHBoxLayout()
         switch_layout.setAlignment(Qt.AlignCenter)
 
@@ -311,7 +313,7 @@ class PanelAdministrador(QMainWindow):
 
         self.stacked.addWidget(self.page_kpis)
 
-        # config page
+        ## Pagina de configuracion ##
         self.page_config = QWidget()
         cfg_ly = QVBoxLayout(self.page_config)
         cfg_ly.setContentsMargins(18,18,18,18)
@@ -341,7 +343,7 @@ class PanelAdministrador(QMainWindow):
         btn_save.setStyleSheet(f"background:{COLOR_PRIMARY}; border-radius:8px; font-weight:800;")
         cfg_ly.addWidget(btn_save)
 
-        # explicit back button so user doesn't get stuck
+        ## Boton para regresar ##
         btn_back = QPushButton("Volver al Dashboard")
         btn_back.setFixedHeight(36)
         btn_back.setStyleSheet("background:#ffffff; border-radius:8px; font-weight:700; color:#ff8c00;")
@@ -349,13 +351,13 @@ class PanelAdministrador(QMainWindow):
 
         self.stacked.addWidget(self.page_config)
 
-        # add content
+        ## Añadir contenedor ##
         content_ly.addWidget(self.stacked)
         root_layout.addWidget(sidebar_frame)
         root_layout.addWidget(content_frame)
         self.setCentralWidget(root)
 
-        # -- connections --
+        # Conexion de los botones ##
         self.toggle_btn.clicked.connect(self.toggle_menu)
         self.btn_gestion.clicked.connect(self._toggle_gestion)
         self.btn_dashboard.clicked.connect(lambda: self.stacked.setCurrentWidget(self.page_kpis))
@@ -367,19 +369,18 @@ class PanelAdministrador(QMainWindow):
         self.btn_salidas.clicked.connect(lambda: self.stacked.setCurrentWidget(self.page_inicio))
         self.btn_agregar_viaje.clicked.connect(self.open_add_trip_dialog)  # Conexión del nuevo botón
 
-        # show
+
         self.show()
 
-    # Método para abrir el diálogo de agregar viaje
+    # Método para registrar viaje ##
     def open_add_trip_dialog(self):
-        """Abre un diálogo para agregar un nuevo viaje."""
         dlg = QDialog(self)
         dlg.setWindowTitle("Agregar Nuevo Viaje")
         dlg.setMinimumWidth(500)
 
         layout = QFormLayout(dlg)
 
-        # Campos del formulario
+        ## Campos para llenar ##
         self.departure_edit = QDateTimeEdit()
         self.departure_edit.setDateTime(QDateTime.currentDateTime().addDays(1))
         self.departure_edit.setCalendarPopup(True)
@@ -395,7 +396,7 @@ class PanelAdministrador(QMainWindow):
         self.driver_combo = QComboBox()
         self.status_combo = QComboBox()
 
-        # Cargar datos para los combos
+        ## Cargar datos para los combos ##
         self.load_combo_data()
 
         layout.addRow("Fecha y Hora de Salida:", self.departure_edit)
@@ -405,7 +406,7 @@ class PanelAdministrador(QMainWindow):
         layout.addRow("Conductor:", self.driver_combo)
         layout.addRow("Estado:", self.status_combo)
 
-        # Botones
+        ## Botones ##
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         buttons.accepted.connect(lambda: self.add_trip(dlg))
         buttons.rejected.connect(dlg.reject)
@@ -414,12 +415,11 @@ class PanelAdministrador(QMainWindow):
         dlg.exec()
 
     def load_combo_data(self):
-        """Carga los datos para los combos del formulario de viaje."""
         try:
             cn = crear_conexion()
             cur = cn.cursor(dictionary=True)
 
-            # Cargar rutas
+            ## Cargar rutas ##
             cur.execute("""
                 SELECT r.codigo, CONCAT(c1.nombre, ' → ', c2.nombre) AS ruta_desc
                 FROM ruta r
@@ -431,17 +431,17 @@ class PanelAdministrador(QMainWindow):
             for row in cur.fetchall():
                 self.route_combo.addItem(f"Ruta #{row['codigo']} ({row['ruta_desc']})", row['codigo'])
 
-            # Cargar autobuses
+            ## Cargar autobuses ##
             cur.execute("SELECT numero, placas FROM autobus")
             for row in cur.fetchall():
                 self.bus_combo.addItem(f"Autobús #{row['numero']} ({row['placas']})", row['numero'])
 
-            # Cargar conductores
+            ## Cargar conductores ##
             cur.execute("SELECT registro, CONCAT(conNombre, ' ', conPrimerApell) AS nombre FROM conductor")
             for row in cur.fetchall():
                 self.driver_combo.addItem(f"Conductor #{row['registro']} ({row['nombre']})", row['registro'])
 
-            # Cargar estados de viaje
+            ## Cargar estados de viaje ##
             cur.execute("SELECT numero, nombre FROM edo_viaje")
             for row in cur.fetchall():
                 self.status_combo.addItem(row['nombre'], row['numero'])
@@ -452,7 +452,6 @@ class PanelAdministrador(QMainWindow):
             QMessageBox.critical(self, "Error", f"No se pudieron cargar los datos: {e}")
 
     def add_trip(self, dialog):
-        """Inserta un nuevo viaje en la base de datos."""
         departure = self.departure_edit.dateTime().toPython()
         arrival = self.arrival_edit.dateTime().toPython()
         route = self.route_combo.currentData()
@@ -472,22 +471,21 @@ class PanelAdministrador(QMainWindow):
             cn = crear_conexion()
             cur = cn.cursor()
 
-            # Insertar el viaje
+            ## Insertar el viaje ##
             cur.execute("""
                 INSERT INTO viaje (fecHoraSalida, fecHoraEntrada, ruta, estado, autobus, conductor)
                 VALUES (%s, %s, %s, %s, %s, %s)
             """, (departure, arrival, route, status, bus, driver))
 
-            # Obtener el ID del viaje recién insertado
+            ## Obtener el ID ##
             trip_id = cur.lastrowid
 
-            # Crear los registros en viaje_asiento para todos los asientos del autobús
+            ## Crear los registros en viaje_asiento ##
             cur.execute("SELECT numero FROM asiento WHERE autobus = %s", (bus,))
             seats = cur.fetchall()
 
             for seat in seats:
-                # Aquí estaba el error - seat es una tupla, no un diccionario
-                seat_number = seat[0]  # Accedemos al primer elemento de la tupla
+                seat_number = seat[0] 
                 cur.execute("""
                     INSERT INTO viaje_asiento (asiento, viaje, ocupado)
                     VALUES (%s, %s, %s)
@@ -500,12 +498,12 @@ class PanelAdministrador(QMainWindow):
             QMessageBox.information(self, "Éxito", "Viaje agregado correctamente.")
             dialog.accept()
 
-            # Recargar los viajes en la página de salidas
+            ## Recargar los viajes en la página de salidas ##
             if hasattr(self, 'viajes_programados_widget'):
                 self.viajes_programados_widget.reload_from_db()
 
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"No se pudo agregar el viaje: {e}")    # ----- sidebar actions -----
+            QMessageBox.critical(self, "Error", f"No se pudo agregar el viaje: {e}")
     def toggle_menu(self):
         if self.menu_collapsed:
             self.centralWidget().layout().itemAt(0).widget().setFixedWidth(300)
@@ -517,22 +515,14 @@ class PanelAdministrador(QMainWindow):
     def _toggle_gestion(self):
         visible = self.gestion_container.isVisible()
         self.gestion_container.setVisible(not visible)
-        # update arrow (when open show ▴ else ▾)
         self.btn_gestion.setText("Gestión ▾" if visible else "Gestión ▴")
 
     def on_tab_selected(self, tabla):
-        """
-        called when a table button in the sidebar is clicked.
-        Ensures we show the dashboard page and then render the gestion view there.
-        """
-        # ensure stacked is showing dashboard page (so user can always return to it)
         self.stacked.setCurrentWidget(self.page_dashboard)
-        # render gestion content
         self.mostrar_gestion_tabla(tabla)
 
-    # ----- helpers UI -----
+
     def _set_placeholder_impl(self, layout_target, text):
-        # create a placeholder widget and add into provided layout
         placeholder = QFrame()
         placeholder.setStyleSheet("background:white; border-radius:12px; padding:16px;")
         ly = QVBoxLayout(placeholder)
@@ -548,9 +538,7 @@ class PanelAdministrador(QMainWindow):
             if w:
                 w.deleteLater()
 
-    # ----- Gestión rendering -----
     def mostrar_gestion_tabla(self, tabla):
-        # clear dashboard_body and render header + buttons
         self._clear_layout(self.dashboard_body)
 
         title = QLabel(f"Gestión — {tabla}")
@@ -559,14 +547,14 @@ class PanelAdministrador(QMainWindow):
 
         permisos = self.permisos.get(tabla, ("A","A","A","A"))
         row_actions = QHBoxLayout()
-        # Insert
+        ## Insert ##
         if "A" in permisos[0] or "U" in permisos[0]:
             b_ins = QPushButton("Insertar")
             b_ins.setFixedHeight(36)
             b_ins.setStyleSheet("background:#52b788;color:white;border-radius:8px;font-weight:800;")
             b_ins.clicked.connect(lambda checked=False, t=tabla: self.accion_insertar(t))
             row_actions.addWidget(b_ins)
-        # Leer
+        ## Leer ##
         if "A" in permisos[3] or "U" in permisos[3]:
             b_leer = QPushButton("Leer")
             b_leer.setFixedHeight(36)
@@ -576,16 +564,14 @@ class PanelAdministrador(QMainWindow):
         row_actions.addStretch()
         self.dashboard_body.addLayout(row_actions)
 
-        # content area
+        ## Contenedor ##
         self.current_area = QVBoxLayout()
         self.current_area.setContentsMargins(0,12,0,0)
         self.dashboard_body.addLayout(self.current_area)
 
-        # auto read if allowed
         if "A" in permisos[3] or "U" in permisos[3]:
             self.accion_leer(tabla)
 
-    # ----- DB helpers & CRUD (same robust approach) -----
     def _describe_table(self, tabla):
         try:
             cn = crear_conexion()
@@ -652,9 +638,8 @@ class PanelAdministrador(QMainWindow):
                 return c["Field"]
         return cols[0]["Field"]
 
-    # ----- Read: cards -----
+    ## Leer cartas ##
     def accion_leer(self, tabla):
-        # ensure current_area exists
         if not hasattr(self, "current_area") or self.current_area is None:
             self.current_area = QVBoxLayout()
             self.dashboard_body.addLayout(self.current_area)
@@ -739,7 +724,6 @@ class PanelAdministrador(QMainWindow):
         scroll.setWidget(container)
         self.current_area.addWidget(scroll)
 
-    # ----- Insert & Edit (dynamic forms) & Delete & Modal view -----
     def accion_insertar(self, tabla):
         cols = self._describe_table(tabla)
         if not cols:

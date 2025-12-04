@@ -1,9 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Rutas Baja Express - UI responsiva con PySide6 y conexión a BD
-"""
-
 import sys
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QLabel, QComboBox, QPushButton,
@@ -13,17 +7,12 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, QRect, QSize, QPoint, QDate
 from PySide6.QtGui import QFont, QPixmap
 
-# Importar la conexión
 from conexion import crear_conexion
 from ventana_asientosxd import VentanaAsientos
 
-
-# Importar recursos qrc compilados
 import recursos_rc  
 
-# -----------------------
-# FlowLayout (wrapping)
-# -----------------------
+## Flotante para cambiar de pantalla y no de ventana ##
 class FlowLayout(__import__('PySide6.QtWidgets', fromlist=['QLayout']).QLayout):
     def __init__(self, parent=None, margin=0, spacing=24):
         super().__init__(parent)
@@ -112,9 +101,7 @@ class FlowLayout(__import__('PySide6.QtWidgets', fromlist=['QLayout']).QLayout):
 
         return y + lineH + bottom
 
-# -----------------------
-# Main UI
-# -----------------------
+## Main ##
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -163,7 +150,7 @@ class MainWindow(QMainWindow):
         root.setContentsMargins(12, 12, 12, 12)
         root.setSpacing(12)
 
-        # ---------- HEADER ----------
+        ## Titulo ##
         header = QFrame()
         header.setStyleSheet("background:#E86A1E;border-radius:12px;")
         h_header = QHBoxLayout(header)
@@ -189,25 +176,25 @@ class MainWindow(QMainWindow):
 
         root.addWidget(header)
 
-        # ---------- BLUE WRAPPER ----------
+        ## fondito azul ##
         blue = QFrame()
         blue.setStyleSheet("background:#0a79b7;border-radius:12px;")
         blue_l = QVBoxLayout(blue)
         blue_l.setContentsMargins(12,12,12,12)
         blue_l.setSpacing(14)
 
-        # ---------- BUSCADOR ----------
+        ## buscador ##
         buscador = QFrame()
         buscador.setStyleSheet("background:white;border-radius:10px;")
         busc_l = QVBoxLayout(buscador)
         busc_l.setContentsMargins(30,12,30,12)
         busc_l.setSpacing(8)
 
-        # Primera fila: filtros principales
+        ## Filtros principales ##
         flow_container = QWidget()
         flow = FlowLayout(flow_container, margin=0, spacing=4)
 
-        # Función de placeholder
+        ## Función de placeholder ##
         def setupComboPlaceholder(combo, placeholder):
             combo.insertItem(0, placeholder)
             combo.setCurrentIndex(0)
@@ -217,22 +204,22 @@ class MainWindow(QMainWindow):
                 lambda i: combo.setStyleSheet("QComboBox { color:black; }" if i!=0 else "QComboBox { color:#888; }")
             )
 
-        # ORIGEN
+        ## ORIGEN ##
         self.cb_origin = QComboBox()
         self.cb_origin.setStyleSheet("QComboBox { color:black; }")
 
-        # DESTINO
+        # DESTINO #
         self.cb_dest = QComboBox()
         self.cb_dest.addItem("Todas")
         self.cb_dest.setStyleSheet("QComboBox { color:black; }")
 
-        # FECHA
+        # FECHA #
         self.cb_date = QDateEdit()
         self.cb_date.setCalendarPopup(True)
         self.cb_date.setDate(QDate.currentDate())
         self.cb_date.setDisplayFormat("dd/MM/yyyy")
 
-        # CHECKBOX FECHA EXACTA (como campo independiente)
+        # CHECKBOX FECHA EXACTA #
         checkbox_container = QWidget()
         checkbox_layout = QVBoxLayout(checkbox_container)
         checkbox_layout.setContentsMargins(0, 0, 0, 0)
@@ -250,7 +237,7 @@ class MainWindow(QMainWindow):
         """)
         checkbox_layout.addWidget(self.checkbox_fecha_exacta, alignment=Qt.AlignCenter)
 
-        # Añadir widgets al flow
+        # Añadir widgets al flow #
         for w in (self.cb_origin, self.cb_dest, self.cb_date, checkbox_container):
             wrapper = QWidget()
             wrap_layout = QVBoxLayout(wrapper)
@@ -258,12 +245,12 @@ class MainWindow(QMainWindow):
             wrap_layout.addWidget(w)
             flow.addWidget(wrapper)
 
-        # Segunda fila: botón buscar
+        # Segunda fila #
         bottom_row = QHBoxLayout()
         bottom_row.setContentsMargins(12, 0, 12, 0)
         bottom_row.addStretch()
 
-        # Botón buscar
+        # Botón buscar #
         btn = QPushButton("➜")
         btn.setFixedSize(56,56)
         btn.setStyleSheet("background:#E86A1E;color:white;border-radius:12px;font-size:20px;")
@@ -275,13 +262,13 @@ class MainWindow(QMainWindow):
 
         blue_l.addWidget(buscador)
 
-        # ---------- Viajes disponibles ----------
+        ## Viajes disponibles ##
         lbl = QLabel("Viajes disponibles:")
         lbl.setFont(QFont("Segoe UI",20,QFont.Bold))
         lbl.setStyleSheet("color:white;")
         blue_l.addWidget(lbl)
 
-        # Scroll viajes
+        # Scroll viajes #
         self.scroll_area = QScrollArea()
         self.scroll_area.setWidgetResizable(True)
         self.scroll_area.setFrameStyle(QFrame.NoFrame)
@@ -294,25 +281,23 @@ class MainWindow(QMainWindow):
         blue_l.addWidget(self.scroll_area,stretch=1)
         root.addWidget(blue,stretch=1)
 
-        # ---------- Back button ----------
+        # Boton para regresar #
         back = QPushButton("Regresar")
         back.setFixedHeight(44)
         back.setStyleSheet("background:#E86A1E;color:white;border-radius:12px;")
         back.clicked.connect(self.close)
         root.addWidget(back,alignment=Qt.AlignLeft)
 
-        # Cargar origenes y destinos desde BD
+        # Cargar origenes y destinos #
         self.cargar_terminales()
 
-        # Conectar búsqueda
+        # Conectar búsqueda #
         btn.clicked.connect(self.buscar_viajes)
 
-        # Mostrar todos los viajes futuros al inicio (sin filtros)
+        # Mostrar todos los viajes futuros al inicio #
         self.cargar_viajes_futuros()
 
-    # -----------------------
-    # Cargar combos desde BD
-    # -----------------------
+    # Consulta para terminales #
     def cargar_terminales(self):
         try:
             conn = crear_conexion()
@@ -320,15 +305,15 @@ class MainWindow(QMainWindow):
             cursor.execute("SELECT nombre FROM terminal ORDER BY nombre")
             nombres = [row[0] for row in cursor.fetchall()]
             
-            # Cargar origen
+            # Cargar origen #
             self.cb_origin.addItems(nombres)
             
-            # Establecer Tijuana como origen por defecto
+            # Dejar Tijuana como defecto #
             tijuana_index = self.cb_origin.findText("Tijuana", Qt.MatchFixedString)
             if tijuana_index >= 0:
                 self.cb_origin.setCurrentIndex(tijuana_index)
             
-            # Cargar destinos (ya tiene "Todas" agregado)
+            # Cargar destinos #
             self.cb_dest.addItems(nombres)
             
             cursor.close()
@@ -336,12 +321,8 @@ class MainWindow(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self,"Error",f"No se pudieron cargar terminales:\n{e}")
 
-    # -----------------------
-    # Cargar viajes futuros (sin filtros)
-    # -----------------------
+    # Mostrar viajes #
     def cargar_viajes_futuros(self):
-        """Carga todos los viajes desde hoy en adelante"""
-        # Limpiar resultados
         for i in reversed(range(self.scroll_layout.count()-1)):
             item = self.scroll_layout.itemAt(i).widget()
             if item:
@@ -380,9 +361,7 @@ class MainWindow(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error", f"No se pudieron cargar los viajes:\n{e}")
 
-    # -----------------------
-    # Buscar viajes (con filtros)
-    # -----------------------
+    # Buscar viajes y aplicar filtros
     def buscar_viajes(self):
         origen = self.cb_origin.currentText() if self.cb_origin.currentText() else None
         destino_texto = self.cb_dest.currentText()
@@ -390,7 +369,6 @@ class MainWindow(QMainWindow):
         fecha_seleccionada = self.cb_date.date().toPython()
         fecha_exacta = self.checkbox_fecha_exacta.isChecked()
 
-        # Limpiar resultados
         for i in reversed(range(self.scroll_layout.count()-1)):
             item = self.scroll_layout.itemAt(i).widget()
             if item:
@@ -401,7 +379,6 @@ class MainWindow(QMainWindow):
             cursor = conn.cursor(dictionary=True)
 
             if fecha_exacta:
-                # Búsqueda con fecha exacta
                 query = """
                 SELECT v.numero AS viaje_num, v.fecHoraSalida, v.fecHoraEntrada, 
                        t_origen.nombre AS origen, t_destino.nombre AS destino,
@@ -418,7 +395,7 @@ class MainWindow(QMainWindow):
                 """
                 cursor.execute(query, (origen, origen, destino, destino, fecha_seleccionada))
             else:
-                # Búsqueda con fechas cercanas (±30 días / 1 mes)
+                ## Búsqueda con fechas cercanas ##
                 query = """
                 SELECT v.numero AS viaje_num, v.fecHoraSalida, v.fecHoraEntrada, 
                        t_origen.nombre AS origen, t_destino.nombre AS destino,
@@ -452,7 +429,7 @@ class MainWindow(QMainWindow):
                 conn.close()
                 return
 
-            # Mostrar mensaje si se encontraron viajes cercanos
+            ## Mostrar mensaje si se encontraron viajes cercanos ##
             if not fecha_exacta and len(resultados) > 0:
                 primer_viaje = resultados[0]
                 fecha_encontrada = primer_viaje['fecHoraSalida'].date()
@@ -471,26 +448,24 @@ class MainWindow(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error", f"No se pudieron cargar los viajes:\n{e}")
 
-    # -----------------------
-    # Crear card de viaje
-    # -----------------------
+    ## Carta de viaje ##
     def _make_trip_card(self, viaje):
         card = QFrame()
         card.setStyleSheet("background:white;border-radius:10px;")
         layout = QHBoxLayout(card)
         layout.setContentsMargins(12,12,12,12)
 
-        # Imagen
+        # Imagen #
         img = QLabel()
         img.setFixedSize(140,90)
         pixmap = QPixmap(":/recursos/camiona.png").scaled(140,90,Qt.KeepAspectRatio,Qt.SmoothTransformation)
         img.setPixmap(pixmap)
         layout.addWidget(img)
 
-        # Info
+        # Info #
         center = QVBoxLayout()
         
-        # Fecha del viaje en la parte superior
+        # Fecha del viaje en la parte superior #
         fecha_viaje_top = QLabel(viaje['fecHoraSalida'].strftime("%d/%m/%Y"))
         fecha_viaje_top.setStyleSheet("color:#0a79b7;font-weight:bold;font-size:12px;")
         fecha_viaje_top.setAlignment(Qt.AlignCenter)
@@ -506,7 +481,7 @@ class MainWindow(QMainWindow):
         top.addWidget(h2)
         center.addLayout(top)
 
-        # Calcular duración real del viaje
+        # Calcular duración real del viaje #
         duracion_calculada = viaje['fecHoraEntrada'] - viaje['fecHoraSalida']
         horas = duracion_calculada.total_seconds() // 3600
         minutos = (duracion_calculada.total_seconds() % 3600) // 60
@@ -520,7 +495,7 @@ class MainWindow(QMainWindow):
         bottom.addWidget(QLabel(viaje['origen']))
         bottom.addStretch()
         
-        # Duración calculada del viaje
+        # Duración calculada del viaje #
         duracion_label = QLabel(duracion_texto)
         duracion_label.setStyleSheet("color:#E86A1E;font-weight:bold;font-size:13px;")
         bottom.addWidget(duracion_label)
@@ -530,7 +505,7 @@ class MainWindow(QMainWindow):
         center.addLayout(bottom)
         layout.addLayout(center,stretch=1)
 
-        # Precio y botón
+        # Precio y botón #
         price_l = QVBoxLayout()
         total = viaje['precio']
         price = QLabel(f"${total:.2f} MXN")
@@ -547,14 +522,10 @@ class MainWindow(QMainWindow):
 
         return card
 
-    # -----------------------
-    # Abrir ventana de asientos
-    # -----------------------
+    # Asientos ##
     def abrir_asientos(self, id_viaje, num_pasajeros=1):
-        # Crear ventana usando la clase correcta
         self.ventana_asiento = VentanaAsientos(id_viaje, num_pasajeros)
         
-        # Conectar señal para recibir los asientos seleccionados
         self.ventana_asiento.asientos_seleccionados.connect(
             lambda asientos: QMessageBox.information(
                 self, "Asientos seleccionados",
@@ -562,12 +533,9 @@ class MainWindow(QMainWindow):
             )
         )
         
-        # Mostrar ventana
+        # Mostrar ventana #
         self.ventana_asiento.show()
 
-# -----------------------
-# Run
-# -----------------------
 def main():
     app = QApplication(sys.argv)
     win = MainWindow()

@@ -90,7 +90,7 @@ class VentanaRegistroPasajero(QWidget):
             QMessageBox.information(self, "Éxito", f"Pasajero {self.numero_pasajero} registrado correctamente.")
             conexion.close()
 
-            # Emitir señal con el ID del pasajero
+            ## Mandar señal ##
             self.pasajero_registrado.emit(pasajero_id)
             self.close()
 
