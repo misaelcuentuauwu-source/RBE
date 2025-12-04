@@ -65,6 +65,8 @@ class KPIWindow(QWidget):
         self.cmb_year.setRange(2000, 2100)
         self.cmb_year.setValue(QDate.currentDate().year())
         self.cmb_month.setCurrentIndex(QDate.currentDate().month()-1)
+        self.cmb_month.setVisible(False)
+        self.cmb_year.setVisible(False)
 
         # Botones
         self.btn_apply = QPushButton("Aplicar")
@@ -126,6 +128,8 @@ class KPIWindow(QWidget):
         top_controls.addWidget(self.btn_reload)
         top_controls.addStretch()
 
+        self._on_scope_changed()
+        
         filters_layout = QHBoxLayout()
         filters_layout.addWidget(self.lbl_search_conductor)
         filters_layout.addWidget(self.cmb_conductor)
@@ -371,9 +375,10 @@ class KPIWindow(QWidget):
     # ---------------- filters and UI helpers ----------------
     def _on_scope_changed(self):
         idx = self.cmb_scope.currentIndex()
-        self.date_edit.setVisible(idx == 0)
-        self.cmb_month.setVisible(idx == 2)
-        self.cmb_year.setVisible(idx == 2)
+        idx = self.cmb_scope.currentIndex()
+        self.date_edit.setVisible(idx == 0)      # Solo día
+        self.cmb_month.setVisible(idx == 2)      # Solo en Mes (índice 2, no 1)
+        self.cmb_year.setVisible(idx == 2)# En Mes y Año
 
     def on_tipo_changed(self):
         self._update_filter_visibility()
@@ -466,8 +471,18 @@ class KPIWindow(QWidget):
         self.lbl_info.setText(f"Resultados: {len(trips)} viaje(s).  |  Boletos vendidos: {total_vendidos}  |  Disponibles: {total_disponibles}")
 
     def _apply_kpi_conductor(self):
-        # columnas: Conductor | Viaje | Salida | Llegada | Origen | Destino | Autobús | Matrícula
-        headers = ["Conductor", "Viaje", "Salida", "Llegada", "Origen", "Destino", "Autobús"]
+        # Determinar si mostrar columna Conductor
+        conductor_id = self.cmb_conductor.currentData()
+        
+        # Mostrar columna Conductor SOLO si NO hay filtro específico (está en "Todos")
+        show_conductor_column = (conductor_id is None)
+        
+        # Definir columnas según la condición
+        if show_conductor_column:
+            headers = ["Conductor", "Viaje", "Salida", "Llegada", "Origen", "Destino", "Autobús"]
+        else:
+            headers = ["Viaje", "Salida", "Llegada", "Origen", "Destino", "Autobús"]
+        
         self._setup_table_headers(headers)
 
         where_clauses = []
@@ -481,7 +496,6 @@ class KPIWindow(QWidget):
             where_clauses.append("v.fecHoraSalida BETWEEN %s AND %s")
             params.extend([start, end])
 
-        conductor_id = self.cmb_conductor.currentData()
         if conductor_id is not None:
             where_clauses.append("v.conductor = %s")
             params.append(conductor_id)
@@ -535,20 +549,33 @@ class KPIWindow(QWidget):
         self.table.setRowCount(len(rows))
         for r, row in enumerate(rows):
             fullname = " ".join(filter(None, [row.get("con_nombre") or "", row.get("con_ap1") or "", row.get("con_ap2") or ""])).strip()
-            self._set_item(r, 0, fullname)
-            self._set_item(r, 1, str(row.get("trip_id") or ""))
-            self._set_item(r, 2, format_dt(row.get("departure")))
-            self._set_item(r, 3, format_dt(row.get("arrival")))
-            self._set_item(r, 4, str(row.get("origin_city") or ""))
-            self._set_item(r, 5, str(row.get("dest_city") or ""))
-            self._set_item(r, 6, str(row.get("bus_number") or ""))
+            
+            # Ajustar índices de columnas según si mostramos Conductor o no
+            if show_conductor_column:
+                self._set_item(r, 0, fullname)
+                self._set_item(r, 1, str(row.get("trip_id") or ""))
+                self._set_item(r, 2, format_dt(row.get("departure")))
+                self._set_item(r, 3, format_dt(row.get("arrival")))
+                self._set_item(r, 4, str(row.get("origin_city") or ""))
+                self._set_item(r, 5, str(row.get("dest_city") or ""))
+                self._set_item(r, 6, str(row.get("bus_number") or ""))
+            else:
+                # Sin columna Conductor, todos los índices se corren -1
+                self._set_item(r, 0, str(row.get("trip_id") or ""))
+                self._set_item(r, 1, format_dt(row.get("departure")))
+                self._set_item(r, 2, format_dt(row.get("arrival")))
+                self._set_item(r, 3, str(row.get("origin_city") or ""))
+                self._set_item(r, 4, str(row.get("dest_city") or ""))
+                self._set_item(r, 5, str(row.get("bus_number") or ""))
 
         self._stretch_columns()
         self.lbl_info.setText(f"Resultados: {len(rows)} viaje(s).")
 
-        self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
-        self.table.horizontalHeader().setStretchLastSection(False)
-        self.table.resizeColumnToContents(0)
+        # Solo aplicar ResizeToContents si la columna Conductor está visible
+        if show_conductor_column:
+            self.table.horizontalHeader().setSectionResizeMode(0, QHeaderView.ResizeToContents)
+            self.table.horizontalHeader().setStretchLastSection(False)
+            self.table.resizeColumnToContents(0)
         
     def _apply_kpi_autobus(self):
         # columnas: Número | Matrícula | Marca | Modelo | Año | Asientos
@@ -633,7 +660,18 @@ class KPIWindow(QWidget):
         self.asientos_column_index = 5
         
     def _apply_kpi_ciudad(self):
-        headers = ["Ciudad", "Salida", "Viaje", "Destino", "Autobús", "Matrícula", "Operador"]
+        # Determinar si mostrar columna Ciudad
+        city_key = self.cmb_city.currentData()
+        
+        # Mostrar columna Ciudad SOLO si NO hay filtro específico (está en "Todas")
+        show_city_column = (city_key is None)
+        
+        # Definir columnas según la condición
+        if show_city_column:
+            headers = ["Ciudad", "Salida", "Viaje", "Destino", "Autobús", "Matrícula", "Operador"]
+        else:
+            headers = ["Salida", "Viaje", "Destino", "Autobús", "Matrícula", "Operador"]
+        
         self._setup_table_headers(headers)
 
         where_clauses = []
@@ -648,8 +686,7 @@ class KPIWindow(QWidget):
             where_clauses.append("v.fecHoraSalida BETWEEN %s AND %s")
             params.extend([start, end])
 
-        # Filtro por ciudad (usamos currentData porque load_ciudades agrega clave como data)
-        city_key = self.cmb_city.currentData()
+        # Filtro por ciudad
         if city_key is not None:
             where_clauses.append("corig.clave = %s")
             params.append(city_key)
@@ -696,23 +733,43 @@ class KPIWindow(QWidget):
         # Poblar tabla
         self.table.setRowCount(len(rows))
         for r, row in enumerate(rows):
-            self._set_item(r, 0, row.get("ciudad", ""))
-            self._set_item(r, 1, format_dt(row.get("salida")))
-            self._set_item(r, 2, str(row.get("viaje") or ""))
-            self._set_item(r, 3, row.get("destino", ""))
-            self._set_item(r, 4, str(row.get("autobus") or ""))
-            self._set_item(r, 5, row.get("matricula", ""))
-            self._set_item(r, 6, row.get("operador", ""))
+            # Ajustar índices de columnas según si mostramos Ciudad o no
+            if show_city_column:
+                self._set_item(r, 0, row.get("ciudad", ""))
+                self._set_item(r, 1, format_dt(row.get("salida")))
+                self._set_item(r, 2, str(row.get("viaje") or ""))
+                self._set_item(r, 3, row.get("destino", ""))
+                self._set_item(r, 4, str(row.get("autobus") or ""))
+                self._set_item(r, 5, row.get("matricula", ""))
+                self._set_item(r, 6, row.get("operador", ""))
+            else:
+                # Sin columna Ciudad, todos los índices se corren -1
+                self._set_item(r, 0, format_dt(row.get("salida")))
+                self._set_item(r, 1, str(row.get("viaje") or ""))
+                self._set_item(r, 2, row.get("destino", ""))
+                self._set_item(r, 3, str(row.get("autobus") or ""))
+                self._set_item(r, 4, row.get("matricula", ""))
+                self._set_item(r, 5, row.get("operador", ""))
 
-        # --- Ajustes de columnas (manteniendo tu layout para que no se corte)
+        # --- Ajustes de columnas
         header = self.table.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.Stretch)           # Ciudad
-        header.setSectionResizeMode(1, QHeaderView.ResizeToContents) # Salida
-        header.setSectionResizeMode(2, QHeaderView.ResizeToContents) # Viaje
-        header.setSectionResizeMode(3, QHeaderView.Stretch)           # Destino
-        header.setSectionResizeMode(4, QHeaderView.ResizeToContents) # Autobús
-        header.setSectionResizeMode(5, QHeaderView.ResizeToContents) # Matrícula
-        header.setSectionResizeMode(6, QHeaderView.Stretch)           # Operador
+        
+        if show_city_column:
+            header.setSectionResizeMode(0, QHeaderView.Stretch)           # Ciudad
+            header.setSectionResizeMode(1, QHeaderView.ResizeToContents) # Salida
+            header.setSectionResizeMode(2, QHeaderView.ResizeToContents) # Viaje
+            header.setSectionResizeMode(3, QHeaderView.Stretch)           # Destino
+            header.setSectionResizeMode(4, QHeaderView.ResizeToContents) # Autobús
+            header.setSectionResizeMode(5, QHeaderView.ResizeToContents) # Matrícula
+            header.setSectionResizeMode(6, QHeaderView.Stretch)           # Operador
+        else:
+            # Sin columna Ciudad, ajustar índices
+            header.setSectionResizeMode(0, QHeaderView.ResizeToContents) # Salida
+            header.setSectionResizeMode(1, QHeaderView.ResizeToContents) # Viaje
+            header.setSectionResizeMode(2, QHeaderView.Stretch)           # Destino
+            header.setSectionResizeMode(3, QHeaderView.ResizeToContents) # Autobús
+            header.setSectionResizeMode(4, QHeaderView.ResizeToContents) # Matrícula
+            header.setSectionResizeMode(5, QHeaderView.Stretch)           # Operador
 
         self.lbl_info.setText(f"Resultados: {len(rows)} viaje(s).")
 

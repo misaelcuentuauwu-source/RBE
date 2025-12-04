@@ -3,7 +3,7 @@
 
 from PySide6.QtWidgets import (
     QApplication, QWidget, QLabel, QVBoxLayout, QHBoxLayout,
-    QFrame, QDateEdit, QComboBox, QPushButton, QGridLayout,
+    QFrame, QDateEdit, QComboBox, QPushButton, QGridLayout,QSpinBox,
     QSizePolicy
 )
 from PySide6.QtCore import Qt, QDate
@@ -34,9 +34,9 @@ class KPIWindowGenerales(QWidget):
         """)
         main.addWidget(titulo)
 
-        # ============================================================
-        # FILTROS
-        # ============================================================
+       # ============================================================
+# FILTROS
+# ============================================================
         filtro_row = QHBoxLayout()
         filtro_row.setSpacing(15)
 
@@ -58,6 +58,12 @@ class KPIWindowGenerales(QWidget):
         ])
         self.fecha_mes.hide()
 
+        # --- Filtro año ---
+        self.fecha_año = QSpinBox()
+        self.fecha_año.setRange(2000, 2100)
+        self.fecha_año.setValue(QDate.currentDate().year())
+        self.fecha_año.hide()
+
         actualizar = QPushButton("Actualizar")
         actualizar.clicked.connect(self.update_metrics)
         actualizar.setStyleSheet("""
@@ -73,11 +79,14 @@ class KPIWindowGenerales(QWidget):
             }
         """)
 
+        # NUEVO ORDEN: Rango a la izquierda, controles de fecha a la derecha
+        # TODO pegado a la izquierda
         filtro_row.addWidget(QLabel("Rango:"))
         filtro_row.addWidget(self.rango)
         filtro_row.addWidget(self.fecha_dia)
         filtro_row.addWidget(self.fecha_mes)
-        filtro_row.addStretch()
+        filtro_row.addWidget(self.fecha_año)
+        filtro_row.addStretch()  
         filtro_row.addWidget(actualizar)
 
         main.addLayout(filtro_row)
@@ -119,14 +128,17 @@ class KPIWindowGenerales(QWidget):
         if rango == "Día":
             self.fecha_dia.show()
             self.fecha_mes.hide()
+            self.fecha_año.hide()
 
         elif rango == "Semana":
             self.fecha_dia.hide()
             self.fecha_mes.hide()
+            self.fecha_año.hide()
 
         elif rango == "Mes":
-            self.fecha_dia.hide()
+            self.fecha_dia.hide()      # <-- IMPORTANTE: ocultar el QDateEdit
             self.fecha_mes.show()
+            self.fecha_año.show()
 
     # ============================================================
     # Crear tarjeta KPI (ahora lista para Top 5)
