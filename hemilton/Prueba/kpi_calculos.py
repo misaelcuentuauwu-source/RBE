@@ -1,9 +1,6 @@
-# kpi_calculos.py
-# Ventana de KPIs con tarjetas tipo dashboard (Top 5 integrado)
-
 from PySide6.QtWidgets import (
     QApplication, QWidget, QLabel, QVBoxLayout, QHBoxLayout,
-    QFrame, QDateEdit, QComboBox, QPushButton, QGridLayout,
+    QFrame, QDateEdit, QComboBox, QPushButton, QGridLayout, QSpinBox,
     QSizePolicy
 )
 from PySide6.QtCore import Qt, QDate
@@ -15,17 +12,17 @@ class KPIWindowGenerales(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("KPI Dashboard - RBE")
-        self.setMinimumSize(0, 0)   # permite que se adapte
+        self.setMinimumSize(0, 0)
         self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
 
         self.db = crear_conexion()
 
-        # ======= CONTENEDOR PRINCIPAL =======
+        ## Contenedor principal ##
         main = QVBoxLayout(self)
         main.setContentsMargins(40, 20, 40, 20)
         main.setSpacing(20)
 
-        # ======= TÍTULO =======
+        ## Título del dashboard ##
         titulo = QLabel("Dashboard — KPIs")
         titulo.setStyleSheet("""
             font-size: 28px;
@@ -34,23 +31,21 @@ class KPIWindowGenerales(QWidget):
         """)
         main.addWidget(titulo)
 
-        # ============================================================
-        # FILTROS
-        # ============================================================
+        ## Filtros ##
         filtro_row = QHBoxLayout()
         filtro_row.setSpacing(15)
 
-        # Rango: Día / Semana / Mes
+        ## Selector de rango: Día / Semana / Mes ##
         self.rango = QComboBox()
         self.rango.addItems(["Día", "Semana", "Mes"])
         self.rango.currentIndexChanged.connect(self.update_filter_ui)
 
-        # --- Filtro día ---
+        ## Filtro Día ##
         self.fecha_dia = QDateEdit()
         self.fecha_dia.setCalendarPopup(True)
         self.fecha_dia.setDate(QDate.currentDate())
 
-        # --- Filtro mes ---
+        ## Filtro Mes ##
         self.fecha_mes = QComboBox()
         self.fecha_mes.addItems([
             "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
@@ -58,6 +53,13 @@ class KPIWindowGenerales(QWidget):
         ])
         self.fecha_mes.hide()
 
+        ## Filtro Año ##
+        self.fecha_año = QSpinBox()
+        self.fecha_año.setRange(2000, 2100)
+        self.fecha_año.setValue(QDate.currentDate().year())
+        self.fecha_año.hide()
+
+        ## Botón actualizar ##
         actualizar = QPushButton("Actualizar")
         actualizar.clicked.connect(self.update_metrics)
         actualizar.setStyleSheet("""
@@ -73,16 +75,18 @@ class KPIWindowGenerales(QWidget):
             }
         """)
 
+        ## Acomodar filtros ##
         filtro_row.addWidget(QLabel("Rango:"))
         filtro_row.addWidget(self.rango)
         filtro_row.addWidget(self.fecha_dia)
         filtro_row.addWidget(self.fecha_mes)
+        filtro_row.addWidget(self.fecha_año)
         filtro_row.addStretch()
         filtro_row.addWidget(actualizar)
 
         main.addLayout(filtro_row)
 
-        # ======= GRID DE TARJETAS =======
+        ## Grid donde van todas las tarjetas de KPIs ##
         grid = QGridLayout()
         grid.setSpacing(25)
 
@@ -98,49 +102,45 @@ class KPIWindowGenerales(QWidget):
         grid.addWidget(self.card_ciudad_visitada, 1, 0)
         grid.addWidget(self.card_ciudad_origen, 1, 1)
 
-        # distribuir columnas (ayuda al grid a expandirse uniformemente)
         grid.setColumnStretch(0, 1)
         grid.setColumnStretch(1, 1)
         grid.setColumnStretch(2, 1)
 
         main.addLayout(grid)
 
-        # Inicializar UI y métricas
+        ## Actualizar interfaz según rango seleccionado ##
         self.update_filter_ui()
-        # opcional: actualizar métricas al abrir
-        # self.update_metrics()
 
-    # ============================================================
-    # Cambiar filtros según rango seleccionado
-    # ============================================================
+    ## Cambiar los filtros según el rango seleccionado ##
     def update_filter_ui(self):
         rango = self.rango.currentText()
 
         if rango == "Día":
             self.fecha_dia.show()
             self.fecha_mes.hide()
+            self.fecha_año.hide()
 
         elif rango == "Semana":
             self.fecha_dia.hide()
             self.fecha_mes.hide()
+            self.fecha_año.hide()
 
         elif rango == "Mes":
             self.fecha_dia.hide()
             self.fecha_mes.show()
+            self.fecha_año.show()
 
-    # ============================================================
-    # Crear tarjeta KPI (ahora lista para Top 5)
-    # ============================================================
+    ## Crear una tarjeta KPI ##
     def create_card(self, titulo):
         frame = QFrame()
-        frame.setMinimumSize(260, 150)  # tamaño mínimo
+        frame.setMinimumSize(260, 150)
         frame.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
         frame.setStyleSheet("""
             QFrame {
                 background: #FFFFFF;
                 border-radius: 16px;
                 border: 2px solid #E6E6E6;
-                border-left: 8px solid #FF7F3F;  /* naranja RBE */
+                border-left: 8px solid #FF7F3F;
             }
         """)
 
@@ -151,44 +151,36 @@ class KPIWindowGenerales(QWidget):
         title = QLabel(titulo)
         title.setStyleSheet("""
             font-size: 15px;
-            color: #1A2B4C;  /* azul corporativo */
+            color: #1A2B4C;
             font-weight: 600;
         """)
 
         lay.addWidget(title)
 
-        # Contenedor para múltiples valores (Top 5)
+        ## Contenedor donde se mostrarán los Top 5 ##
         values_layout = QVBoxLayout()
         values_layout.setSpacing(4)
 
-        # Guardamos el layout en el frame para actualizar después
         frame.values_layout = values_layout
 
         lay.addLayout(values_layout)
         lay.addStretch()
         return frame
 
-    # ============================================================
-    # Ejecutar consulta (único resultado)
-    # ============================================================
+    ## Ejecutar consulta que devuelve un solo registro ##
     def query(self, sql, params=None):
         cur = self.db.cursor(dictionary=True)
         cur.execute(sql, params or ())
         return cur.fetchone()
 
-    # ============================================================
-    # Ejecutar consulta (varios resultados)
-    # ============================================================
+    ## Ejecutar consulta que devuelve varios registros ##
     def query_all(self, sql, params=None):
         cur = self.db.cursor(dictionary=True)
         cur.execute(sql, params or ())
         rows = cur.fetchall()
-        # fetchall devuelve lista de dicts cuando dictionary=True
         return rows or []
 
-    # ============================================================
-    # Obtener rango de fechas
-    # ============================================================
+    ## Obtener el rango de fechas ##
     def get_date_range(self):
         rango = self.rango.currentText()
 
@@ -210,13 +202,10 @@ class KPIWindowGenerales(QWidget):
             fin = fin.replace(day=1) - timedelta(days=1)
             return inicio, fin
 
-    # ============================================================
-    # Mostrar Top5 dentro de una tarjeta
-    # label_field: campo con el texto (nombre, ciudad, etc.)
-    # count_field: campo con el valor numérico (total)
-    # ============================================================
+    ## Mostrar los Top 5 dentro de una tarjeta ##
     def set_top5(self, frame, data, label_field, count_field='total'):
-        # limpiar contenido anterior
+
+        ## Limpiar contenido anterior ##
         while frame.values_layout.count():
             it = frame.values_layout.takeAt(0)
             w = it.widget()
@@ -234,16 +223,16 @@ class KPIWindowGenerales(QWidget):
             label = row.get(label_field) or str(row.get(count_field, ''))
             count = row.get(count_field, None)
 
-            # construir texto: "1. Nombre — 123"
+            ## Acomodo del texto ##
             text = f"{idx+1}. {label}"
             if count is not None:
                 text = f"{text} — {count}"
 
             lbl = QLabel(text)
-            lbl.setWordWrap(True)  # <-- evitar desbordamiento
-            lbl.setFixedHeight(26) # <-- mantiene altura uniforme
+            lbl.setWordWrap(True)
+            lbl.setFixedHeight(26)
 
-            # estilos por posición, más compactos
+            ## Estilos según posición ##
             if idx == 0:
                 lbl.setStyleSheet("font-size: 18px; font-weight: 700; color: #000;")
             elif idx <= 2:
@@ -253,13 +242,11 @@ class KPIWindowGenerales(QWidget):
 
             frame.values_layout.addWidget(lbl)
 
-    # ============================================================
-    # Actualizar KPIs (ahora con Top 5)
-    # ============================================================
+    ## Actualizar todos los KPIs ##
     def update_metrics(self):
         desde, hasta = self.get_date_range()
 
-        # 1) BOLETOS VENDIDOS — Top destinos por boletos
+        ## Top destinos por boletos vendidos ##
         b_lista = self.query_all("""
             SELECT ci.nombre AS ciudad, COUNT(*) AS total
             FROM ticket t
@@ -274,7 +261,7 @@ class KPIWindowGenerales(QWidget):
         """, (desde, hasta))
         self.set_top5(self.card_boletos, b_lista, "ciudad", "total")
 
-        # 2) CONDUCTORES — Top 5 por número de viajes
+        ## Top 5 de conductores ##
         c_lista = self.query_all("""
             SELECT CONCAT(c.conNombre, ' ', c.conPrimerApell) AS nombre, COUNT(*) AS total
             FROM viaje v
@@ -286,7 +273,7 @@ class KPIWindowGenerales(QWidget):
         """, (desde, hasta))
         self.set_top5(self.card_conductor, c_lista, "nombre", "total")
 
-        # 3) AUTOBUSES — Top 5 por número de viajes
+        ## Top 5 autobuses por viajes ##
         a_lista = self.query_all("""
             SELECT a.numero AS autobus_num, COUNT(*) AS total
             FROM viaje v
@@ -298,7 +285,7 @@ class KPIWindowGenerales(QWidget):
         """, (desde, hasta))
         self.set_top5(self.card_autobus, a_lista, "autobus_num", "total")
 
-        # 4) CIUDADES DESTINO — Top 5
+        ## Top 5 ciudades destino ##
         ci_lista = self.query_all("""
             SELECT ci.nombre AS nombre, COUNT(*) AS total
             FROM viaje v
@@ -312,7 +299,7 @@ class KPIWindowGenerales(QWidget):
         """, (desde, hasta))
         self.set_top5(self.card_ciudad_visitada, ci_lista, "nombre", "total")
 
-        # 5) CIUDADES ORIGEN — Top 5
+        ## Top 5 ciudades origen ##
         cv_lista = self.query_all("""
             SELECT ci.nombre AS nombre, COUNT(*) AS total
             FROM viaje v
@@ -327,7 +314,6 @@ class KPIWindowGenerales(QWidget):
         self.set_top5(self.card_ciudad_origen, cv_lista, "nombre", "total")
 
 
-# ---------------------------------------------------------------
 if __name__ == "__main__":
     import sys
     app = QApplication(sys.argv)

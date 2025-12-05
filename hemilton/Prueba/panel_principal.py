@@ -1,4 +1,3 @@
-# panel_principal.py
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton,
     QLineEdit, QStackedWidget, QFrame, QSizePolicy, QSpacerItem, QMessageBox,
@@ -13,9 +12,7 @@ from rutas_baja_express_ui import MainWindow as VentanaVentaBoletos
 from gestionviajes import MainWindow as VentanaHistorialViajes
 from conexion import crear_conexion
 
-# ===============================
-# Función para actualizar taquillero
-# ===============================
+## Actualizar tauqillero ##
 def actualizar_taquillero_bd(registro, usuario, contrasena):
     try:
         cn = crear_conexion()
@@ -32,9 +29,7 @@ def actualizar_taquillero_bd(registro, usuario, contrasena):
     except Exception as e:
         return False, str(e)
 
-# ===============================
-# Sidebar Animado
-# ===============================
+## Sidebar ##
 class SidebarAnimado(QFrame):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -50,9 +45,7 @@ class SidebarAnimado(QFrame):
 
     width_prop = Property(int, get_width, set_width)
 
-# ===============================
-# Panel Principal
-# ===============================
+## Panel inicial ##
 class PanelPrincipal(QMainWindow):
     def __init__(self, usuario_actual, volver_callback):
         super().__init__()
@@ -60,7 +53,7 @@ class PanelPrincipal(QMainWindow):
         self.volver_callback = volver_callback
         self.menu_colapsado = False
 
-        # Colores corporativos
+        ## Colores corporativos ##
         self.COLOR_FONDO = "#f2f2f2"
         self.COLOR_PRINCIPAL = "#1181c3"
         self.COLOR_NARANJA = "#ed7237"
@@ -71,20 +64,20 @@ class PanelPrincipal(QMainWindow):
         self.setMinimumSize(900, 500)
         self.setStyleSheet(f"background-color: {self.COLOR_FONDO}; font-family: 'Segoe UI';")
 
-        # ========================= CONTENEDOR PRINCIPAL =========================
+        ## Contenedor principal ##
         central = QWidget()
         self.layout_main = QHBoxLayout(central)
         self.layout_main.setSpacing(0)
         self.layout_main.setContentsMargins(0, 0, 0, 0)
 
-        # ========================= SIDEBAR ANIMADO =========================
+        ## Sidebar animado ##
         self.sidebar = SidebarAnimado()
         self.sidebar.setStyleSheet(f"background-color: {self.COLOR_NARANJA};")
         self.layout_sidebar = QVBoxLayout(self.sidebar)
         self.layout_sidebar.setContentsMargins(0, 0, 0, 0)
         self.layout_sidebar.setSpacing(0)
 
-        # Contenedor del texto de marca
+        ## Contenedor del texto ##
         brand_container = QWidget()
         brand_layout = QVBoxLayout(brand_container)
         brand_layout.setContentsMargins(12, 16, 12, 16)
@@ -97,13 +90,13 @@ class PanelPrincipal(QMainWindow):
 
         self.layout_sidebar.addWidget(brand_container)
 
-        # Contenedor de botones
+        ## Contenedor de botones ##
         buttons_container = QWidget()
         self.buttons_layout = QVBoxLayout(buttons_container)
         self.buttons_layout.setContentsMargins(8, 8, 8, 8)
         self.buttons_layout.setSpacing(8)
 
-        # Botón de navegación
+        ## Boton de navegacion ##
         def nav_button(text, icon_collapsed=""):
             btn = QPushButton(text)
             btn.setObjectName("btn_nav")
@@ -128,7 +121,7 @@ class PanelPrincipal(QMainWindow):
             """)
             return btn
 
-        # Botones de navegación
+        ## Botones de navegacion ##
         self.btn_dashboard = nav_button("🏠 Dashboard", "🏠")
         self.btn_terminales = nav_button("🏢 Terminales", "🏢")
         self.btn_vender = nav_button("🎫 Vender boletos", "🎫")
@@ -144,7 +137,7 @@ class PanelPrincipal(QMainWindow):
         self.layout_sidebar.addWidget(buttons_container)
         self.layout_sidebar.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
-        # Botón cerrar sesión
+        ## Boton cerrar sesion ##
         logout_container = QWidget()
         logout_layout = QVBoxLayout(logout_container)
         logout_layout.setContentsMargins(12, 12, 12, 12)
@@ -166,14 +159,14 @@ class PanelPrincipal(QMainWindow):
         logout_layout.addWidget(self.btn_logout)
         self.layout_sidebar.addWidget(logout_container)
 
-        # ========================= ÁREA DE CONTENIDO =========================
+        # # Contenido ##
         main_content = QFrame()
         main_content.setStyleSheet(f"background-color: {self.COLOR_FONDO};")
         layout_content = QVBoxLayout(main_content)
         layout_content.setContentsMargins(0, 0, 0, 0)
         layout_content.setSpacing(0)
 
-        # Topbar
+        ## Topbar ##
         topbar = QFrame()
         topbar.setMaximumHeight(70)
         topbar.setStyleSheet("""
@@ -202,7 +195,7 @@ class PanelPrincipal(QMainWindow):
         layout_topbar.addWidget(self.btn_toggle)
         layout_topbar.addSpacing(10)
 
-        # Texto de bienvenida
+        ## Texto de bienvenida ##
         taq_nombre = self.usuario_actual.get('taqNombre','')
         taq_primer = self.usuario_actual.get('taqPrimerApell','')
         taq_seg = self.usuario_actual.get('taqSegundoApell','')
@@ -211,7 +204,7 @@ class PanelPrincipal(QMainWindow):
         layout_topbar.addWidget(self.welcome)
         layout_topbar.addStretch()
 
-        # Caja de búsqueda funcional
+        ## Buscador ##
         self.search = QLineEdit()
         self.search.setPlaceholderText("🔍 Buscar...")
         self.search.setStyleSheet("""
@@ -231,17 +224,17 @@ class PanelPrincipal(QMainWindow):
         self.search.returnPressed.connect(self.buscar_accion)
         layout_topbar.addWidget(self.search)
 
-        # ========================= STACKED PAGES =========================
+        ## El stacked ##
         self.stacked = QStackedWidget()
         self.stacked.setStyleSheet(f"background-color: {self.COLOR_FONDO};")
 
-        # -------- Dashboard --------
+        ## Dashboard ##
         self.page_dashboard = QWidget()
         layout_dash = QVBoxLayout(self.page_dashboard)
         layout_dash.setContentsMargins(20, 20, 20, 20)
         layout_dash.setSpacing(15)
 
-        # Contenedor con scroll
+        ## Contenedor scroll ##
         scroll_dash = QScrollArea()
         scroll_dash.setWidgetResizable(True)
         scroll_dash.setStyleSheet("background: transparent; border: none;")
@@ -252,7 +245,7 @@ class PanelPrincipal(QMainWindow):
         logo_layout.setContentsMargins(0, 0, 0, 0)
         logo_layout.setSpacing(20)
 
-        # Logo del autobús
+        ## el camion ##
         logo_label = QLabel("🚌")
         logo_label.setAlignment(Qt.AlignCenter)
         logo_label.setStyleSheet(f"""
@@ -270,8 +263,8 @@ class PanelPrincipal(QMainWindow):
             }}
         """)
         logo_layout.addWidget(logo_label)
-
-        # Texto de bienvenida
+ 
+        # Texto de bienvenida ##
         welcome_text = QLabel("Bienvenido al Sistema de Gestión")
         welcome_text.setAlignment(Qt.AlignCenter)
         welcome_text.setStyleSheet(f"""
@@ -285,7 +278,7 @@ class PanelPrincipal(QMainWindow):
         """)
         logo_layout.addWidget(welcome_text)
 
-        # Subtítulo
+        ## Subtitulo ##
         subtitle = QLabel("Rutas Baja Express")
         subtitle.setAlignment(Qt.AlignCenter)
         subtitle.setStyleSheet(f"""
@@ -298,7 +291,7 @@ class PanelPrincipal(QMainWindow):
         """)
         logo_layout.addWidget(subtitle)
 
-        # Mensaje motivacional
+        ## Mensaje de relleno ##
         message = QLabel("Selecciona una opción del menú para comenzar")
         message.setAlignment(Qt.AlignCenter)
         message.setStyleSheet("""
@@ -315,14 +308,14 @@ class PanelPrincipal(QMainWindow):
         layout_dash.addWidget(scroll_dash)
         self.stacked.addWidget(self.page_dashboard)
 
-        # -------- Configuración --------
+        ## Configuracion ##
         self.page_config = QWidget()
         layout_config = QVBoxLayout(self.page_config)
         layout_config.setAlignment(Qt.AlignTop)
         layout_config.setContentsMargins(20, 20, 20, 20)
         layout_config.setSpacing(12)
 
-        # Contenedor con scroll
+        ## Contenedor scroll ##
         scroll_config = QScrollArea()
         scroll_config.setWidgetResizable(True)
         scroll_config.setStyleSheet("background: transparent; border: none;")
@@ -337,7 +330,7 @@ class PanelPrincipal(QMainWindow):
         titulo_config.setStyleSheet(f"font-size: 20pt; font-weight: bold; color: {self.COLOR_PRINCIPAL}; margin-bottom: 10px;")
         config_content_layout.addWidget(titulo_config)
 
-        # Card contenedor
+        ## contenedor carta ##
         self.config_card = QFrame()
         self.config_card.setStyleSheet("""
             QFrame {
@@ -350,7 +343,7 @@ class PanelPrincipal(QMainWindow):
         config_card_layout = QVBoxLayout(self.config_card)
         config_card_layout.setSpacing(14)
 
-        # Campos estáticos
+        ## Campos estaticos ##
         def add_field_readonly(label_text, value):
             lbl = QLabel(label_text)
             lbl.setStyleSheet("font-weight: bold; color: #666; font-size: 10pt;")
@@ -371,7 +364,7 @@ class PanelPrincipal(QMainWindow):
         add_field_readonly("📄 Primer Apellido:", self.usuario_actual.get('taqPrimerApell',''))
         add_field_readonly("📄 Segundo Apellido:", self.usuario_actual.get('taqSegundoApell',''))
 
-        # Campos editables
+        ## Campos para editar ##
         def add_field_editable(label_text, widget):
             lbl = QLabel(label_text)
             lbl.setStyleSheet("font-weight: bold; color: #666; font-size: 10pt; margin-top: 8px;")
@@ -398,7 +391,7 @@ class PanelPrincipal(QMainWindow):
         add_field_editable("👤 Usuario:", self.config_usuario)
         add_field_editable("🔒 Contraseña:", self.config_pass)
 
-        # Botón Guardar
+        ## Botón Guardar ##
         self.btn_guardar = QPushButton("💾 Guardar Cambios")
         self.btn_guardar.setStyleSheet(f"""
             QPushButton {{
@@ -423,12 +416,12 @@ class PanelPrincipal(QMainWindow):
         layout_config.addWidget(scroll_config)
         self.stacked.addWidget(self.page_config)
 
-        # -------- Historial de Viajes --------
+        ## Historial ##
         self.page_historial = QWidget()
         self.historial_layout = QVBoxLayout(self.page_historial)
         self.historial_layout.setContentsMargins(0, 0, 0, 0)
 
-        # Contenedor con scroll
+        # Contenedor scroll de nuevo ##
         scroll_historial = QScrollArea()
         scroll_historial.setWidgetResizable(True)
         scroll_historial.setStyleSheet("background: transparent; border: none;")
@@ -440,7 +433,7 @@ class PanelPrincipal(QMainWindow):
 
         self.stacked.addWidget(self.page_historial)
 
-        # ========================= FIN STACKED =========================
+        ## stakced fin ##
         layout_content.addWidget(topbar)
         layout_content.addWidget(self.stacked)
 
@@ -448,12 +441,12 @@ class PanelPrincipal(QMainWindow):
         self.layout_main.addWidget(main_content, stretch=1)
         self.setCentralWidget(central)
 
-        # ========================= ANIMACIÓN =========================
+        ## animacion misa ##
         self.animation = QPropertyAnimation(self.sidebar, b"width_prop")
         self.animation.setDuration(300)
         self.animation.setEasingCurve(QEasingCurve.InOutQuad)
 
-        # ========================= EVENTOS =========================
+        ## eventos ##
         self.btn_dashboard.clicked.connect(lambda: self.stacked.setCurrentWidget(self.page_dashboard))
         self.btn_terminales.clicked.connect(self.abrir_terminales)
         self.btn_vender.clicked.connect(self.abrir_venta)
@@ -464,15 +457,14 @@ class PanelPrincipal(QMainWindow):
         self.btn_guardar.clicked.connect(self.guardar_cambios)
 
     def resizeEvent(self, event):
-        """Ajusta el tamaño de los elementos al redimensionar"""
         super().resizeEvent(event)
 
-        # Ajusta el ancho máximo de la card de configuración
+        ## ajustes de la carta ##
         if hasattr(self, 'config_card'):
             ancho_disponible = self.width() - 300  # Considerando el sidebar
             self.config_card.setMaximumWidth(max(600, ancho_disponible * 0.7))
 
-        # Ajusta el tamaño de fuente en pantallas pequeñas
+        ## Ajustar el tamano ##
         if self.width() < 1000:
             self.brand.setStyleSheet("color: white; font-size: 12pt; font-weight: bold;")
             self.welcome.setStyleSheet(f"font-size: 10pt; color: {self.COLOR_TEXTO}; font-weight: 500;")

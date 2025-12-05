@@ -17,9 +17,7 @@ class VentanaDetalle(QWidget):
 
         self.datos_lista = datos_lista or [{}]
 
-        # =======================================================
-        # SCROLL PARA EVITAR QUE SE ENCIMEN OBJETOS
-        # =======================================================
+        # SCROLL #
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setStyleSheet("border: none;")
@@ -30,16 +28,14 @@ class VentanaDetalle(QWidget):
         layout = QVBoxLayout(contenedor)
         layout.setAlignment(Qt.AlignTop)
 
-        # TÍTULO PRINCIPAL
+        # titulo #
         titulo = QLabel("Detalle de Boletos")
         titulo.setFont(QFont("Arial", 32, QFont.Bold))
         titulo.setStyleSheet("color: white; margin-top: 20px;")
         titulo.setAlignment(Qt.AlignCenter)
         layout.addWidget(titulo)
 
-        # ===========================================================
-        # FUNCIÓN PARA TARJETA COMPLETA (ESTILO RESPONSIVE)
-        # ===========================================================
+        # Tarjeta #
         def crear_tarjeta(boleto):
             tarjeta = QFrame()
             tarjeta.setStyleSheet("""
@@ -53,9 +49,7 @@ class VentanaDetalle(QWidget):
             tarjeta_layout.setContentsMargins(20, 15, 20, 15)
             tarjeta_layout.setSpacing(10)
 
-            # ---------------------------------------------------------
-            # NIVEL 1 (fila superior)
-            # ---------------------------------------------------------
+            # Acomodo para fila superior #
             fila_superior = QFrame()
             fila1 = QHBoxLayout(fila_superior)
             fila1.setSpacing(15)
@@ -88,9 +82,7 @@ class VentanaDetalle(QWidget):
 
             tarjeta_layout.addWidget(fila_superior)
 
-            # ---------------------------------------------------------
-            # NIVEL 2 (ruta + horarios)
-            # ---------------------------------------------------------
+            # Rutas y Horarios #
             fila_inferior = QFrame()
             fila2 = QVBoxLayout(fila_inferior)
             fila_inferior.setStyleSheet("background: white; border-radius: 12px;")
@@ -112,9 +104,7 @@ class VentanaDetalle(QWidget):
 
             return tarjeta
 
-        # ===========================================================
-        # AGREGAR TARJETAS
-        # ===========================================================
+        # Agregar tarjetas #
         total_general = 0
         for boleto in self.datos_lista:
             try:
@@ -124,15 +114,13 @@ class VentanaDetalle(QWidget):
 
             layout.addWidget(crear_tarjeta(boleto))
 
-        # ===========================================================
-        # SECCIÓN INFERIOR (RESPONSIVE)
-        # ===========================================================
+        # Seccion de abajo #
         seccion_inferior = QFrame()
         seccion_inferior.setStyleSheet("background: white; border-radius: 20px;")
         seccion_layout = QHBoxLayout(seccion_inferior)
         seccion_layout.setContentsMargins(25, 20, 25, 20)
 
-        # IZQUIERDA
+        # IZQUIERDA #
         izquierda = QVBoxLayout()
         lbl_cantidad = QLabel(f"Cantidad de boletos: {len(self.datos_lista)}")
         lbl_descuentos = QLabel("Descuentos aplicados: 0%")
@@ -146,7 +134,7 @@ class VentanaDetalle(QWidget):
 
         seccion_layout.addLayout(izquierda)
 
-        # DERECHA (TOTAL)
+        # DERECHA #
         derecha = QVBoxLayout()
         lbl_titulo_total = QLabel("TOTAL A PAGAR")
         lbl_titulo_total.setStyleSheet("font-size: 20px; font-weight: bold; color: #333;")
@@ -161,7 +149,7 @@ class VentanaDetalle(QWidget):
 
         layout.addWidget(seccion_inferior)
 
-        # BOTÓN CERRAR
+        # BOTON CERRAR #
         btn_cerrar = QPushButton("Cerrar")
         btn_cerrar.setStyleSheet("""
             background: #004C90;
@@ -175,14 +163,12 @@ class VentanaDetalle(QWidget):
 
         layout.addWidget(btn_cerrar, alignment=Qt.AlignCenter)
 
-        # Agregar scroll a la ventana principal
+        # Agregar scroll #
         base = QVBoxLayout(self)
         base.addWidget(scroll)
 
 
-# =====================================================
-# MAIN COMPLETO
-# =====================================================
+# Main completo #
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 

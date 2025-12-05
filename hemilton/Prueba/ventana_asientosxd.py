@@ -134,7 +134,7 @@ class VentanaAsientos(QMainWindow):
         root.addWidget(legend)
 
         main_frame = QFrame()
-        main_frame.setStyleSheet("background:#0a79b7; border-radius:10px;")
+        main_frame.setStyleSheet("background:#fff; border-radius:10px;")
         main_layout = QVBoxLayout(main_frame)
         main_layout.setContentsMargins(12, 12, 12, 12)
 

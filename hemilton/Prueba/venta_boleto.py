@@ -1,9 +1,3 @@
-# venta_boleto.py
-# -------------------------------------------------------
-# Interfaz profesional para seleccionar un viaje (Paso 1)
-# PySide6 + estilos modernos
-# -------------------------------------------------------
-
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QListWidget, QListWidgetItem,
     QApplication, QPushButton, QHBoxLayout, QMessageBox
@@ -13,8 +7,9 @@ from PySide6.QtCore import Qt
 import sys
 from conexion import crear_conexion
 from seleccionar_asiento import SeleccionarAsiento
-   # importa tu ventana de asientos
 
+
+#clase principal#
 
 class SeleccionarViaje(QWidget):
     def __init__(self):
@@ -25,9 +20,7 @@ class SeleccionarViaje(QWidget):
 
         layout = QVBoxLayout(self)
 
-        # -------------------------------
-        # Título
-        # -------------------------------
+        # Titulo #
         titulo = QLabel("Seleccionar Viaje")
         titulo.setFont(QFont("Arial", 22, QFont.Bold))
         titulo.setAlignment(Qt.AlignCenter)
@@ -35,18 +28,14 @@ class SeleccionarViaje(QWidget):
 
         layout.addWidget(titulo)
 
-        # -------------------------------
-        # Lista con viajes
-        # -------------------------------
+        # Lista de los viajes #
         self.lista_viajes = QListWidget()
         self.lista_viajes.setObjectName("listaViajes")
         self.cargar_viajes()
 
         layout.addWidget(self.lista_viajes)
 
-        # -------------------------------
-        # Botones
-        # -------------------------------
+        # Botones #
         btn_layout = QHBoxLayout()
 
         self.btn_seleccionar = QPushButton("Continuar →")
@@ -58,9 +47,7 @@ class SeleccionarViaje(QWidget):
 
         layout.addLayout(btn_layout)
 
-    # --------------------------------------------------
-    # Cargar viajes desde MySQL
-    # --------------------------------------------------
+    # Consulta de los viajes #
     def cargar_viajes(self):
         db = crear_conexion()
         cursor = db.cursor()
@@ -83,9 +70,7 @@ class SeleccionarViaje(QWidget):
 
         db.close()
 
-    # --------------------------------------------------
-    # Acción al presionar "Continuar"
-    # --------------------------------------------------
+    # En caso de que haga algo mal #
     def abrir_asientos(self):
         item = self.lista_viajes.currentItem()
         if not item:
@@ -93,13 +78,11 @@ class SeleccionarViaje(QWidget):
             return
 
         id_viaje = item.data(Qt.UserRole)
-        # Abrimos la ventana de asientos
+        # Abrimos la ventana de asientos #
         self.ventana_asientos = SeleccionarAsiento(id_viaje)
         self.ventana_asientos.show()
 
-    # --------------------------------------------------
-    # Estilos QSS (estilo profesional)
-    # --------------------------------------------------
+    # Style #
     def estilos(self):
         return """
         #titulo {

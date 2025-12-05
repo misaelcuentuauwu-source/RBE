@@ -1,6 +1,3 @@
-# ventana_pago.py
-# Ventana de pago con conexión a BD
-
 from PySide6.QtGui import QIntValidator
 from datetime import datetime
 from PySide6.QtWidgets import (
@@ -10,7 +7,6 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QFont, QPixmap
 from conexion import crear_conexion
-# Al inicio de ventana_pago.py, agregar:
 from ventana_generar_boletos import VentanaGenerarBoletos
 import recursos_rc
 
@@ -26,7 +22,7 @@ def crear_imagen_r(path, max_w, max_h):
 
 
 class VentanaPago(QWidget):
-    # Señal que se emite cuando el pago es confirmado
+    # Señal para ver si si se pago
     pago_confirmado = Signal()
     
     def __init__(self, pasajeros_info=None, id_viaje=None, precio_base=0.0):
@@ -35,20 +31,16 @@ class VentanaPago(QWidget):
         self.pasajeros_info = pasajeros_info or []
         self.id_viaje = id_viaje
         self.precio_base = precio_base
-        self.taquillero_id = 1  # Por ahora usamos ID fijo, deberías obtenerlo del login
+        self.taquillero_id = 1
         
         self.setWindowTitle("Pago")
         self.resize(1100, 760)
 
-        # ======================================
-        # LAYOUT PRINCIPAL
-        # ======================================
+        # Layout principal #
         layout_principal = QHBoxLayout(self)
         layout_principal.setContentsMargins(0, 0, 0, 0)
 
-        # ======================================
-        # PANEL IZQUIERDO
-        # ======================================
+        # Panel izquierdo #
         panel_izq = QWidget()
         panel_izq.setStyleSheet("background: white;")
         layout_principal.addWidget(panel_izq, 3)
@@ -63,9 +55,7 @@ class VentanaPago(QWidget):
         layout_izq.addWidget(self.logo)
         layout_izq.addStretch()
 
-        # ======================================
-        # PANEL DERECHO con SCROLL
-        # ======================================
+        # Panel derecho #
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setStyleSheet("background: #0074B7; border: none;")
@@ -77,9 +67,7 @@ class VentanaPago(QWidget):
         layout_der = QVBoxLayout(contenedor_der)
         layout_der.setAlignment(Qt.AlignTop)
 
-        # ======================================
-        # TARJETA
-        # ======================================
+        # Tarjeta #
         tarjeta = QFrame()
         tarjeta.setStyleSheet("""
             background: #2A9BE7;
@@ -93,9 +81,7 @@ class VentanaPago(QWidget):
 
         layout_der.addWidget(tarjeta, alignment=Qt.AlignCenter)
 
-        # ======================================
-        # ICONO Y TEXTOS
-        # ======================================
+        # Iconos y texto #
         self.icono = crear_imagen_r(":/recursos/logocirculo.png", 120, 120)
 
         titulo = QLabel("Pago")
@@ -109,9 +95,7 @@ class VentanaPago(QWidget):
         layout_tarjeta.addWidget(titulo, alignment=Qt.AlignCenter)
         layout_tarjeta.addWidget(subtitulo, alignment=Qt.AlignCenter)
 
-        # ======================================
-        # TARJETAS DE INFORMACIÓN
-        # ======================================
+        # Tarjetas de informacion #
         def crear_info(nombre, valor):
             cont = QFrame()
             cont.setStyleSheet("""
@@ -143,9 +127,7 @@ class VentanaPago(QWidget):
         fila.addWidget(self.info_total)
         layout_tarjeta.addLayout(fila)
 
-        # ======================================
-        # BOTÓN VER DETALLE
-        # ======================================
+        # Boton para ver detalle #
         self.btn_detalle = QPushButton("Ver detalle")
         self.btn_detalle.setStyleSheet("""
             QPushButton {
@@ -162,9 +144,7 @@ class VentanaPago(QWidget):
         self.btn_detalle.clicked.connect(self.mostrar_detalle)
         layout_tarjeta.addWidget(self.btn_detalle)
 
-        # ======================================
-        # MÉTODO DE PAGO
-        # ======================================
+        # Metodo de pago #
         self.metodo_pago = QComboBox()
         self.cargar_metodos_pago()
         
@@ -196,17 +176,13 @@ class VentanaPago(QWidget):
 
         layout_tarjeta.addWidget(self.metodo_pago)
 
-        # ======================================
-        # ÁREA DINÁMICA
-        # ======================================
+        # area dinamica #
         self.area_dinamica = QVBoxLayout()
         layout_tarjeta.addLayout(self.area_dinamica)
 
         self.metodo_pago.currentTextChanged.connect(self.actualizar_area_pago)
 
-        # ======================================
-        # BOTONES
-        # ======================================
+        # botones #
         botones = QHBoxLayout()
 
         self.btn_confirmar = QPushButton("Confirmar Pago")
@@ -234,12 +210,11 @@ class VentanaPago(QWidget):
         botones.addWidget(btn_cancelar)
         layout_tarjeta.addLayout(botones)
 
-        # Calcular y mostrar totales
+        # Calcular y mostrar totales #
         self.calcular_totales()
         self.actualizar_area_pago(self.metodo_pago.currentText())
 
     def cargar_metodos_pago(self):
-        """Carga métodos de pago desde BD"""
         try:
             conn = crear_conexion()
             if not conn:
@@ -264,7 +239,6 @@ class VentanaPago(QWidget):
             QMessageBox.warning(self, "Aviso", f"Error al cargar métodos de pago:\n{e}")
 
     def calcular_totales(self):
-        """Calcula el total considerando descuentos"""
         try:
             conn = crear_conexion()
             if not conn:
@@ -295,7 +269,6 @@ class VentanaPago(QWidget):
             QMessageBox.warning(self, "Aviso", f"Error al calcular totales:\n{e}")
 
     def mostrar_detalle(self):
-        """Muestra el detalle de la compra"""
         try:
             conn = crear_conexion()
             if not conn:
@@ -338,7 +311,6 @@ class VentanaPago(QWidget):
             QMessageBox.warning(self, "Error", f"Error al mostrar detalle:\n{e}")
 
     def actualizar_area_pago(self, metodo):
-        """Actualiza el área según el método de pago"""
         while self.area_dinamica.count():
             item = self.area_dinamica.takeAt(0)
             if item.widget():
@@ -367,28 +339,28 @@ class VentanaPago(QWidget):
             self.area_dinamica.addWidget(self.recibido)
             self.area_dinamica.addWidget(self.cambio)
 
-        else:  # TARJETA
+        else:  
 
             self.input_tarjeta = QLineEdit()
             self.input_tarjeta.setPlaceholderText("Número de tarjeta")
-            self.input_tarjeta.setMaxLength(16)   # ✅ SOLO limitamos caracteres
-            # ❌ SIN QIntValidator AQUÍ
+            self.input_tarjeta.setMaxLength(16)   
+
 
             self.input_mes = QLineEdit()
             self.input_mes.setPlaceholderText("Mes (MM)")
             self.input_mes.setMaxLength(2)
-            self.input_mes.setValidator(QIntValidator(1, 12))   # ✅ rango mes correcto
+            self.input_mes.setValidator(QIntValidator(1, 12))   
 
             self.input_year = QLineEdit()
             self.input_year.setPlaceholderText("Año (YY)")
             self.input_year.setMaxLength(2)
-            self.input_year.setValidator(QIntValidator(0, 99))  # ✅ limita 00–99
+            self.input_year.setValidator(QIntValidator(0, 99))  
 
             self.input_cvv = QLineEdit()
             self.input_cvv.setPlaceholderText("CVV")
             self.input_cvv.setMaxLength(4)
             self.input_cvv.setEchoMode(QLineEdit.Password)
-            self.input_cvv.setValidator(QIntValidator(0, 9999))  # ✅ CVV correcto
+            self.input_cvv.setValidator(QIntValidator(0, 9999))  
 
             for campo in [self.input_tarjeta, self.input_mes, self.input_year, self.input_cvv]:
                 campo.setStyleSheet("""
@@ -403,7 +375,6 @@ class VentanaPago(QWidget):
 
 
     def calcular_cambio(self):
-        """Calcula el cambio en efectivo"""
         try:
             recibido = float(self.recibido.text())
             cambio = recibido - self.total_pagar
@@ -418,12 +389,12 @@ class VentanaPago(QWidget):
             year = self.input_year.text()
             cvv = self.input_cvv.text()
 
-            # Campos vacíos
+            # Campos vacios
             if not tarjeta or not mes or not year or not cvv:
                 QMessageBox.warning(self, "Error", "Todos los campos de tarjeta son obligatorios")
                 return False
 
-            # Número de tarjeta
+            # Numero de tarjeta
             if not tarjeta.isdigit() or len(tarjeta) not in [13, 15, 16]:
                 QMessageBox.warning(self, "Error", "Número de tarjeta inválido")
                 return False
@@ -443,12 +414,12 @@ class VentanaPago(QWidget):
                 QMessageBox.warning(self, "Error", "CVV inválido")
                 return False
 
-            # ✅ VALIDACIÓN REAL DE CADUCIDAD
+            # validacion de caducidad
             ahora = datetime.now()
             mes = int(mes)
             year = int("20" + year)
 
-            # Último día del mes de caducidad
+            # ultimo dia de caducidad
             if mes == 12:
                 fin_mes = datetime(year + 1, 1, 1)
             else:
@@ -467,7 +438,6 @@ class VentanaPago(QWidget):
 
 
     def confirmar_pago(self):
-        """Guarda pago, tickets y marca asientos como ocupados"""
         metodo_texto = self.metodo_pago.currentText()
         
         if metodo_texto not in self.metodos_disponibles:
@@ -476,7 +446,7 @@ class VentanaPago(QWidget):
         
         tipo_pago_id = self.metodos_disponibles[metodo_texto]
         
-        # Validar efectivo
+        # Validar efectivo #
         if metodo_texto == "Efectivo":
             try:
                 recibido = float(self.recibido.text())
@@ -486,7 +456,7 @@ class VentanaPago(QWidget):
             except:
                 QMessageBox.warning(self, "Error", "Ingresa el monto recibido")
                 return
-        # Validar TARJETA
+        # Validar tarjeta #
         if metodo_texto != "Efectivo":
             if not self.validar_tarjeta():
                 return
@@ -499,7 +469,7 @@ class VentanaPago(QWidget):
             
             cursor = conn.cursor()
             
-            # 1. Crear registro de pago
+            # Crear registro de pago
             query_pago = """
             INSERT INTO pago (fechapago, monto, tipo, vendedor)
             VALUES (%s, %s, %s, %s)
@@ -513,9 +483,9 @@ class VentanaPago(QWidget):
             
             pago_id = cursor.lastrowid
             
-            # 2. Crear tickets para cada pasajero
+            # Crear tickets para cada pasajero
             for info in self.pasajeros_info:
-                # Obtener descuento
+                # Descuento
                 cursor.execute("SELECT descuento FROM tipo_pasajero WHERE num = %s", (info['tipo_pasajero'],))
                 desc_result = cursor.fetchone()
                 descuento = desc_result[0] if desc_result else 0
@@ -535,9 +505,8 @@ class VentanaPago(QWidget):
                     info['tipo_pasajero'],
                     pago_id
                 ))
-            # 3. Marcar asientos como ocupados (CON FIX) ⭐
+            #Marcar asientos como ocupados
             for info in self.pasajeros_info:
-                # Primero verificar si existe el registro
                 check_query = """
                 SELECT asiento FROM viaje_asiento 
                 WHERE viaje = %s AND asiento = %s
@@ -546,7 +515,6 @@ class VentanaPago(QWidget):
                 existe = cursor.fetchone()
                 
                 if existe:
-                    # Si existe, actualizar
                     update_query = """
                     UPDATE viaje_asiento 
                     SET ocupado = TRUE 
@@ -554,7 +522,7 @@ class VentanaPago(QWidget):
                     """
                     cursor.execute(update_query, (self.id_viaje, info['asiento_id']))
                 else:
-                    # Si no existe, insertar
+                    # Si no existe insertar
                     insert_query = """
                     INSERT INTO viaje_asiento (viaje, asiento, ocupado)
                     VALUES (%s, %s, TRUE)
@@ -565,7 +533,7 @@ class VentanaPago(QWidget):
             cursor.close()
             conn.close()
             
-            # Mensaje de éxito
+            # Mensaje de exito
             QMessageBox.information(
                 self, "¡Pago exitoso!",
                 f"Se procesó el pago correctamente.\n\n"
@@ -575,14 +543,14 @@ class VentanaPago(QWidget):
                 f"A continuación podrás personalizar y exportar tus boletos."
             )
             
-            # ⭐ ABRIR VENTANA DE GENERACIÓN DE BOLETOS
+            # Abrir ventana de boleto
             self.ventana_boletos = VentanaGenerarBoletos(
                 pasajeros_info=self.pasajeros_info,
                 id_viaje=self.id_viaje
             )
             self.ventana_boletos.show()
             
-            # Emitir señal y cerrar ventana de pago
+            # mandar mensaje y cerrar
             self.pago_confirmado.emit()
             self.close()
             

@@ -1,17 +1,10 @@
-# ticket_service.py
-# -------------------------
-# Servicio de acceso a BD para la venta de boletos.
-# Usa la conexión centralizada (conexion.crear_conexion).
-# Adaptaciones: tablas y columnas según tu esquema RBE.
-# -------------------------
-
 from conexion import crear_conexion
 from datetime import datetime
 
+# Consulta para sacar viajes proximos #
+
 def get_viajes_proximos():
-    """
-    Devuelve lista de viajes próximos con info (numero, fecHoraSalida, fecHoraEntrada, ruta, origen_nombre, destino_nombre, autobus).
-    """
+
     cn = crear_conexion()
     cur = cn.cursor(dictionary=True)
     cur.execute("""
@@ -27,6 +20,8 @@ def get_viajes_proximos():
     cn.close()
     return rows
 
+#consulta para sacar el nombre de la terminal#
+
 def get_terminal_nombre(num_terminal):
     cn = crear_conexion()
     cur = cn.cursor(dictionary=True)
@@ -37,15 +32,10 @@ def get_terminal_nombre(num_terminal):
     return r['nombre'] if r else str(num_terminal)
 
 def get_asientos_disponibles_por_viaje(viaje_num):
-    """
-    Devuelve lista de asientos (numero, tipo) que NO están ocupados para un viaje.
-    Utiliza viaje_asiento para verificar existencia; si no existe la fila de viaje_asiento
-    asumimos que el asiento está disponible (pero normalmente preparamos viaje_asiento cuando se crea el viaje).
-    """
     cn = crear_conexion()
     cur = cn.cursor(dictionary=True)
 
-    # Primero, todos los asientos del autobús del viaje
+    # Consulta para sacar numeros del autobus #
     cur.execute("""
         SELECT a.numero AS asiento_num, a.tipo
         FROM asiento a
@@ -55,7 +45,7 @@ def get_asientos_disponibles_por_viaje(viaje_num):
     """, (viaje_num,))
     asientos = cur.fetchall()
 
-    # Luego, cuales están marcados ocupados en viaje_asiento
+    # Consulta para sacar asientos ocupados #
     cur.execute("""
         SELECT asiento FROM viaje_asiento
         WHERE viaje = %s AND ocupado = 1
@@ -69,12 +59,11 @@ def get_asientos_disponibles_por_viaje(viaje_num):
     return disponibles
 
 def buscar_pasajeros_por_nombre(q):
-    """
-    Busca pasajeros por coincidencia simple en nombre o apellido.
-    """
     cn = crear_conexion()
     cur = cn.cursor(dictionary=True)
     term = f"%{q}%"
+    #consulta para sacar nombre del pasajero#
+    
     cur.execute("""
         SELECT num, paNombre, paPrimerApell, paSegundoApell, fechaNacimiento, edad
         FROM pasajero
@@ -87,9 +76,7 @@ def buscar_pasajeros_por_nombre(q):
     return rows
 
 def crear_pasajero(paNombre, paPrimerApell, paSegundoApell, fechaNacimiento, edad):
-    """
-    Inserta pasajero y devuelve su id (num).
-    """
+    #insertar datos de pasajero#
     cn = crear_conexion()
     cur = cn.cursor()
     cur.execute("""
@@ -120,24 +107,12 @@ def get_tipos_pago():
     cn.close()
     return rows
 
-# ---------- operaciones transaccionales: pago + ticket + marcar asiento ----------
+# metodo para la venta del boleto #
 def vender_boleto(transaccion):
-    """
-    Realiza la venta dentro de una transacción atómica.
-    transaccion: dict con keys:
-      - viaje (int)
-      - asiento (int)
-      - pasajero (int)
-      - tipopasajero (int)
-      - precio (decimal/float)
-      - tipo_pago (int)
-      - vendedor (id taquillero)
-    Retorna: (True, {'ticket_id':..., 'pago_id':...}) o (False, error_str)
-    """
     cn = crear_conexion()
     cur = cn.cursor()
     try:
-        # 1) insertar pago
+        # insertar pago
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         cur.execute("""
             INSERT INTO pago (fechapago, monto, tipo, vendedor)
@@ -145,7 +120,7 @@ def vender_boleto(transaccion):
         """, (now, transaccion['precio'], transaccion['tipo_pago'], transaccion['vendedor']))
         pago_id = cur.lastrowid
 
-        # 2) insertar ticket
+        # insertar ticket
         cur.execute("""
             INSERT INTO ticket (precio, fechaEmision, asiento, viaje, pasajero, tipopasajero, pago)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
@@ -153,8 +128,6 @@ def vender_boleto(transaccion):
               transaccion['pasajero'], transaccion['tipopasajero'], pago_id))
         ticket_id = cur.lastrowid
 
-        # 3) marcar asiento ocupado en viaje_asiento:
-        # si ya existe fila en viaje_asiento la actualizamos; si no existe la insertamos.
         cur.execute("""
             SELECT COUNT(*) cnt FROM viaje_asiento WHERE viaje=%s AND asiento=%s
         """, (transaccion['viaje'], transaccion['asiento']))

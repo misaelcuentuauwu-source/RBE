@@ -1,4 +1,3 @@
-# ventana_generar_boletos.py - Versión final con todos los cambios solicitados
 from datetime import datetime
 from PySide6.QtWidgets import (
     QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout,
@@ -11,15 +10,14 @@ from PySide6.QtPrintSupport import QPrinter
 from conexion import crear_conexion
 
 class TicketCanvas(QFrame):
-    """Widget que dibuja el boleto personalizado con los cambios solicitados"""
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setMinimumSize(760, 280)
         self.setMaximumSize(760, 280)
 
-        # Datos del boleto (valores por defecto)
-        self.numero_boleto = "000000"  # Solo número de viaje (6 dígitos)
+        # Datos del boleto #
+        self.numero_boleto = "000000"  
         self.terminal_origen = "Terminal Origen"
         self.terminal_destino = "Terminal Destino"
         self.ciudad_origen = "Ciudad Origen"
@@ -31,7 +29,7 @@ class TicketCanvas(QFrame):
         self.precio = "$0.00"
         self.tipo_pasajero = "Regular"
 
-        # Colores personalizables
+        # Colores personalizables #
         self.color_primario = QColor("#0074B7")
         self.color_secundario = QColor("#FFFFFF")
         self.color_texto = QColor("#000000")
@@ -152,7 +150,7 @@ class TicketCanvas(QFrame):
         painter.setFont(QFont("Arial", 16, QFont.Bold))
         painter.drawText(QRect(margen+120, y_offset+20, 120, 25), Qt.AlignCenter, self.precio)
 
-        # PARTE DERECHA (Talón)
+        # PARTE DERECHA 
         der_x = w // 2
         der_w = w // 2
 
@@ -173,7 +171,7 @@ class TicketCanvas(QFrame):
         painter.setFont(QFont("Courier", 12, QFont.Bold))
         painter.drawText(QRect(der_x+70, 40, 200, 25), Qt.AlignLeft, self.numero_boleto)
 
-        # Info talón
+        # Info talon
         y_talon = 100
         painter.setPen(self.color_texto)
 
@@ -207,7 +205,7 @@ class TicketCanvas(QFrame):
         painter.setFont(QFont("Arial", 16, QFont.Bold))
         painter.drawText(QRect(der_x+30, y_talon+15, 80, 20), Qt.AlignCenter, self.asiento)
 
-        # Código de barras simulado
+        # Codigo de barras simulado
         painter.setPen(self.color_texto)
         for i in range(30):
             x = der_x + 130 + i*3
@@ -230,7 +228,7 @@ class VentanaGenerarBoletos(QWidget):
     def __init__(self, pasajeros_info=None, id_viaje=None):
         super().__init__()
 
-        # Validación inicial
+        # Validacion inicial
         if not pasajeros_info or id_viaje is None:
             QMessageBox.critical(self, "Error", "Datos de pasajeros o ID de viaje no proporcionados.")
             self.close()
@@ -252,7 +250,7 @@ class VentanaGenerarBoletos(QWidget):
         layout_principal.setContentsMargins(0, 0, 0, 0)
         layout_principal.setSpacing(0)
 
-        # ===== PANEL IZQUIERDO - Plantillas =====
+        # Panel izquierdo
         panel_izq = QFrame()
         panel_izq.setStyleSheet("background: #1a1a1a;")
         panel_izq.setFixedWidth(350)
@@ -261,7 +259,7 @@ class VentanaGenerarBoletos(QWidget):
         layout_izq.setContentsMargins(15, 15, 15, 15)
         layout_izq.setSpacing(15)
 
-        # Título
+        # Titulo
         titulo_panel = QLabel("Personalización")
         titulo_panel.setFont(QFont("Arial", 20, QFont.Bold))
         titulo_panel.setStyleSheet("color: white;")
@@ -313,7 +311,7 @@ class VentanaGenerarBoletos(QWidget):
         nav_pasajero.addWidget(self.btn_siguiente)
         layout_izq.addLayout(nav_pasajero)
 
-        # Scroll para plantillas
+        # Scroll para plantillas #
         scroll_plantillas = QScrollArea()
         scroll_plantillas.setWidgetResizable(True)
         scroll_plantillas.setStyleSheet("""
@@ -336,7 +334,7 @@ class VentanaGenerarBoletos(QWidget):
         layout_plantillas = QVBoxLayout(contenedor_plantillas)
         layout_plantillas.setSpacing(12)
 
-        # Plantillas predefinidas con buen contraste
+        # Plantillas predefinidas #
         lbl_plantillas = QLabel("Plantillas")
         lbl_plantillas.setStyleSheet("color: white; font-size: 16px; font-weight: bold;")
         layout_plantillas.addWidget(lbl_plantillas)
@@ -359,12 +357,12 @@ class VentanaGenerarBoletos(QWidget):
             self.grupo_plantillas.addButton(plantilla_btn, i)
             layout_plantillas.addWidget(plantilla_btn)
 
-        # Seleccionar primera plantilla
+        # Seleccionar primera plantilla #
         self.grupo_plantillas.button(0).setChecked(True)
 
         layout_plantillas.addSpacing(20)
 
-        # Colores personalizados
+        # Colores personalizados#
         lbl_colores = QLabel("Colores Personalizados")
         lbl_colores.setStyleSheet("color: white; font-size: 16px; font-weight: bold;")
         layout_plantillas.addWidget(lbl_colores)
@@ -386,7 +384,7 @@ class VentanaGenerarBoletos(QWidget):
         scroll_plantillas.setWidget(contenedor_plantillas)
         layout_izq.addWidget(scroll_plantillas, stretch=1)
 
-        # ===== PANEL CENTRAL - Vista previa =====
+        # Panel central #
         panel_centro = QFrame()
         panel_centro.setStyleSheet("background: #f0f0f0;")
 
@@ -408,7 +406,7 @@ class VentanaGenerarBoletos(QWidget):
 
         layout_centro.addSpacing(30)
 
-        # Botones de exportación
+        # Botones de exportacion
         botones_accion = QHBoxLayout()
         botones_accion.setSpacing(15)
 
@@ -447,7 +445,7 @@ class VentanaGenerarBoletos(QWidget):
 
         layout_centro.addLayout(botones_accion)
 
-        # ===== PANEL DERECHO - Opciones =====
+        # Panel derecho #
         panel_der = QFrame()
         panel_der.setStyleSheet("background: white; border-left: 2px solid #ccc;")
         panel_der.setFixedWidth(300)
@@ -461,7 +459,7 @@ class VentanaGenerarBoletos(QWidget):
         titulo_opciones.setStyleSheet("color: #333;")
         layout_der.addWidget(titulo_opciones)
 
-        # Exportar todos
+        # Exportar todos #
         btn_exportar_todos = QPushButton("📦 Exportar Todos los Boletos")
         btn_exportar_todos.setFixedHeight(60)
         btn_exportar_todos.setStyleSheet("""
@@ -477,7 +475,7 @@ class VentanaGenerarBoletos(QWidget):
         btn_exportar_todos.clicked.connect(self.exportar_todos)
         layout_der.addWidget(btn_exportar_todos)
 
-        # Info del viaje
+        # Info del viaje #
         frame_info = QFrame()
         frame_info.setStyleSheet("background: #E3F2FD; border-radius: 10px; padding: 15px;")
         layout_info = QVBoxLayout(frame_info)
@@ -489,7 +487,7 @@ class VentanaGenerarBoletos(QWidget):
 
         layout_der.addWidget(frame_info)
 
-        # Info del pasajero
+        # Info del pasajero #
         frame_pasajero = QFrame()
         frame_pasajero.setStyleSheet("background: #FFF3E0; border-radius: 10px; padding: 15px;")
         layout_pax = QVBoxLayout(frame_pasajero)
@@ -503,7 +501,7 @@ class VentanaGenerarBoletos(QWidget):
 
         layout_der.addStretch()
 
-        # Botón cerrar
+        # Boton cerrar #
         btn_cerrar = QPushButton("Cerrar")
         btn_cerrar.setFixedHeight(45)
         btn_cerrar.setStyleSheet("""
@@ -519,18 +517,17 @@ class VentanaGenerarBoletos(QWidget):
         btn_cerrar.clicked.connect(self.close)
         layout_der.addWidget(btn_cerrar)
 
-        # AGREGAR PANELES
+        # Agregar paneles #
         layout_principal.addWidget(panel_izq)
         layout_principal.addWidget(panel_centro, stretch=1)
         layout_principal.addWidget(panel_der)
 
-        # Cargar datos y actualizar vista
+        # Cargar datos y actualizar vista #
         self.cargar_datos_viaje()
         self.actualizar_vista_boleto()
         self.actualizar_botones_navegacion()
 
     def crear_boton_plantilla(self, nombre, primario, secundario, texto, acento):
-        """Crea un botón de plantilla con vista previa"""
         btn = QRadioButton()
         btn.setFixedHeight(70)
         btn.setStyleSheet(f"""
@@ -567,7 +564,6 @@ class VentanaGenerarBoletos(QWidget):
         return btn
 
     def crear_selector_color(self, nombre, key):
-        """Crea un selector de color personalizado"""
         container = QFrame()
         container.setStyleSheet("background: #2a2a2a; border-radius: 8px; padding: 8px;")
 
@@ -606,7 +602,6 @@ class VentanaGenerarBoletos(QWidget):
             self.aplicar_colores_custom()
 
     def aplicar_plantilla(self, primario, secundario, texto, acento):
-        """Aplica una plantilla predefinida al boleto actual"""
         pasajero_id = self.pasajeros_info[self.indice_actual]['pasajero_id']
         self.colores_pasajeros[pasajero_id] = {
             'primario': primario,
@@ -617,7 +612,6 @@ class VentanaGenerarBoletos(QWidget):
         self.ticket_canvas.set_colores(primario, secundario, texto, acento)
 
     def aplicar_colores_custom(self):
-        """Aplica colores personalizados al boleto actual"""
         if len(self.colores_custom) == 4:
             pasajero_id = self.pasajeros_info[self.indice_actual]['pasajero_id']
             self.colores_pasajeros[pasajero_id] = {
@@ -634,7 +628,6 @@ class VentanaGenerarBoletos(QWidget):
             )
 
     def cargar_datos_viaje(self):
-        """Carga información del viaje desde la base de datos"""
         if not self.id_viaje:
             QMessageBox.warning(self, "Error", "ID de viaje no proporcionado.")
             return
@@ -646,7 +639,7 @@ class VentanaGenerarBoletos(QWidget):
 
             cursor = conn.cursor(dictionary=True)
 
-            # Consulta actualizada para incluir fecha de llegada, terminales y ciudades
+            # Consulta actualizada #
             query = """
             SELECT
                 v.numero AS viaje_id,
@@ -698,7 +691,6 @@ class VentanaGenerarBoletos(QWidget):
             QMessageBox.critical(self, "Error", f"Error al cargar datos del viaje:\n{str(e)}")
 
     def actualizar_vista_boleto(self):
-        """Actualiza el canvas con los datos del pasajero actual"""
         if not self.pasajeros_info or self.indice_actual >= len(self.pasajeros_info):
             return
 
@@ -711,7 +703,7 @@ class VentanaGenerarBoletos(QWidget):
 
             cursor = conn.cursor(dictionary=True)
 
-            # Obtener datos del pasajero
+            # Obtener datos del pasajero #
             query_pax = """
             SELECT
                 paNombre, paPrimerApell, paSegundoApell
@@ -721,7 +713,7 @@ class VentanaGenerarBoletos(QWidget):
             cursor.execute(query_pax, (info['pasajero_id'],))
             pax = cursor.fetchone()
 
-            # Obtener datos del tipo de pasajero
+            # Obtener datos del tipo de pasajero #
             query_tipo = """
             SELECT
                 descripcion, descuento
@@ -732,19 +724,18 @@ class VentanaGenerarBoletos(QWidget):
             tipo = cursor.fetchone()
 
             if pax and tipo:
-                # Formatear nombre completo
+                # Formatear nombre completo #
                 nombre_completo = f"{pax['paNombre']} {pax['paPrimerApell']}"
                 if pax['paSegundoApell']:
                     nombre_completo += f" {pax['paSegundoApell']}"
 
-                # Número de boleto ahora solo incluye el número de viaje
+                # Número de boleto 
                 numero_boleto = f"{self.datos_viaje['numero']}"
 
                 # Calcular precio con descuento
                 descuento = tipo['descuento']
                 precio_final = self.datos_viaje['precio_base'] * (1 - descuento / 100.0)
 
-                # Preparar datos para el boleto con los cambios solicitados
 
                 datos_boleto = {
                     'numero_viaje': numero_boleto,
@@ -757,7 +748,7 @@ class VentanaGenerarBoletos(QWidget):
                     'asiento': str(info['asiento_id']),
                     'pasajero': nombre_completo,
                     'precio': f"${precio_final:.2f}",
-                    'tipo_pasajero': info.get('tipo_asiento', 'Regular')  # ⭐ CAMBIO AQUÍ
+                    'tipo_pasajero': info.get('tipo_asiento', 'Regular')  
                 }
                 self.ticket_canvas.set_datos(datos_boleto)
 
@@ -784,27 +775,23 @@ class VentanaGenerarBoletos(QWidget):
             QMessageBox.warning(self, "Error", f"Error al actualizar vista:\n{str(e)}")
 
     def pasajero_anterior(self):
-        """Navega al pasajero anterior"""
         if self.indice_actual > 0:
             self.indice_actual -= 1
             self.actualizar_vista_boleto()
             self.actualizar_botones_navegacion()
 
     def pasajero_siguiente(self):
-        """Navega al siguiente pasajero"""
         if self.indice_actual < len(self.pasajeros_info) - 1:
             self.indice_actual += 1
             self.actualizar_vista_boleto()
             self.actualizar_botones_navegacion()
 
     def actualizar_botones_navegacion(self):
-        """Actualiza el estado de los botones de navegación"""
         self.btn_anterior.setEnabled(self.indice_actual > 0)
         self.btn_siguiente.setEnabled(self.indice_actual < len(self.pasajeros_info) - 1)
         self.lbl_contador.setText(f"{self.indice_actual + 1} / {len(self.pasajeros_info)}")
 
     def exportar_boleto(self, formato):
-        """Exporta el boleto actual como PNG o PDF"""
         if formato == "PNG":
             archivo, _ = QFileDialog.getSaveFileName(
                 self, "Guardar boleto",
@@ -849,7 +836,6 @@ class VentanaGenerarBoletos(QWidget):
                     QMessageBox.critical(self, "Error", f"Error al exportar PDF:\n{str(e)}")
 
     def exportar_todos(self):
-        """Exporta todos los boletos como PNG y PDF"""
         import os
 
         carpeta = QFileDialog.getExistingDirectory(self, "Seleccionar carpeta de destino")
@@ -907,17 +893,17 @@ if __name__ == "__main__":
 
     app = QApplication(sys.argv)
 
-    # Datos de prueba que coinciden con los cambios solicitados
+    # Datos de prueba #
     pasajeros_prueba = [
         {
             'pasajero_id': 1,
             'asiento_id': 12,
-            'tipo_pasajero': 1  # Regular (0% descuento)
+            'tipo_pasajero': 1  # Regular 
         },
         {
             'pasajero_id': 2,
             'asiento_id': 13,
-            'tipo_pasajero': 2  # Estudiante (10% descuento)
+            'tipo_pasajero': 2  # Estudiante 
         }
     ]
 
