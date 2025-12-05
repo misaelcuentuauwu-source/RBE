@@ -1,6 +1,3 @@
-# ventana_registro_pasajero.py
-# Ventana de registro de pasajeros - CON VALIDACIÓN DE EDAD
-
 from datetime import date
 from PySide6.QtWidgets import (
     QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout,
@@ -13,16 +10,16 @@ import recursos_rc
 
 
 class VentanaRegistroPasajero(QWidget):
-    # Señal que emite el ID del pasajero registrado
+    # mensaje de pasajero registrado
     pasajero_registrado = Signal(int)
     
     def __init__(self, numero_pasajero=1, asiento_id=None, tipo_pasajero=None, total_pasajeros=1):
         super().__init__()
         self.numero_pasajero = numero_pasajero
         self.asiento_id = asiento_id
-        self.tipo_pasajero = tipo_pasajero  # ID del tipo seleccionado
+        self.tipo_pasajero = tipo_pasajero  
         self.total_pasajeros = total_pasajeros
-        self.nombre_tipo = ""  # Se cargará desde BD
+        self.nombre_tipo = ""  
         
         self.setWindowTitle(f"Registro de pasajero {numero_pasajero}/{total_pasajeros}")
         self.resize(1100, 760)
@@ -30,16 +27,12 @@ class VentanaRegistroPasajero(QWidget):
         # Cargar información del tipo de pasajero
         self.cargar_info_tipo()
 
-        # ============================
-        # LAYOUT PRINCIPAL
-        # ============================
+        # Layout principal #
         layout_principal = QHBoxLayout(self)
         layout_principal.setContentsMargins(0, 0, 0, 0)
         layout_principal.setSpacing(0)
 
-        # ============================
-        # PANEL IZQUIERDO
-        # ============================
+        # Panel izquierdo #
         panel_izq = QWidget()
         panel_izq.setStyleSheet("background: white;")
         layout_izq = QVBoxLayout(panel_izq)
@@ -58,17 +51,13 @@ class VentanaRegistroPasajero(QWidget):
         layout_izq.addWidget(img)
         layout_izq.addWidget(logo)
 
-        # ============================
-        # PANEL DERECHO
-        # ============================
+        # Panel derecho #
         panel_der = QWidget()
         panel_der.setStyleSheet("background: #0074B7;")
         layout_der = QVBoxLayout(panel_der)
         layout_der.setAlignment(Qt.AlignCenter)
 
-        # ============================
-        # TARJETA INTERNA
-        # ============================
+        # Tarjeta #
         tarjeta = QFrame()
         tarjeta.setStyleSheet("""
             background: #2A9BE7;
@@ -85,13 +74,13 @@ class VentanaRegistroPasajero(QWidget):
             120, 120, Qt.KeepAspectRatio, Qt.SmoothTransformation))
         icono.setAlignment(Qt.AlignCenter)
 
-        # Título dinámico
+        # Titulo dinámico
         titulo = QLabel(f"Pasajero {numero_pasajero}\nde {total_pasajeros}")
         titulo.setFont(QFont("Arial", 28, QFont.Bold))
         titulo.setStyleSheet("color: white;")
         titulo.setAlignment(Qt.AlignCenter)
 
-        # Info del asiento y tipo
+        # Info del asiento y tipo #
         info_container = QVBoxLayout()
         info_container.setSpacing(5)
         
@@ -109,9 +98,7 @@ class VentanaRegistroPasajero(QWidget):
             info_tipo.setAlignment(Qt.AlignCenter)
             info_container.addWidget(info_tipo)
 
-        # ============================
-        # CAMPOS DE TEXTO
-        # ============================
+        # Campos de texto #
         def crear_campo(placeholder):
             campo = QLineEdit()
             campo.setPlaceholderText(placeholder)
@@ -130,9 +117,7 @@ class VentanaRegistroPasajero(QWidget):
         self.campo_ap1 = crear_campo("Primer Apellido")
         self.campo_ap2 = crear_campo("Segundo Apellido (opcional)")
 
-        # ============================
-        # CAMPO FECHA
-        # ============================
+        # Campo de fecha #
         self.date = QDateEdit()
         self.date.setCalendarPopup(True)
         self.date.setDisplayFormat("dd/MM/yyyy")
@@ -196,9 +181,7 @@ class VentanaRegistroPasajero(QWidget):
         """)
         self.date.setCalendarWidget(calendar)
 
-        # ============================
-        # BOTONES
-        # ============================
+        # Botones #
         botones = QHBoxLayout()
         botones.setSpacing(20)
 
@@ -232,9 +215,7 @@ class VentanaRegistroPasajero(QWidget):
         botones.addWidget(btn_siguiente)
         botones.addWidget(btn_cancelar)
 
-        # ============================
-        # ARMAR TARJETA
-        # ============================
+        # Acomodo de la tarjeta #
         layout_tarjeta.addWidget(icono)
         layout_tarjeta.addWidget(titulo)
         layout_tarjeta.addLayout(info_container)
@@ -252,7 +233,6 @@ class VentanaRegistroPasajero(QWidget):
         layout_principal.addWidget(panel_der, 4)
 
     def cargar_info_tipo(self):
-        """Carga el nombre del tipo de pasajero desde la BD"""
         if not self.tipo_pasajero:
             return
         
@@ -275,7 +255,6 @@ class VentanaRegistroPasajero(QWidget):
             print(f"Error al cargar tipo: {e}")
 
     def calcular_edad(self, nacimiento):
-        """Calcula la edad a partir de la fecha de nacimiento"""
         hoy = date.today()
         edad = hoy.year - nacimiento.year
         if (hoy.month, hoy.day) < (nacimiento.month, nacimiento.day):
@@ -283,10 +262,6 @@ class VentanaRegistroPasajero(QWidget):
         return edad
 
     def validar_edad_con_tipo(self, edad):
-        """
-        Valida que la edad coincida con el tipo de pasajero seleccionado
-        Retorna (es_valido, mensaje_error)
-        """
         if not self.tipo_pasajero:
             return True, ""
         
@@ -334,7 +309,7 @@ class VentanaRegistroPasajero(QWidget):
         
         nacimiento = self.date.date().toPython()
 
-        # Validaciones básicas
+        # Validaciones basicas
         if not nombre or not apep:
             QMessageBox.warning(self, "Error", "Nombre y apellido paterno son obligatorios")
             return
@@ -354,9 +329,7 @@ class VentanaRegistroPasajero(QWidget):
             )
             
             if respuesta == QMessageBox.No:
-                return  # No continuar con el registro
-            # Si responde Yes, continuar de todos modos (en caso de error del usuario)
-
+                return  
         try:
             conexion = crear_conexion()
             if not conexion:
@@ -376,7 +349,7 @@ class VentanaRegistroPasajero(QWidget):
             pasajero_id = cursor.lastrowid
             conexion.close()
 
-            # Mensaje de confirmación
+            # Mensaje de confirmacion
             QMessageBox.information(
                 self, 
                 "✅ Éxito", 
@@ -387,17 +360,16 @@ class VentanaRegistroPasajero(QWidget):
                 f"Asiento: #{self.asiento_id}"
             )
             
-            # Emitir señal con el ID del pasajero registrado
+            # mensaje de que se registro pasajero
             self.pasajero_registrado.emit(pasajero_id)
             
-            # Cerrar esta ventana
+            # Cerrar esta ventana #
             self.close()
 
         except Exception as e:
             QMessageBox.critical(self, "Error", f"No se pudo registrar el pasajero:\n{e}")
     
     def cancelar_registro(self):
-        """Cancela el registro y cierra todo el flujo"""
         respuesta = QMessageBox.question(
             self,
             "Cancelar registro",

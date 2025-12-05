@@ -1,15 +1,8 @@
-# terminales.py
-# ---------------------------------------------------------
-# Muestra la lista de terminales desde la BD RBE
-# Ya conectado con tu archivo conexion.py
-# ---------------------------------------------------------
-
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QScrollArea, QFrame
 )
 from PySide6.QtCore import Qt
 
-# ✅ Importa conexión desde tu archivo "conexion.py"
 from conexion import crear_conexion
 
 
@@ -33,16 +26,16 @@ class VentanaTerminales(QWidget):
         titulo.setStyleSheet("font-size: 20pt; font-weight: bold; color: #1181c3; margin: 20px;")
         layout.addWidget(titulo)
 
-        # Área de scroll
+        # El Scroll #
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         contenedor = QWidget()
         vbox = QVBoxLayout(contenedor)
 
-        # Cargar terminales desde la base de datos
+        # Cargar terminales desde la base de datos #
         terminales = self.obtener_terminales()
 
-        # Crear tarjetas (“cards”)
+        # Crear tarjetas #
         for t in terminales:
             card = QFrame()
             card.setStyleSheet("""
@@ -77,9 +70,7 @@ class VentanaTerminales(QWidget):
         scroll.setWidget(contenedor)
         layout.addWidget(scroll)
 
-    # ---------------------------------------------------------
-    # ➜ Obtener terminales desde la BD usando conexion.py
-    # ---------------------------------------------------------
+    # Consulta de la BD sobre terminales #
     def obtener_terminales(self):
         try:
             cn = crear_conexion()
