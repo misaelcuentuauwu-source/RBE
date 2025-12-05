@@ -13,14 +13,10 @@ from panel_admin import PanelAdministrador
 from animacion import Animador
 from viajes_programados import ProgramacionWindow
 
-# ===========================
-# 🔐 CONFIGURACIÓN DE SEGURIDAD
-# ===========================
-CLAVE_MAESTRA = "RutasBaja2024"  # Cambia esta clave por una segura en producción
+# Clave maestra de seguridad #
+CLAVE_MAESTRA = "RutasBaja2024" 
 
-# ===========================
-# 🚀 FUNCIONES DE BASE DE DATOS
-# ===========================
+# Funciones para iniciar sesion #
 
 def iniciar_sesion_bd(usuario, contrasena):
     try:
@@ -56,9 +52,7 @@ def registrar_taquillero_bd(nombre, ap1, ap2, usuario, contrasena, terminal=1, s
     except Exception as e:
         return False, str(e)
 
-# ===========================
-# 🔐 VENTANA DE VERIFICACIÓN DE CLAVE MAESTRA
-# ===========================
+# verificacion de clave maestra #
 class VerificacionClave(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -119,10 +113,6 @@ class VerificacionClave(QDialog):
             QMessageBox.warning(self, "Error", "Clave incorrecta. Intente nuevamente.")
             self.clave_input.clear()
 
-# ===========================
-# 🚀 INTERFAZ GRÁFICA
-# ===========================
-
 class App:
     def __init__(self):
         self.usuario_actual = None
@@ -131,9 +121,6 @@ class App:
         self.ventana_login()
         sys.exit(self.app.exec())
 
-    # ===========================
-    # ✨ FUNCIÓN DE TRANSICIÓN
-    # ===========================
     def transicion(self, ventana_vieja, ventana_nueva):
         ventana_nueva.setGeometry(ventana_vieja.geometry())
         ventana_nueva.show()
@@ -143,9 +130,7 @@ class App:
         anim.anim_group.finished.connect(lambda: self.animaciones_activas.remove(anim))
         self.animaciones_activas.append(anim)
 
-    # ===========================
-    # VENTANA LOGIN (Qt Designer)
-    # ===========================
+    # login #
     def ventana_login(self):
         from ventanas.login import Ui_loginWindow
 
@@ -156,26 +141,22 @@ class App:
         self.login_ui = Ui_loginWindow()
         self.login_ui.setupUi(self.win_login)
 
-        # 🔒 OCULTAR CONTRASEÑA EN EL LOGIN
+        # encriptar contraseña #
         self.login_ui.lineEdit_5.setEchoMode(QLineEdit.Password)
 
-        # Conectar botones a funciones
+        # Conectar botones a funciones #
         self.login_ui.pushButton_5.clicked.connect(self.intentar_login)  # Acceder
         self.login_ui.pushButton_6.clicked.connect(self.verificar_antes_de_registrar)  # Registrarse
 
         self.win_login.show()
 
-    # ===========================
-    # VERIFICACIÓN ANTES DE REGISTRAR
-    # ===========================
+    # verificacion antes de registrar #
     def verificar_antes_de_registrar(self):
         dialog = VerificacionClave(self.win_login)
         if dialog.exec() == QDialog.Accepted:
             self.abrir_registro_taquillero()
 
-    # ===========================
-    # LOGIN
-    # ===========================
+    # login #
     def intentar_login(self):
         usuario = self.login_ui.lineEdit_4.text().strip()
         contrasena = self.login_ui.lineEdit_5.text().strip()
@@ -202,9 +183,7 @@ class App:
         else:
             QMessageBox.critical(self.win_login, "Error", "Usuario o contraseña incorrectos")
 
-    # ===========================
-    # REGISTRO (CON TRANSICIÓN)
-    # ===========================
+    # registro #
     def abrir_registro_taquillero(self):
         nueva = self.win_registro_taquillero(retornar=True)
         self.transicion(self.win_login, nueva)
@@ -268,24 +247,18 @@ class App:
         else:
             w.show()
 
-    # ===========================
-    # VERIFICACIÓN ANTES DE REGISTRAR EN BD
-    # ===========================
+    # verificacion antes de registrar #
     def verificar_antes_de_registrar_bd(self, ventana):
         dialog = VerificacionClave(ventana)
         if dialog.exec() == QDialog.Accepted:
             self.registrar(ventana)
 
-    # ===========================
-    # VOLVER A LOGIN (CON ANIMACIÓN)
-    # ===========================
+    # regresar al login #
     def recrear_login(self):
         self.ventana_login()
         return self.win_login
 
-    # ===========================
-    # REGISTRAR BD
-    # ===========================
+    # registrar BD#
     def registrar(self, ventana):
         nombre = self.entradas["Nombre"].text().strip()
         ap1 = self.entradas["Primer Apellido"].text().strip()
@@ -307,8 +280,5 @@ class App:
         else:
             QMessageBox.critical(None, "Error", f"No se pudo registrar: {err}")
 
-# ===========================
-# 🚀 Ejecutar app
-# ===========================
 if __name__ == "__main__":
     App()
