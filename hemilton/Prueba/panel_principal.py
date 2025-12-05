@@ -560,11 +560,11 @@ class PanelPrincipal(QMainWindow):
 
     def abrir_venta(self):
         try:
-            self.ventana_venta = VentanaVentaBoletos()
+            # Pasar el usuario actual a la ventana de venta
+            self.ventana_venta = VentanaVentaBoletos(taquillero_data=self.usuario_actual)
             self.ventana_venta.show()
         except Exception as e:
             QMessageBox.critical(self, "Error", f"No se pudo abrir venta de boletos:\n{e}")
-
     def toggle_menu(self):
         if self.animation.state() == QPropertyAnimation.Running:
             return

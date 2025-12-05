@@ -103,8 +103,13 @@ class FlowLayout(__import__('PySide6.QtWidgets', fromlist=['QLayout']).QLayout):
 
 ## Main ##
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, taquillero_data=None):  # ⭐ CORREGIDO: Agregar parámetro
         super().__init__()
+        
+        # ⭐ NUEVO: Guardar datos del taquillero
+        self.taquillero_data = taquillero_data or {}
+        self.terminal_taquillero = None
+        
         self.setWindowTitle("Rutas Baja Express")
         self.resize(1100, 760)
 
@@ -194,16 +199,6 @@ class MainWindow(QMainWindow):
         flow_container = QWidget()
         flow = FlowLayout(flow_container, margin=0, spacing=4)
 
-        ## Función de placeholder ##
-        def setupComboPlaceholder(combo, placeholder):
-            combo.insertItem(0, placeholder)
-            combo.setCurrentIndex(0)
-            combo.view().setRowHidden(0, True)
-            combo.setStyleSheet("QComboBox { color:#888; }")
-            combo.currentIndexChanged.connect(
-                lambda i: combo.setStyleSheet("QComboBox { color:black; }" if i!=0 else "QComboBox { color:#888; }")
-            )
-
         ## ORIGEN ##
         self.cb_origin = QComboBox()
         self.cb_origin.setStyleSheet("QComboBox { color:black; }")
@@ -288,16 +283,57 @@ class MainWindow(QMainWindow):
         back.clicked.connect(self.close)
         root.addWidget(back,alignment=Qt.AlignLeft)
 
-        # Cargar origenes y destinos #
+        # ⭐ ORDEN CORRECTO DE CARGA
+        # 1. Cargar terminales disponibles
         self.cargar_terminales()
+        
+        # 2. Establecer terminal del taquillero como origen
+        self.cargar_terminal_taquillero()
+        
+        # 3. Buscar viajes desde la terminal del taquillero
+        if self.terminal_taquillero:
+            self.buscar_viajes()
+        else:
+            self.cargar_viajes_futuros()
 
-        # Conectar búsqueda #
-        btn.clicked.connect(self.buscar_viajes)
+    # ⭐ NUEVO MÉTODO: Cargar terminal del taquillero
+    def cargar_terminal_taquillero(self):
+        """Carga la terminal asignada al taquillero y la establece como origen por defecto"""
+        if not self.taquillero_data:
+            return
+        
+        registro_taquillero = self.taquillero_data.get('registro')
+        if not registro_taquillero:
+            return
+        
+        try:
+            conn = crear_conexion()
+            cursor = conn.cursor(dictionary=True)
+            
+            query = """
+            SELECT t.nombre AS terminal_nombre
+            FROM taquillero taq
+            JOIN terminal t ON taq.terminal = t.numero
+            WHERE taq.registro = %s
+            """
+            cursor.execute(query, (registro_taquillero,))
+            resultado = cursor.fetchone()
+            
+            if resultado:
+                self.terminal_taquillero = resultado['terminal_nombre']
+                
+                # Establecer en el combo de origen
+                index = self.cb_origin.findText(self.terminal_taquillero, Qt.MatchFixedString)
+                if index >= 0:
+                    self.cb_origin.setCurrentIndex(index)
+            
+            cursor.close()
+            conn.close()
+            
+        except Exception as e:
+            print(f"Error al cargar terminal del taquillero: {e}")
 
-        # Mostrar todos los viajes futuros al inicio #
-        self.cargar_viajes_futuros()
-
-    # Consulta para terminales #
+    # ⭐ MODIFICADO: Eliminar establecer Tijuana por defecto
     def cargar_terminales(self):
         try:
             conn = crear_conexion()
@@ -305,15 +341,13 @@ class MainWindow(QMainWindow):
             cursor.execute("SELECT nombre FROM terminal ORDER BY nombre")
             nombres = [row[0] for row in cursor.fetchall()]
             
-            # Cargar origen #
+            # Cargar origen
             self.cb_origin.addItems(nombres)
             
-            # Dejar Tijuana como defecto #
-            tijuana_index = self.cb_origin.findText("Tijuana", Qt.MatchFixedString)
-            if tijuana_index >= 0:
-                self.cb_origin.setCurrentIndex(tijuana_index)
+            # ❌ ELIMINADO: No establecer Tijuana por defecto
+            # Se establecerá la terminal del taquillero después
             
-            # Cargar destinos #
+            # Cargar destinos
             self.cb_dest.addItems(nombres)
             
             cursor.close()
@@ -321,8 +355,8 @@ class MainWindow(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self,"Error",f"No se pudieron cargar terminales:\n{e}")
 
-    # Mostrar viajes #
     def cargar_viajes_futuros(self):
+        """Muestra todos los viajes futuros"""
         for i in reversed(range(self.scroll_layout.count()-1)):
             item = self.scroll_layout.itemAt(i).widget()
             if item:
@@ -361,8 +395,8 @@ class MainWindow(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error", f"No se pudieron cargar los viajes:\n{e}")
 
-    # Buscar viajes y aplicar filtros
     def buscar_viajes(self):
+        """Busca viajes según los filtros seleccionados"""
         origen = self.cb_origin.currentText() if self.cb_origin.currentText() else None
         destino_texto = self.cb_dest.currentText()
         destino = None if destino_texto == "Todas" else destino_texto
@@ -395,7 +429,6 @@ class MainWindow(QMainWindow):
                 """
                 cursor.execute(query, (origen, origen, destino, destino, fecha_seleccionada))
             else:
-                ## Búsqueda con fechas cercanas ##
                 query = """
                 SELECT v.numero AS viaje_num, v.fecHoraSalida, v.fecHoraEntrada, 
                        t_origen.nombre AS origen, t_destino.nombre AS destino,
@@ -429,7 +462,6 @@ class MainWindow(QMainWindow):
                 conn.close()
                 return
 
-            ## Mostrar mensaje si se encontraron viajes cercanos ##
             if not fecha_exacta and len(resultados) > 0:
                 primer_viaje = resultados[0]
                 fecha_encontrada = primer_viaje['fecHoraSalida'].date()
@@ -448,24 +480,23 @@ class MainWindow(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error", f"No se pudieron cargar los viajes:\n{e}")
 
-    ## Carta de viaje ##
     def _make_trip_card(self, viaje):
+        """Crea una tarjeta visual para un viaje"""
         card = QFrame()
         card.setStyleSheet("background:white;border-radius:10px;")
         layout = QHBoxLayout(card)
         layout.setContentsMargins(12,12,12,12)
 
-        # Imagen #
+        # Imagen
         img = QLabel()
         img.setFixedSize(140,90)
         pixmap = QPixmap(":/recursos/camiona.png").scaled(140,90,Qt.KeepAspectRatio,Qt.SmoothTransformation)
         img.setPixmap(pixmap)
         layout.addWidget(img)
 
-        # Info #
+        # Info
         center = QVBoxLayout()
         
-        # Fecha del viaje en la parte superior #
         fecha_viaje_top = QLabel(viaje['fecHoraSalida'].strftime("%d/%m/%Y"))
         fecha_viaje_top.setStyleSheet("color:#0a79b7;font-weight:bold;font-size:12px;")
         fecha_viaje_top.setAlignment(Qt.AlignCenter)
@@ -481,7 +512,6 @@ class MainWindow(QMainWindow):
         top.addWidget(h2)
         center.addLayout(top)
 
-        # Calcular duración real del viaje #
         duracion_calculada = viaje['fecHoraEntrada'] - viaje['fecHoraSalida']
         horas = duracion_calculada.total_seconds() // 3600
         minutos = (duracion_calculada.total_seconds() % 3600) // 60
@@ -495,7 +525,6 @@ class MainWindow(QMainWindow):
         bottom.addWidget(QLabel(viaje['origen']))
         bottom.addStretch()
         
-        # Duración calculada del viaje #
         duracion_label = QLabel(duracion_texto)
         duracion_label.setStyleSheet("color:#E86A1E;font-weight:bold;font-size:13px;")
         bottom.addWidget(duracion_label)
@@ -505,7 +534,7 @@ class MainWindow(QMainWindow):
         center.addLayout(bottom)
         layout.addLayout(center,stretch=1)
 
-        # Precio y botón #
+        # Precio y botón
         price_l = QVBoxLayout()
         total = viaje['precio']
         price = QLabel(f"${total:.2f} MXN")
@@ -522,8 +551,8 @@ class MainWindow(QMainWindow):
 
         return card
 
-    # Asientos ##
     def abrir_asientos(self, id_viaje, num_pasajeros=1):
+        """Abre la ventana de selección de asientos"""
         self.ventana_asiento = VentanaAsientos(id_viaje, num_pasajeros)
         
         self.ventana_asiento.asientos_seleccionados.connect(
@@ -533,7 +562,6 @@ class MainWindow(QMainWindow):
             )
         )
         
-        # Mostrar ventana #
         self.ventana_asiento.show()
 
 def main():

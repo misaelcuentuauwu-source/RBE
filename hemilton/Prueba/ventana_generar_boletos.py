@@ -39,7 +39,7 @@ class TicketCanvas(QFrame):
 
     def set_datos(self, datos):
         """Actualiza los datos del boleto con la nueva estructura"""
-        self.numero_boleto = str(datos.get('numero_viaje', '000000'))  # Solo número de viaje
+        self.numero_boleto = str(datos.get('numero_viaje', '000000'))
         self.terminal_origen = datos.get('terminal_origen', 'Terminal Origen')
         self.terminal_destino = datos.get('terminal_destino', 'Terminal Destino')
         self.ciudad_origen = datos.get('ciudad_origen', 'Ciudad Origen')
@@ -92,21 +92,21 @@ class TicketCanvas(QFrame):
         painter.setFont(QFont("Courier", 14, QFont.Bold))
         painter.drawText(QRect(100, 60, 300, 25), Qt.AlignLeft, self.numero_boleto)
 
-        # Terminales de origen y destino
+        # ⭐ CAMBIO: Mostrar ORIGEN y DESTINO con nombres de ciudades
         y_offset = 100
         painter.setPen(self.color_texto)
         painter.setFont(QFont("Arial", 8, QFont.Bold))
 
         # Origen
-        painter.drawText(QRect(margen, y_offset, 100, 20), Qt.AlignLeft, "TERMINAL ORIGEN:")
+        painter.drawText(QRect(margen, y_offset, 100, 20), Qt.AlignLeft, "ORIGEN:")
         painter.setFont(QFont("Arial", 12, QFont.Bold))
-        painter.drawText(QRect(margen, y_offset+15, 180, 25), Qt.AlignLeft, self.terminal_origen)
+        painter.drawText(QRect(margen, y_offset+15, 180, 25), Qt.AlignLeft, self.ciudad_origen)
 
         # Destino
         painter.setFont(QFont("Arial", 8, QFont.Bold))
-        painter.drawText(QRect(izq_w-180, y_offset, 100, 20), Qt.AlignLeft, "TERMINAL DESTINO:")
+        painter.drawText(QRect(izq_w-180, y_offset, 100, 20), Qt.AlignLeft, "DESTINO:")
         painter.setFont(QFont("Arial", 12, QFont.Bold))
-        painter.drawText(QRect(izq_w-180, y_offset+15, 180, 25), Qt.AlignLeft, self.terminal_destino)
+        painter.drawText(QRect(izq_w-180, y_offset+15, 180, 25), Qt.AlignLeft, self.ciudad_destino)
 
         y_offset += 45
 
@@ -118,16 +118,16 @@ class TicketCanvas(QFrame):
         painter.drawText(QRect(margen, y_offset, 80, 20), Qt.AlignLeft, "SALIDA:")
         painter.setFont(QFont("Arial", 10))
         fecha_salida = self.fecha_salida.split()
-        painter.drawText(QRect(margen, y_offset+15, 120, 20), Qt.AlignLeft, fecha_salida[0])  # Fecha
-        painter.drawText(QRect(margen, y_offset+30, 120, 20), Qt.AlignLeft, fecha_salida[1])  # Hora
+        painter.drawText(QRect(margen, y_offset+15, 120, 20), Qt.AlignLeft, fecha_salida[0])
+        painter.drawText(QRect(margen, y_offset+30, 120, 20), Qt.AlignLeft, fecha_salida[1])
 
         # Llegada
         painter.setFont(QFont("Arial", 8, QFont.Bold))
         painter.drawText(QRect(izq_w-180, y_offset, 80, 20), Qt.AlignLeft, "LLEGADA:")
         painter.setFont(QFont("Arial", 10))
         fecha_llegada = self.fecha_llegada.split()
-        painter.drawText(QRect(izq_w-180, y_offset+15, 120, 20), Qt.AlignLeft, fecha_llegada[0])  # Fecha
-        painter.drawText(QRect(izq_w-180, y_offset+30, 120, 20), Qt.AlignLeft, fecha_llegada[1])  # Hora
+        painter.drawText(QRect(izq_w-180, y_offset+15, 120, 20), Qt.AlignLeft, fecha_llegada[0])
+        painter.drawText(QRect(izq_w-180, y_offset+30, 120, 20), Qt.AlignLeft, fecha_llegada[1])
 
         y_offset += 55
 
@@ -213,6 +213,7 @@ class TicketCanvas(QFrame):
             painter.drawLine(x, y_talon+5, x, y_talon+altura)
 
         painter.end()
+
     def exportar_imagen(self):
         """Exporta el boleto como imagen (PNG)"""
         image = QImage(self.size(), QImage.Format_ARGB32)
@@ -223,7 +224,6 @@ class TicketCanvas(QFrame):
         painter.end()
 
         return image
-
 class VentanaGenerarBoletos(QWidget):
     def __init__(self, pasajeros_info=None, id_viaje=None):
         super().__init__()
