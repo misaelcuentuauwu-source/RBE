@@ -312,6 +312,31 @@ class PanelAdministrador(QMainWindow):
 
         ## Pagina de configuracion ##
         self.page_config = QWidget()
+        self.page_config.setStyleSheet("""
+            QWidget {
+                background: #f2f2f2;
+                color: #222;
+            }
+
+            QLabel {
+                font-size: 11pt;
+                font-weight: 600;
+                color: #333;
+            }
+
+            QLineEdit {
+                background: white;
+                color: #222;
+                border: 1px solid #ccc;
+                border-radius: 6px;
+                padding: 8px;
+                min-height: 28px;
+            }
+
+            QLineEdit:focus {
+                border: 2px solid #1181c3;
+            }
+        """)
         cfg_ly = QVBoxLayout(self.page_config)
         cfg_ly.setContentsMargins(18,18,18,18)
         cfg_title = QLabel("Configuración de Usuario")

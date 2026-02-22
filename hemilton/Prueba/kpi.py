@@ -87,7 +87,7 @@ class KPIWindow(QWidget):
 
         ## Tabla central que mostrará los datos ##
         self.table = QTableWidget()
-        self.table.setAlternatingRowColors(True)
+        self.table.setAlternatingRowColors(False)
         self.table.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         
         ## Acomodar columnas de tablas ##
