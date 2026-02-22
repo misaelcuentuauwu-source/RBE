@@ -19,7 +19,7 @@ def actualizar_taquillero_bd(registro, usuario, contrasena):
         cur = cn.cursor()
         cur.execute("""
             UPDATE taquillero
-            SET usuario=%s, contraseña=%s
+            SET usuario=%s, contrasena=%s
             WHERE registro=%s
         """, (usuario, contrasena, registro))
         cn.commit()
@@ -385,7 +385,7 @@ class PanelPrincipal(QMainWindow):
             config_card_layout.addWidget(widget)
 
         self.config_usuario = QLineEdit(self.usuario_actual.get('usuario',''))
-        self.config_pass = QLineEdit(self.usuario_actual.get('contraseña',''))
+        self.config_pass = QLineEdit(self.usuario_actual.get('contrasena',''))
         self.config_pass.setEchoMode(QLineEdit.Password)
 
         add_field_editable("👤 Usuario:", self.config_usuario)
@@ -483,7 +483,7 @@ class PanelPrincipal(QMainWindow):
         )
         if ok:
             QMessageBox.information(self, "Éxito", "Datos actualizados correctamente")
-            self.usuario_actual.update({'usuario': usuario, 'contraseña': contrasena})
+            self.usuario_actual.update({'usuario': usuario, 'contrasena': contrasena})
             self.stacked.setCurrentWidget(self.page_dashboard)
         else:
             QMessageBox.critical(self, "Error", f"No se pudo actualizar: {err}")

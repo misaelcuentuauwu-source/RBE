@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RBE - Sistema de Boletos</title>
+    <link rel="stylesheet" href="qr.css">
+</head>
+<body>
+    <div class="container">
+        
+        <!-- FORMULARIO DE COMPRA -->
+        <div id="compra" class="card">
+            <div class="header-logo">
+                <div class="bus-icon">🚌</div>
+                <div>
+                    <h1>RUTAS BAJA EXPRESS</h1>
+                    <p>RBE - Sistema de Boletos</p>
+                </div>
+            </div>
+
+            <div class="form">
+                <h2>Comprar Boleto</h2>
+                
+                <label>Ruta:</label>
+                <select id="ruta" class="input">
+                    <option value="">Selecciona una ruta...</option>
+                </select>
+
+                <label>Fecha:</label>
+                <input type="date" id="fecha" class="input">
+
+                <button onclick="buscarViajes()" class="btn">Buscar Viajes</button>
+
+                <div id="viajes"></div>
+                <div id="asientos"></div>
+
+                <div id="datos" class="hidden">
+                    <h3>Datos del Pasajero</h3>
+                    <input type="text" id="nombre" placeholder="Nombre" class="input">
+                    <input type="text" id="apellido" placeholder="Apellido" class="input">
+                    <input type="date" id="fechaNac" placeholder="Fecha Nacimiento" class="input">
+                    
+                    <label>Tipo de Pasajero:</label>
+                    <select id="tipo" class="input">
+                        <option value="">Selecciona tipo...</option>
+                    </select>
+
+                    <div class="total-box">
+                        <div class="total-label">Total a Pagar:</div>
+                        <div class="total-precio" id="precio">$0.00</div>
+                    </div>
+
+                    <button onclick="comprar()" class="btn btn-grande">COMPRAR BOLETO</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- BOLETO GENERADO -->
+        <div id="boleto" class="hidden">
+            <div class="ticket-wrapper">
+                <!-- PARTE PRINCIPAL DEL BOLETO -->
+                <div class="ticket-main">
+                    <!-- Encabezado -->
+                    <div class="ticket-header">
+                        <div class="bus-logo">🚌</div>
+                        <div class="header-text">
+                            <div class="company-name">RUTAS BAJA EXPRESS</div>
+                            <div class="rbe-text">RBE</div>
+                            <div class="ticket-number">Boleto: <span id="bNum"></span></div>
+                        </div>
+                    </div>
+
+                    <!-- Origen y Destino -->
+                    <div class="route-section">
+                        <div class="route-point">
+                            <div class="point-label">ORIGEN</div>
+                            <div class="point-city" id="bOrigen"></div>
+                        </div>
+                        <div class="route-arrow">→</div>
+                        <div class="route-point">
+                            <div class="point-label">DESTINO</div>
+                            <div class="point-city" id="bDestino"></div>
+                        </div>
+                    </div>
+
+                    <!-- Fechas -->
+                    <div class="dates-section">
+                        <div class="date-box">
+                            <div class="date-label">SALIDA</div>
+                            <div class="date-value" id="bFechaSalida"></div>
+                            <div class="date-time" id="bHoraSalida"></div>
+                        </div>
+                        <div class="date-box">
+                            <div class="date-label">LLEGADA</div>
+                            <div class="date-value" id="bFechaLlegada"></div>
+                            <div class="date-time" id="bHoraLlegada"></div>
+                        </div>
+                    </div>
+
+                    <!-- Asiento y Precio -->
+                    <div class="bottom-section">
+                        <div class="seat-box">
+                            <div class="seat-label">ASIENTO</div>
+                            <div class="seat-number" id="bAsiento"></div>
+                        </div>
+                        <div class="price-box">
+                            <div class="price-label">PRECIO</div>
+                            <div class="price-value" id="bPrecio"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TALÓN (parte derecha) -->
+                <div class="ticket-stub">
+                    <div class="stub-header">
+                        <div class="stub-logo">🚌</div>
+                        <div class="stub-text">
+                            <div>RBE</div>
+                            <div style="font-size: 10px;" id="bNumStub"></div>
+                        </div>
+                    </div>
+
+                    <div class="stub-info">
+                        <div class="stub-label">PASAJERO</div>
+                        <div class="stub-value" id="bPasajero"></div>
+                    </div>
+
+                    <div class="stub-info">
+                        <div class="stub-label">TIPO</div>
+                        <div class="stub-value" id="bTipo"></div>
+                    </div>
+
+                    <div class="stub-route">
+                        <span id="bOrigenStub"></span> → <span id="bDestinoStub"></span>
+                    </div>
+
+                    <div class="stub-seat">
+                        <div style="font-size: 10px; margin-bottom: 5px;">ASIENTO</div>
+                        <div style="font-size: 24px; font-weight: bold;" id="bAsientoStub"></div>
+                    </div>
+
+                    <div class="stub-barcode">
+                        <div id="barcode"></div>
+                    </div>
+
+                    <div class="qr-section">
+                        <img id="qrCode" src="" alt="QR">
+                        <div class="qr-text">Escanea para verificar</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones -->
+            <div class="action-buttons">
+                <button onclick="window.print()" class="btn btn-print">🖨️ IMPRIMIR</button>
+                <button onclick="location.reload()" class="btn btn-new">🎫 NUEVO BOLETO</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="qr.js"></script>
+</body>
+</html>

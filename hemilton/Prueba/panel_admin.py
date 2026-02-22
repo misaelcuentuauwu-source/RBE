@@ -20,7 +20,7 @@ def actualizar_taquillero_bd(registro, nombre, ap1, ap2, usuario, contrasena):
         cur.execute("""
             UPDATE taquillero
             SET taqNombre=%s, taqPrimerApell=%s, taqSegundoApell=%s,
-                usuario=%s, contraseña=%s
+                usuario=%s, contrasena=%s
             WHERE registro=%s
         """, (nombre, ap1, ap2, usuario, contrasena, registro))
         cn.commit()
@@ -135,9 +135,6 @@ class PanelAdministrador(QMainWindow):
         sa_layout.addWidget(self.btn_salidas)
 
         # Boton para agregar viajes ##
-        self.btn_agregar_viaje = make_nav("Agregar Viaje")
-        sa_layout.addWidget(self.btn_agregar_viaje)
-
         self.btn_historial = make_nav("Historial de Viajes")
         sa_layout.addWidget(self.btn_historial)
 
@@ -334,7 +331,7 @@ class PanelAdministrador(QMainWindow):
         self.cfg_user = QLineEdit(self.usuario_actual.get('usuario',''))
         cfg_ly.addWidget(self.cfg_user)
         cfg_ly.addWidget(QLabel("Contraseña:"))
-        self.cfg_pass = QLineEdit(self.usuario_actual.get('contraseña',''))
+        self.cfg_pass = QLineEdit(self.usuario_actual.get('contrasena',''))
         self.cfg_pass.setEchoMode(QLineEdit.Password)
         cfg_ly.addWidget(self.cfg_pass)
 
@@ -367,7 +364,6 @@ class PanelAdministrador(QMainWindow):
         self.btn_logout.clicked.connect(self.cerrar_sesion)
         btn_save.clicked.connect(self._guardar_config)
         self.btn_salidas.clicked.connect(lambda: self.stacked.setCurrentWidget(self.page_inicio))
-        self.btn_agregar_viaje.clicked.connect(self.open_add_trip_dialog)  # Conexión del nuevo botón
 
 
         self.show()
@@ -954,7 +950,7 @@ class PanelAdministrador(QMainWindow):
         if ok:
             QMessageBox.information(self, "Éxito", "Datos actualizados correctamente")
             self.usuario_actual.update({
-                'taqNombre': nombre, 'taqPrimerApell': ap1, 'taqSegundoApell': ap2, 'usuario': usuario, 'contraseña': contrasena
+                'taqNombre': nombre, 'taqPrimerApell': ap1, 'taqSegundoApell': ap2, 'usuario': usuario, 'contrasena': contrasena
             })
             self.lbl_user.setText(f"Hola, {nombre} {ap1}")
             self.stacked.setCurrentWidget(self.page_dashboard)

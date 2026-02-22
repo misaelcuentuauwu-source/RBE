@@ -518,7 +518,7 @@ class ProgramacionWindow(QWidget):
         mo.nombre AS model,
         ma.nombre AS brand,
         mo.numasientos AS seats_count,
-        mo.`año` AS year,
+        mo.`ano` AS year,
 
         CONCAT(
             c.conNombre, ' ',

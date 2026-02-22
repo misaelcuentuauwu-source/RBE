@@ -598,7 +598,7 @@ class KPIWindow(QWidget):
                     a.numero AS bus_number,
                     a.placas AS placas,
                     mo.nombre AS modelo_nombre,
-                    mo.año AS modelo_año,
+                    mo.ano AS modelo_año,
                     mo.numasientos AS numasientos,
                     m.nombre AS marca_nombre
                 FROM viaje v

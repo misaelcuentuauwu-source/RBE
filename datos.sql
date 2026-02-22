@@ -1,4 +1,4 @@
--- Active: 1760982247071@@127.0.0.1@3306@rbe
+-- Active: 1760978807635@@127.0.0.1@3306@rbe
 
 INSERT INTO `marca` (`numero`, `nombre`) VALUES
 (1, 'Volvo'),
@@ -1934,3 +1934,5 @@ INSERT INTO `ticket` (`codigo`, `precio`, `fechaEmision`, `asiento`, `viaje`, `p
 (211, 90.00, '2025-12-01 18:55:16', 40, 14, 210, 1, 95),
 (212, 90.00, '2025-12-01 18:55:16', 39, 14, 211, 1, 95);
 --fin
+
+

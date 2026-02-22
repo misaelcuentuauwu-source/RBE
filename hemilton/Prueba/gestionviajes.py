@@ -877,7 +877,7 @@ class MainWindow(QMainWindow):
                     mo.nombre AS model,
                     ma.nombre AS brand,
                     mo.numasientos AS seats_count,
-                    mo.`año` AS year,
+                    mo.`ano` AS year,
                     CONCAT(c.conNombre, ' ', c.conPrimerApell, ' ', COALESCE(c.conSegundoApell, '')) AS operator,
                     (SELECT COUNT(*) FROM ticket t WHERE t.viaje = v.numero) AS passengers_count,
                     v.estado AS estado

@@ -1,0 +1,584 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* ===== FORMULARIO ===== */
+.card {
+    background: white;
+    border-radius: 15px;
+    padding: 40px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.header-logo {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 3px solid #0074B7;
+}
+
+.bus-icon {
+    font-size: 3em;
+}
+
+.header-logo h1 {
+    font-size: 1.8em;
+    color: #0074B7;
+    margin-bottom: 5px;
+}
+
+.header-logo p {
+    color: #666;
+    font-size: 0.9em;
+}
+
+.form h2 {
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.form h3 {
+    color: #0074B7;
+    margin: 30px 0 15px 0;
+}
+
+.form label {
+    display: block;
+    margin: 15px 0 5px 0;
+    color: #333;
+    font-weight: bold;
+}
+
+.input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 1em;
+    margin-bottom: 10px;
+}
+
+.input:focus {
+    outline: none;
+    border-color: #0074B7;
+}
+
+.btn {
+    width: 100%;
+    background: #0074B7;
+    color: white;
+    padding: 15px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1em;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.btn:hover {
+    background: #005a8f;
+}
+
+.btn-grande {
+    font-size: 1.3em;
+    padding: 20px;
+    background: #10b981;
+}
+
+.btn-grande:hover {
+    background: #059669;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Viajes */
+.viaje-card {
+    background: #f8f9fa;
+    padding: 20px;
+    margin: 15px 0;
+    border-radius: 12px;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: all 0.3s;
+}
+
+.viaje-card:hover {
+    border-color: #0074B7;
+    transform: translateY(-2px);
+}
+
+.viaje-card.selected {
+    border-color: #0074B7;
+    background: #e0e7ff;
+}
+
+.viaje-hora {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: #0074B7;
+    margin-bottom: 5px;
+}
+
+/* Asientos */
+.asientos-titulo {
+    margin: 25px 0 15px 0;
+    font-size: 1.3em;
+    color: #333;
+    text-align: center;
+}
+
+.asientos-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    max-width: 400px;
+    margin: 20px auto;
+    padding: 25px;
+    background: #f8f9fa;
+    border-radius: 15px;
+}
+
+.asiento {
+    aspect-ratio: 1;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: 3px solid #ddd;
+}
+
+.asiento.disponible {
+    background: #10b981;
+    color: white;
+    border-color: #10b981;
+}
+
+.asiento.disponible:hover {
+    transform: scale(1.15);
+    box-shadow: 0 5px 20px rgba(16,185,129,0.5);
+}
+
+.asiento.ocupado {
+    background: #ef4444;
+    color: white;
+    cursor: not-allowed;
+    opacity: 0.5;
+    border-color: #ef4444;
+}
+
+.asiento.seleccionado {
+    background: #0074B7;
+    color: white;
+    transform: scale(1.2);
+    border-color: #0074B7;
+    box-shadow: 0 8px 25px rgba(0,116,183,0.6);
+}
+
+/* Total */
+.total-box {
+    background: linear-gradient(135deg, #0074B7 0%, #005a8f 100%);
+    color: white;
+    padding: 25px;
+    border-radius: 15px;
+    text-align: center;
+    margin: 25px 0;
+}
+
+.total-label {
+    font-size: 1.1em;
+    margin-bottom: 10px;
+}
+
+.total-precio {
+    font-size: 2.5em;
+    font-weight: bold;
+}
+
+/* ===== BOLETO IMPRIMIBLE ===== */
+#boleto {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.ticket-wrapper {
+    display: flex;
+    background: white;
+    border: 3px solid #ccc;
+    border-radius: 15px;
+    overflow: hidden;
+    max-width: 900px;
+    margin: 0 auto 30px auto;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+/* Parte principal del boleto */
+.ticket-main {
+    flex: 1;
+    padding: 25px;
+    background: white;
+    border-right: 3px dashed #ccc;
+}
+
+.ticket-header {
+    background: #0074B7;
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+.bus-logo {
+    font-size: 3em;
+    background: white;
+    border-radius: 12px;
+    padding: 10px;
+    width: 70px;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.header-text {
+    flex: 1;
+}
+
+.company-name {
+    font-size: 1.4em;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.rbe-text {
+    font-size: 1.1em;
+    font-weight: bold;
+    letter-spacing: 3px;
+}
+
+.ticket-number {
+    font-size: 1em;
+    margin-top: 5px;
+}
+
+/* Ruta */
+.route-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 25px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 12px;
+}
+
+.route-point {
+    flex: 1;
+    text-align: center;
+}
+
+.point-label {
+    font-size: 0.8em;
+    font-weight: bold;
+    color: #666;
+    margin-bottom: 8px;
+}
+
+.point-city {
+    font-size: 1.4em;
+    font-weight: bold;
+    color: #0074B7;
+}
+
+.route-arrow {
+    font-size: 2em;
+    color: #0074B7;
+}
+
+/* Fechas */
+.dates-section {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+.date-box {
+    flex: 1;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.date-label {
+    font-size: 0.75em;
+    font-weight: bold;
+    color: #666;
+    margin-bottom: 8px;
+}
+
+.date-value {
+    font-size: 1em;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.date-time {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #0074B7;
+}
+
+/* Asiento y Precio */
+.bottom-section {
+    display: flex;
+    gap: 15px;
+}
+
+.seat-box {
+    flex: 1;
+    background: #E86A1E;
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.seat-label {
+    font-size: 0.9em;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.seat-number {
+    font-size: 2.5em;
+    font-weight: bold;
+}
+
+.price-box {
+    flex: 1;
+    border: 3px solid #0074B7;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+}
+
+.price-label {
+    font-size: 0.9em;
+    font-weight: bold;
+    color: #0074B7;
+    margin-bottom: 10px;
+}
+
+.price-value {
+    font-size: 2em;
+    font-weight: bold;
+    color: #0074B7;
+}
+
+/* Talón */
+.ticket-stub {
+    width: 280px;
+    padding: 20px;
+    background: #f5f5f5;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.stub-header {
+    background: #0074B7;
+    color: white;
+    padding: 15px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.stub-logo {
+    font-size: 2em;
+}
+
+.stub-text {
+    font-weight: bold;
+}
+
+.stub-info {
+    padding: 10px;
+    background: white;
+    border-radius: 8px;
+}
+
+.stub-label {
+    font-size: 0.75em;
+    font-weight: bold;
+    color: #666;
+    margin-bottom: 5px;
+}
+
+.stub-value {
+    font-size: 1em;
+    font-weight: bold;
+    color: #333;
+}
+
+.stub-route {
+    text-align: center;
+    font-weight: bold;
+    color: #E86A1E;
+    padding: 10px;
+    background: white;
+    border-radius: 8px;
+}
+
+.stub-seat {
+    background: #0074B7;
+    color: white;
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.stub-barcode {
+    height: 40px;
+    background: white;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+#barcode {
+    display: flex;
+    gap: 2px;
+}
+
+.bar {
+    width: 3px;
+    background: #000;
+    height: 30px;
+}
+
+/* QR */
+.qr-section {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.qr-section img {
+    max-width: 150px;
+    border: 3px solid #0074B7;
+    border-radius: 10px;
+}
+
+.qr-text {
+    margin-top: 10px;
+    font-size: 0.8em;
+    color: #666;
+    font-weight: bold;
+}
+
+/* Botones de acción */
+.action-buttons {
+    display: flex;
+    gap: 20px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.btn-print {
+    background: #10b981;
+}
+
+.btn-print:hover {
+    background: #059669;
+}
+
+.btn-new {
+    background: #6b7280;
+}
+
+.btn-new:hover {
+    background: #4b5563;
+}
+
+/* Print */
+@media print {
+    body {
+        background: white;
+        padding: 0;
+    }
+    
+    .action-buttons {
+        display: none;
+    }
+    
+    #boleto {
+        box-shadow: none;
+        padding: 0;
+    }
+    
+    .ticket-wrapper {
+        box-shadow: none;
+        page-break-inside: avoid;
+    }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .ticket-wrapper {
+        flex-direction: column;
+    }
+    
+    .ticket-main {
+        border-right: none;
+        border-bottom: 3px dashed #ccc;
+    }
+    
+    .ticket-stub {
+        width: 100%;
+    }
+    
+    .route-section {
+        flex-direction: column;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+}

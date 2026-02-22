@@ -24,7 +24,7 @@ def iniciar_sesion_bd(usuario, contrasena):
         cur = cn.cursor(dictionary=True)
         cur.execute("""
             SELECT * FROM taquillero
-            WHERE usuario=%s AND contraseña=%s
+            WHERE usuario=%s AND contrasena=%s
         """, (usuario, contrasena))
         row = cur.fetchone()
         cur.close()
@@ -42,7 +42,7 @@ def registrar_taquillero_bd(nombre, ap1, ap2, usuario, contrasena, terminal=1, s
         cur.execute("""
             INSERT INTO taquillero
             (taqNombre, taqPrimerApell, taqSegundoApell,
-             fechaContrato, usuario, contraseña, terminal, supervisa)
+             fechaContrato, usuario, contrasena, terminal, supervisa)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """, (nombre, ap1, ap2, fecha_contrato, usuario, contrasena, terminal, supervisa))
         cn.commit()
