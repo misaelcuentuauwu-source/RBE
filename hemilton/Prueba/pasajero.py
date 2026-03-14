@@ -78,11 +78,11 @@ class VentanaRegistroPasajero(QWidget):
             cursor = conexion.cursor()
 
             query = """
-                INSERT INTO pasajero (paNombre, paPrimerApell, paSegundoApell, fechaNacimiento, edad)
-                VALUES (%s, %s, %s, %s, %s)
+             INSERT INTO pasajero (paNombre, paPrimerApell, paSegundoApell, fechaNacimiento)
+                VALUES (%s, %s, %s, %s)
             """
 
-            cursor.execute(query, (nombre, apep, apem if apem else None, nacimiento, edad))
+            cursor.execute(query, (nombre, apep, apem if apem else None, nacimiento))
             conexion.commit()
 
             pasajero_id = cursor.lastrowid

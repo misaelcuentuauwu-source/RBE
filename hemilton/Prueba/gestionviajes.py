@@ -271,7 +271,7 @@ class PassengersDialog(QDialog):
             t.codigo AS ticket_no,
             t.asiento AS seat_no
         FROM ticket t
-        INNER JOIN pasajero p ON t.pasajero = p.num
+        INNER JOIN vista_pasajeros_edad p ON t.pasajero = p.num
         INNER JOIN asiento a ON t.asiento = a.numero
         WHERE t.viaje = %s
         ORDER BY t.asiento ASC, p.paNombre ASC;
